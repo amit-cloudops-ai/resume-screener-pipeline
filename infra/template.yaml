@@ -202,6 +202,7 @@ Resources:
     Properties:
       QueueName: !Sub rs-${Stage}-parse-dlq
       MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 180
       SqsManagedSseEnabled: true
       Tags:
         - Key: Project
@@ -214,6 +215,7 @@ Resources:
     Properties:
       QueueName: !Sub rs-${Stage}-jd-dlq
       MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 180
       SqsManagedSseEnabled: true
       Tags:
         - Key: Project
@@ -226,6 +228,7 @@ Resources:
     Properties:
       QueueName: !Sub rs-${Stage}-score-dlq
       MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 180
       SqsManagedSseEnabled: true
       Tags:
         - Key: Project
@@ -319,7 +322,10 @@ Resources:
           PARSER_VERSION: !Ref ParserVersion
           CUSTOM_RECOGNIZER_ARN: !GetAtt CustomRecognizerParameter.Value
       Policies:
-        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-parse:*
         - SQSPollerPolicy:
             QueueName: !GetAtt ParseQueue.QueueName
         - SQSSendMessagePolicy:
@@ -366,7 +372,10 @@ Resources:
           PARSER_VERSION: !Ref ParserVersion
           CUSTOM_RECOGNIZER_ARN: !GetAtt CustomRecognizerParameter.Value
       Policies:
-        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-jd-parse:*
         - SQSPollerPolicy:
             QueueName: !GetAtt JdQueue.QueueName
         - SQSSendMessagePolicy:
@@ -412,7 +421,10 @@ Resources:
           CANDIDATES_TABLE: !Ref CandidatesTable
           SCORER_VERSION: !Ref ScorerVersion
       Policies:
-        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-score:*
         - SQSPollerPolicy:
             QueueName: !GetAtt ScoreQueue.QueueName
         - Statement:
@@ -437,7 +449,10 @@ Resources:
       CodeUri: ../backend/parsing/dlq_consumer/
       Timeout: 30
       Policies:
-        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-dlq-consumer:*
         - SQSPollerPolicy:
             QueueName: !GetAtt ParseDlq.QueueName
         - SQSPollerPolicy:
@@ -506,11 +521,17 @@ Resources:
           UPLOADS_BUCKET: !Ref UploadsBucket
           PARSER_VERSION: !Ref ParserVersion
       Policies:
-        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-jobs:*
         - Statement:
             - Effect: Allow
               Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query]
               Resource: !GetAtt JobsTable.Arn
+            - Effect: Allow
+              Action: [ssm:GetParameter]
+              Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rs/${Stage}/threshold-default
             - Effect: Allow
               Action: [s3:PutObject]
               Resource:
@@ -541,7 +562,10 @@ Resources:
         Variables:
           CANDIDATES_TABLE: !Ref CandidatesTable
       Policies:
-        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-candidates:*
         - Statement:
             - Effect: Allow
               Action: [dynamodb:GetItem, dynamodb:Query]
@@ -566,7 +590,10 @@ Resources:
           CANDIDATES_TABLE: !Ref CandidatesTable
           SES_SENDER: !Ref SesSender
       Policies:
-        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-decision:*
         - Statement:
             - Effect: Allow
               Action: [dynamodb:GetItem, dynamodb:UpdateItem]
@@ -593,7 +620,10 @@ Resources:
         Variables:
           CANDIDATES_TABLE: !Ref CandidatesTable
       Policies:
-        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-export:*
         - Statement:
             - Effect: Allow
               Action: [dynamodb:Query]
@@ -624,7 +654,10 @@ Resources:
           FAILED_TABLE: !Ref FailedJobsTable
           SCORE_QUEUE_URL: !Ref ScoreQueue
       Policies:
-        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-failed:*
         - SQSSendMessagePolicy:
             QueueName: !GetAtt ScoreQueue.QueueName
         - Statement:
