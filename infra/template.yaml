@@ -461,6 +461,32 @@ Resources:
             FunctionResponseTypes: [ReportBatchItemFailures]
 
   ApiJobsFunction:
+      Events:
+        ListJobs:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs
+            Method: GET
+        CreateJob:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs
+            Method: POST
+        GetJob:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}
+            Method: GET
+        CreateUploadUrls:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/uploads
+            Method: POST
+
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub rs-${Stage}-api-jobs
@@ -484,6 +510,20 @@ Resources:
                 - !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/resumes/*
 
   ApiCandidatesFunction:
+      Events:
+        ListCandidates:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/candidates
+            Method: GET
+        GetCandidate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/candidates/{candidate_id}
+            Method: GET
+
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub rs-${Stage}-api-candidates
@@ -500,6 +540,14 @@ Resources:
               Resource: !GetAtt CandidatesTable.Arn
 
   ApiDecisionFunction:
+      Events:
+        CandidateDecision:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/candidates/{candidate_id}/decision
+            Method: POST
+
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub rs-${Stage}-api-decision
@@ -520,6 +568,14 @@ Resources:
               Resource: !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${SesSender}
 
   ApiExportFunction:
+      Events:
+        ExportShortlist:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/shortlist.csv
+            Method: GET
+
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub rs-${Stage}-api-export
@@ -536,6 +592,20 @@ Resources:
               Resource: !GetAtt CandidatesTable.Arn
 
   ApiFailedFunction:
+      Events:
+        ListFailedJobs:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /failed-jobs
+            Method: GET
+        RetryFailedJob:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /failed-jobs/{failed_id}/retry
+            Method: POST
+
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub rs-${Stage}-api-failed
@@ -555,6 +625,102 @@ Resources:
               Resource:
                 - !GetAtt FailedJobsTable.Arn
                 - !Sub ${FailedJobsTable.Arn}/index/job_id-created_at
+
+  RecruiterUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub rs-${Stage}-recruiters
+      UsernameAttributes: [email]
+      AutoVerifiedAttributes: [email]
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: true
+          Mutable: true
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  RecruiterUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub rs-${Stage}-web
+      UserPoolId: !Ref RecruiterUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+
+  RecruiterGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: recruiters
+      UserPoolId: !Ref RecruiterUserPool
+      Description: Authorized recruiter accounts.
+
+  ResumeApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub rs-${Stage}-api
+      StageName: v1
+      OpenApiVersion: 3.0.1
+      EndpointConfiguration:
+        Type: REGIONAL
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt RecruiterUserPool.Arn
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          ThrottlingRateLimit: 50
+          ThrottlingBurstLimit: 100
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiGatewayDefault4xx:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref ResumeApi
+      ResponseType: DEFAULT_4XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+
+  ApiGatewayDefault5xx:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref ResumeApi
+      ResponseType: DEFAULT_5XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
 
 Outputs:
   UploadsBucketName:
