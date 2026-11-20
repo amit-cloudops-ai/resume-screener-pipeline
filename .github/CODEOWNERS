@@ -1,0 +1,9 @@
+# Active now: Amit owns everything by default.
+*                       @amit-cloudops-ai
+
+# Once teammates have accepted their collaborator invites, UNCOMMENT the lines below
+# and replace the handles with their real GitHub usernames (see docs/SETUP_CHECKLIST.md).
+# /backend/parsing/     @TEAMMATE-A-HANDLE
+# /fixtures/golden/     @TEAMMATE-A-HANDLE
+# /backend/scoring/     @TEAMMATE-B-HANDLE
+# /backend/api/         @TEAMMATE-B-HANDLE

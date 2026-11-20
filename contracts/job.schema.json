@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Job (DynamoDB rs-<stage>-jobs, PK job_id)",
+  "type": "object",
+  "required": ["job_id", "title", "status", "threshold", "created_at", "created_by"],
+  "additionalProperties": false,
+  "properties": {
+    "job_id": {"type": "string", "pattern": "^[0-9a-f]{12}$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 200},
+    "status": {"type": "string", "enum": ["CREATED", "JD_UPLOADED", "JD_PARSED", "FAILED"]},
+    "threshold": {"type": "number", "minimum": 0, "maximum": 100},
+    "jd_s3_key": {"type": ["string", "null"]},
+    "required_skills": {"type": "array", "items": {"type": "string"}},
+    "jd_titles": {"type": "array", "items": {"type": "string"}},
+    "required_years": {"type": ["number", "null"], "minimum": 0},
+    "parser_version": {"type": "string"},
+    "created_by": {"type": "string"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "jd_parsed_at": {"type": ["string", "null"]}
+  }
+}

@@ -1,0 +1,30 @@
+# 04 — NLP & Matching Logic (source of truth; B8 finalises into the written deliverable)
+
+## Extraction (Part A)
+1. Text: Textract (PDF) / python-docx (DOCX).
+2. Comprehend standard DetectEntities: PERSON -> name, ORGANIZATION -> employers, DATE -> experience periods.
+3. Comprehend custom entity recogniser: SKILL, JOB_TITLE (if enabled).
+4. Taxonomy normalisation (`skills_taxonomy.json`): lowercase, strip punctuation, alias -> canonical (e.g. "k8s" -> "kubernetes"). Taxonomy dictionary match also runs on raw text, so skills are found even if the recogniser misses them. Output skills are canonical, deduplicated, sorted.
+5. Email via regex; years via date-range union.
+
+## Score (Part B) — deterministic, explainable
+`final = round(100 * (0.50*skills + 0.30*title + 0.20*experience), 1)`
+
+**skills** = |candidate_skills ∩ required_skills| / |required_skills|. A JD that yields ZERO required skills is never scored: jd-parse sets job status FAILED and writes a failed_jobs row (stage JD_PARSE, error_type JD_NO_SKILLS) so the recruiter sees it and can upload a better JD.
+**title** = max over candidate titles of sim(candidate_title, jd_title) where
+ - normalise: lowercase, expand aliases (sde -> software engineer), remove seniority words into a seniority level (intern 0, junior 1, mid 2, senior 3, lead 4, principal+ 5; default 2).
+ - role_sim = Jaccard(role tokens).
+ - if |seniority gap| >= 2: role_sim * 0.5; if gap == 1: role_sim * 0.85.
+ - no candidate titles -> 0. Several jd_titles -> take the best.
+**experience** = min(candidate_years / required_years, 1). required_years null or 0 -> 1.0. candidate_years null -> 0.
+
+**above_threshold** = final >= job.threshold (default 60).
+**score_breakdown** stores: each component score, weight, matched_skills, missing_skills, best_title_pair, years_counted, required_years, scorer_version. Rounded to 3 decimals for component scores.
+
+## Why this is explainable / auditable
+Every number can be reproduced from the stored candidate + job rows and the breakdown. `parsed/{job}/{cand}.json` keeps raw Comprehend output. Decisions keep who/when history.
+
+## Enhancement ideas (for the written deliverable)
+1. Custom entity recogniser trained on real, annotated resumes (more skills, JOB_TITLE, certifications) with a continuous feedback loop from recruiter shortlist/reject.
+2. Sentiment / key-phrase analysis on cover letters (Comprehend DetectSentiment/DetectKeyPhrases) as a soft signal; plus semantic skill matching with embeddings (e.g. "container orchestration" ~ Kubernetes).
+3. Bias auditing: strip PERSON/gender/age/photo signals before scoring, log score distributions per group, and add recruiter-facing "why this score" explanations.

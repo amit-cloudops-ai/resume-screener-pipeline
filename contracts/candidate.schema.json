@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Candidate (DynamoDB rs-<stage>-candidates, PK job_id, SK candidate_id)",
+  "type": "object",
+  "required": ["job_id", "candidate_id", "status", "source_key", "file_name", "decision", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "job_id": {"type": "string", "pattern": "^[0-9a-f]{12}$"},
+    "candidate_id": {"type": "string", "pattern": "^[0-9a-f]{16}$"},
+    "status": {"type": "string", "enum": ["UPLOADED", "PARSING", "PARSED", "SCORED", "FAILED"]},
+    "source_key": {"type": "string"},
+    "file_name": {"type": "string"},
+    "name": {"type": ["string", "null"]},
+    "email": {"type": ["string", "null"]},
+    "skills": {"type": "array", "items": {"type": "string"}},
+    "employers": {"type": "array", "items": {"type": "string"}},
+    "titles": {"type": "array", "items": {"type": "string"}},
+    "experience_years": {"type": ["number", "null"], "minimum": 0, "maximum": 60},
+    "parsed_s3_key": {"type": ["string", "null"]},
+    "parser_version": {"type": "string"},
+    "score": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+    "above_threshold": {"type": ["boolean", "null"]},
+    "score_breakdown": {
+      "type": ["object", "null"],
+      "required": ["skills", "title", "experience", "scorer_version"],
+      "properties": {
+        "skills": {"type": "object", "required": ["score", "weight", "matched", "missing"],
+          "properties": {"score": {"type": "number"}, "weight": {"const": 0.5},
+            "matched": {"type": "array", "items": {"type": "string"}},
+            "missing": {"type": "array", "items": {"type": "string"}}}},
+        "title": {"type": "object", "required": ["score", "weight"],
+          "properties": {"score": {"type": "number"}, "weight": {"const": 0.3},
+            "best_pair": {"type": ["array", "null"], "items": {"type": "string"}}}},
+        "experience": {"type": "object", "required": ["score", "weight"],
+          "properties": {"score": {"type": "number"}, "weight": {"const": 0.2},
+            "years_counted": {"type": ["number", "null"]}, "required_years": {"type": ["number", "null"]}}},
+        "scorer_version": {"type": "string"}
+      }
+    },
+    "scored_at": {"type": ["string", "null"]},
+    "decision": {"type": "string", "enum": ["PENDING", "SHORTLISTED", "REJECTED"]},
+    "decision_history": {"type": "array", "items": {"type": "object",
+      "required": ["action", "by", "at"],
+      "properties": {"action": {"type": "string"}, "by": {"type": "string"}, "at": {"type": "string"}}}},
+    "email_status": {"type": "string", "enum": ["NOT_SENT", "SENT", "FAILED", "NO_EMAIL"]},
+    "created_at": {"type": "string"}
+  }
+}

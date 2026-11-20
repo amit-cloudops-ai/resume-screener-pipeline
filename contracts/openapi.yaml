@@ -1,0 +1,94 @@
+openapi: 3.1.0
+info:
+  title: Resume Screener API
+  version: "1.0.0"
+servers:
+  - url: https://{apiId}.execute-api.us-east-1.amazonaws.com/v1
+    variables: {apiId: {default: REPLACE_AFTER_DEPLOY}}
+security:
+  - cognito: []
+components:
+  securitySchemes:
+    cognito: {type: apiKey, in: header, name: Authorization, description: "Raw Cognito ID token (JWT), no 'Bearer ' prefix"}
+  schemas:
+    Job: {$ref: "job.schema.json"}
+    Candidate: {$ref: "candidate.schema.json"}
+    FailedJob: {$ref: "failed_job.schema.json"}
+    Error:
+      type: object
+      required: [error]
+      properties: {error: {type: string}, detail: {type: string}}
+    UploadUrl:
+      type: object
+      required: [file_name, url, s3_key]
+      properties: {file_name: {type: string}, url: {type: string}, s3_key: {type: string}}
+paths:
+  /jobs:
+    get:
+      summary: List jobs (newest first)
+      responses: {"200": {description: ok, content: {application/json: {schema: {type: object, required: [jobs], properties: {jobs: {type: array, items: {$ref: "#/components/schemas/Job"}}}}}}}}
+    post:
+      summary: Create job. If description_text is given, JD is stored as text and parsed immediately; otherwise returns a JD upload URL.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [title], properties: {title: {type: string}, threshold: {type: number}, description_text: {type: string}, jd_file_name: {type: string}}}}}
+      responses:
+        "201": {description: created, content: {application/json: {schema: {type: object, required: [job], properties: {job: {$ref: "#/components/schemas/Job"}, jd_upload: {$ref: "#/components/schemas/UploadUrl"}}}}}}
+        "400": {description: invalid, content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}}
+  /jobs/{job_id}:
+    parameters: [{name: job_id, in: path, required: true, schema: {type: string}}]
+    get:
+      responses:
+        "200": {description: ok, content: {application/json: {schema: {$ref: "#/components/schemas/Job"}}}}
+        "404": {description: not found, content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}}
+  /jobs/{job_id}/uploads:
+    parameters: [{name: job_id, in: path, required: true, schema: {type: string}}]
+    post:
+      summary: Get pre-signed PUT URLs for resumes (max 50 files, pdf/docx, <= 5 MB each)
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [files], properties: {files: {type: array, items: {type: object, required: [file_name, content_type], properties: {file_name: {type: string}, content_type: {type: string}}}}}}}}
+      responses:
+        "200": {description: ok, content: {application/json: {schema: {type: object, required: [uploads], properties: {uploads: {type: array, items: {$ref: "#/components/schemas/UploadUrl"}}}}}}}
+  /jobs/{job_id}/candidates:
+    parameters: [{name: job_id, in: path, required: true, schema: {type: string}}]
+    get:
+      summary: Candidates sorted by score desc (unscored last). Optional ?decision=SHORTLISTED
+      responses:
+        "200": {description: ok, content: {application/json: {schema: {type: object, required: [candidates, counts], properties: {candidates: {type: array, items: {$ref: "#/components/schemas/Candidate"}}, counts: {type: object, additionalProperties: {type: integer}}}}}}}
+  /jobs/{job_id}/candidates/{candidate_id}:
+    parameters:
+      - {name: job_id, in: path, required: true, schema: {type: string}}
+      - {name: candidate_id, in: path, required: true, schema: {type: string}}
+    get:
+      responses:
+        "200": {description: ok, content: {application/json: {schema: {$ref: "#/components/schemas/Candidate"}}}}
+        "404": {description: not found, content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}}
+  /jobs/{job_id}/candidates/{candidate_id}/decision:
+    parameters:
+      - {name: job_id, in: path, required: true, schema: {type: string}}
+      - {name: candidate_id, in: path, required: true, schema: {type: string}}
+    post:
+      summary: Shortlist or reject. Only allowed when candidate status is SCORED (else 409). Shortlist requires interview details and sends SES email.
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [action], properties: {action: {type: string, enum: [shortlist, reject]}, interview: {type: object, properties: {date_time: {type: string}, location_or_link: {type: string}, notes: {type: string}}}}}}}
+      responses:
+        "200": {description: ok, content: {application/json: {schema: {$ref: "#/components/schemas/Candidate"}}}}
+        "400": {description: invalid, content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}}
+        "409": {description: candidate not scored yet, content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}}
+  /jobs/{job_id}/shortlist.csv:
+    parameters: [{name: job_id, in: path, required: true, schema: {type: string}}]
+    get:
+      summary: "CSV columns (fixed order): rank,name,email,score,skills_matched,skills_missing,titles,experience_years,decision,email_status"
+      responses: {"200": {description: ok, content: {text/csv: {schema: {type: string}}}}}
+  /failed-jobs:
+    get:
+      parameters: [{name: job_id, in: query, required: false, schema: {type: string}}]
+      responses: {"200": {description: ok, content: {application/json: {schema: {type: object, required: [failed_jobs], properties: {failed_jobs: {type: array, items: {$ref: "#/components/schemas/FailedJob"}}}}}}}}
+  /failed-jobs/{failed_id}/retry:
+    parameters: [{name: failed_id, in: path, required: true, schema: {type: string}}]
+    post:
+      responses:
+        "202": {description: re-enqueued, content: {application/json: {schema: {$ref: "#/components/schemas/FailedJob"}}}}
+        "404": {description: not found, content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}}
