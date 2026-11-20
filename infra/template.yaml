@@ -1,0 +1,187 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Resume Screener Pipeline - P2 infrastructure (SAM)
+
+Parameters:
+  Stage:
+    Type: String
+    AllowedValues: [dev, prod]
+    Description: Deployment stage; stack names are rs-dev and rs-prod.
+  ParserVersion:
+    Type: String
+    Default: stub-0.1.0
+  ScorerVersion:
+    Type: String
+    Default: stub-0.1.0
+  SesSender:
+    Type: String
+    Default: DISABLED
+    Description: Verified SES sender identity; set before enabling shortlist email.
+  AlarmEmail:
+    Type: String
+    Default: ''
+    Description: Optional email subscription for operational alarms and budget alerts.
+  MonthlyBudgetUsd:
+    Type: Number
+    Default: 25
+    MinValue: 1
+
+Conditions:
+  HasAlarmEmail: !Not [!Equals [!Ref AlarmEmail, '']]
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Handler: app.lambda_handler
+    Architectures: [x86_64]
+    MemorySize: 256
+    Environment:
+      Variables:
+        STAGE: !Ref Stage
+        LOG_LEVEL: INFO
+    Tags:
+      Project: resume-screener
+      Stage: !Ref Stage
+
+Resources:
+  UploadsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub rs-${Stage}-uploads-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireResumeAndParsedArtifacts
+            Status: Enabled
+            Prefix: resumes/
+            ExpirationInDays: 30
+          - Id: ExpireParsedArtifacts
+            Status: Enabled
+            Prefix: parsed/
+            ExpirationInDays: 30
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub rs-${Stage}-frontend-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  JobsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub rs-${Stage}-jobs
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: job_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: job_id
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  CandidatesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub rs-${Stage}-candidates
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: job_id
+          AttributeType: S
+        - AttributeName: candidate_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: job_id
+          KeyType: HASH
+        - AttributeName: candidate_id
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  FailedJobsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub rs-${Stage}-failed-jobs
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: failed_id
+          AttributeType: S
+        - AttributeName: job_id
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: S
+      KeySchema:
+        - AttributeName: failed_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: job_id-created_at
+          KeySchema:
+            - AttributeName: job_id
+              KeyType: HASH
+            - AttributeName: created_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+Outputs:
+  UploadsBucketName:
+    Description: Private bucket for JD and resume uploads.
+    Value: !Ref UploadsBucket
+  FrontendBucketName:
+    Description: Private bucket for the static frontend.
+    Value: !Ref FrontendBucket
+  JobsTableName:
+    Value: !Ref JobsTable
+  CandidatesTableName:
+    Value: !Ref CandidatesTable
+  FailedJobsTableName:
+    Value: !Ref FailedJobsTable
