@@ -317,7 +317,7 @@ Resources:
           UPLOADS_BUCKET: !Ref UploadsBucket
           SCORE_QUEUE_URL: !Ref ScoreQueue
           PARSER_VERSION: !Ref ParserVersion
-          CUSTOM_RECOGNIZER_ARN: DISABLED
+          CUSTOM_RECOGNIZER_ARN: !GetAtt CustomRecognizerParameter.Value
       Policies:
         - AWSLambdaBasicExecutionRole
         - SQSPollerPolicy:
@@ -364,7 +364,7 @@ Resources:
           UPLOADS_BUCKET: !Ref UploadsBucket
           SCORE_QUEUE_URL: !Ref ScoreQueue
           PARSER_VERSION: !Ref ParserVersion
-          CUSTOM_RECOGNIZER_ARN: DISABLED
+          CUSTOM_RECOGNIZER_ARN: !GetAtt CustomRecognizerParameter.Value
       Policies:
         - AWSLambdaBasicExecutionRole
         - SQSPollerPolicy:
@@ -798,6 +798,381 @@ Resources:
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}
+  ParseLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-parse
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  JdParseLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-jd-parse
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ScoreLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-score
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  DlqConsumerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-dlq-consumer
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiJobsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-jobs
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiCandidatesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-candidates
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiDecisionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-decision
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiExportLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-export
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiFailedLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-failed
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+
+  CustomRecognizerParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /rs/${Stage}/custom-recognizer-arn
+      Type: String
+      Value: DISABLED
+      Description: Set to a deployed Comprehend recognizer endpoint ARN to enable custom entities.
+
+  ThresholdDefaultParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /rs/${Stage}/threshold-default
+      Type: String
+      Value: '60'
+      Description: Default candidate score threshold.
+
+  OpsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub rs-${Stage}-ops-alerts
+      DisplayName: Resume Screener operational alerts
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  OpsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasAlarmEmail
+    Properties:
+      Protocol: email
+      Endpoint: !Ref AlarmEmail
+      TopicArn: !Ref OpsTopic
+
+  ParseDlqAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-parse-dlq-depth
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions: [{Name: QueueName, Value: !GetAtt ParseDlq.QueueName}]
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  JdDlqAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-jd-dlq-depth
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions: [{Name: QueueName, Value: !GetAtt JdDlq.QueueName}]
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ScoreDlqAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-score-dlq-depth
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions: [{Name: QueueName, Value: !GetAtt ScoreDlq.QueueName}]
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-5xx
+      AlarmDescription: API Gateway 5XX responses >= 1 in five minutes.
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub rs-${Stage}-api
+        - Name: Stage
+          Value: v1
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  MonthlyCostBudget:
+    Type: AWS::Budgets::Budget
+    Condition: HasAlarmEmail
+    Properties:
+      Budget:
+        BudgetName: !Sub rs-${Stage}-monthly-cost
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetUsd
+          Unit: USD
+        TimeUnit: MONTHLY
+        BudgetType: COST
+        CostTypes:
+          IncludeTax: true
+          IncludeSubscription: true
+          UseBlended: false
+          IncludeRefund: false
+          IncludeCredit: false
+          IncludeUpfront: true
+          IncludeRecurring: true
+          IncludeOtherSubscription: true
+          IncludeSupport: true
+          IncludeDiscount: true
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlarmEmail
+  ParseErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-parse-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-parse
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  JdParseErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-jd-parse-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-jd-parse
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ScoreErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-score-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-score
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  DlqConsumerErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-dlq-consumer-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-dlq-consumer
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiJobsErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-jobs-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-jobs
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiCandidatesErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-candidates-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-candidates
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiDecisionErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-decision-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-decision
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiExportErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-export-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-export
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiFailedErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-failed-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-failed
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
 
 Outputs:
   UploadsBucketName:
@@ -815,3 +1190,18 @@ Outputs:
     Value: !Ref CandidatesTable
   FailedJobsTableName:
     Value: !Ref FailedJobsTable
+  ApiUrl:
+    Description: API Gateway v1 base URL.
+    Value: !Sub https://${ResumeApi}.execute-api.${AWS::Region}.amazonaws.com/v1/
+  UserPoolId:
+    Value: !Ref RecruiterUserPool
+  UserPoolClientId:
+    Value: !Ref RecruiterUserPoolClient
+  ParseQueueUrl:
+    Value: !Ref ParseQueue
+  JdQueueUrl:
+    Value: !Ref JdQueue
+  ScoreQueueUrl:
+    Value: !Ref ScoreQueue
+  CloudFrontDomainName:
+    Value: !GetAtt FrontendDistribution.DomainName
