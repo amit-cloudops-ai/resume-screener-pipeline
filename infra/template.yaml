@@ -1,0 +1,1240 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Resume Screener Pipeline - P2 infrastructure (SAM)
+
+Parameters:
+  Stage:
+    Type: String
+    AllowedValues: [dev, prod]
+    Description: Deployment stage; stack names are rs-dev and rs-prod.
+  ParserVersion:
+    Type: String
+    Default: stub-0.1.0
+  ScorerVersion:
+    Type: String
+    Default: stub-0.1.0
+  SesSender:
+    Type: String
+    Default: DISABLED
+    Description: Verified SES sender identity; set before enabling shortlist email.
+  AlarmEmail:
+    Type: String
+    Default: ''
+    Description: Optional email subscription for operational alarms and budget alerts.
+  MonthlyBudgetUsd:
+    Type: Number
+    Default: 25
+    MinValue: 1
+
+Conditions:
+  HasAlarmEmail: !Not [!Equals [!Ref AlarmEmail, '']]
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Handler: app.lambda_handler
+    Architectures: [x86_64]
+    MemorySize: 256
+    Environment:
+      Variables:
+        STAGE: !Ref Stage
+        LOG_LEVEL: INFO
+    Tags:
+      Project: resume-screener
+      Stage: !Ref Stage
+
+Resources:
+  UploadsBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: UploadQueuePolicy
+    Properties:
+      BucketName: !Sub rs-${Stage}-uploads-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireResumeAndParsedArtifacts
+            Status: Enabled
+            Prefix: resumes/
+            ExpirationInDays: 30
+          - Id: ExpireParsedArtifacts
+            Status: Enabled
+            Prefix: parsed/
+            ExpirationInDays: 30
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - !Sub https://${FrontendDistribution.DomainName}
+            AllowedMethods: [PUT, GET, HEAD]
+            AllowedHeaders: ['*']
+            ExposedHeaders: [ETag]
+            MaxAge: 3000
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Event: s3:ObjectCreated:*
+            Queue: !GetAtt JdQueue.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: jd/
+          - Event: s3:ObjectCreated:*
+            Queue: !GetAtt ParseQueue.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: resumes/
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub rs-${Stage}-frontend-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  JobsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub rs-${Stage}-jobs
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: job_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: job_id
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  CandidatesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub rs-${Stage}-candidates
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: job_id
+          AttributeType: S
+        - AttributeName: candidate_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: job_id
+          KeyType: HASH
+        - AttributeName: candidate_id
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  FailedJobsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub rs-${Stage}-failed-jobs
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: failed_id
+          AttributeType: S
+        - AttributeName: job_id
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: S
+      KeySchema:
+        - AttributeName: failed_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: job_id-created_at
+          KeySchema:
+            - AttributeName: job_id
+              KeyType: HASH
+            - AttributeName: created_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  ParseDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-parse-dlq
+      MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 180
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  JdDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-jd-dlq
+      MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 180
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  ScoreDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-score-dlq
+      MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 180
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  ParseQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-parse-queue
+      VisibilityTimeout: 900
+      MessageRetentionPeriod: 345600
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ParseDlq.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  JdQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-jd-queue
+      VisibilityTimeout: 900
+      MessageRetentionPeriod: 345600
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt JdDlq.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  ScoreQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-score-queue
+      VisibilityTimeout: 180
+      MessageRetentionPeriod: 345600
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ScoreDlq.Arn
+        maxReceiveCount: 5
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  UploadQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref JdQueue
+        - !Ref ParseQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowUploadsBucketNotifications
+            Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Action: sqs:SendMessage
+            Resource:
+              - !GetAtt JdQueue.Arn
+              - !GetAtt ParseQueue.Arn
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+
+  ParseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-parse
+      CodeUri: ../backend/parsing/parse/
+      Timeout: 120
+      ReservedConcurrentExecutions: 5
+      Environment:
+        Variables:
+          CANDIDATES_TABLE: !Ref CandidatesTable
+          UPLOADS_BUCKET: !Ref UploadsBucket
+          SCORE_QUEUE_URL: !Ref ScoreQueue
+          PARSER_VERSION: !Ref ParserVersion
+          CUSTOM_RECOGNIZER_ARN: !GetAtt CustomRecognizerParameter.Value
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-parse:*
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ParseQueue.QueueName
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ScoreQueue.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [s3:GetObject]
+              Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/resumes/*
+            - Effect: Allow
+              Action: [s3:PutObject]
+              Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/parsed/*
+            - Effect: Allow
+              Action: [dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:GetItem]
+              Resource: !GetAtt CandidatesTable.Arn
+            - Effect: Allow
+              Action: [textract:StartDocumentTextDetection, textract:GetDocumentTextDetection]
+              Resource: '*'
+            - Effect: Allow
+              Action: [comprehend:DetectEntities, comprehend:BatchDetectEntities]
+              Resource: '*'
+            - Effect: Allow
+              Action: [ssm:GetParameter]
+              Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rs/${Stage}/custom-recognizer-arn
+      Events:
+        ParseQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ParseQueue.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+
+  JdParseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-jd-parse
+      CodeUri: ../backend/parsing/jd_parse/
+      Timeout: 120
+      Environment:
+        Variables:
+          JOBS_TABLE: !Ref JobsTable
+          FAILED_TABLE: !Ref FailedJobsTable
+          UPLOADS_BUCKET: !Ref UploadsBucket
+          SCORE_QUEUE_URL: !Ref ScoreQueue
+          PARSER_VERSION: !Ref ParserVersion
+          CUSTOM_RECOGNIZER_ARN: !GetAtt CustomRecognizerParameter.Value
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-jd-parse:*
+        - SQSPollerPolicy:
+            QueueName: !GetAtt JdQueue.QueueName
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ScoreQueue.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [s3:GetObject]
+              Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/jd/*
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query]
+              Resource:
+                - !GetAtt JobsTable.Arn
+                - !GetAtt CandidatesTable.Arn
+            - Effect: Allow
+              Action: [dynamodb:PutItem]
+              Resource: !GetAtt FailedJobsTable.Arn
+            - Effect: Allow
+              Action: [textract:StartDocumentTextDetection, textract:GetDocumentTextDetection]
+              Resource: '*'
+            - Effect: Allow
+              Action: [comprehend:DetectEntities, comprehend:BatchDetectEntities]
+              Resource: '*'
+            - Effect: Allow
+              Action: [ssm:GetParameter]
+              Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rs/${Stage}/custom-recognizer-arn
+      Events:
+        JdQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt JdQueue.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+
+  ScoreFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-score
+      CodeUri: ../backend/scoring/score/
+      Timeout: 30
+      Environment:
+        Variables:
+          JOBS_TABLE: !Ref JobsTable
+          CANDIDATES_TABLE: !Ref CandidatesTable
+          SCORER_VERSION: !Ref ScorerVersion
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-score:*
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ScoreQueue.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem]
+              Resource: !GetAtt JobsTable.Arn
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:UpdateItem]
+              Resource: !GetAtt CandidatesTable.Arn
+      Events:
+        ScoreQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ScoreQueue.Arn
+            BatchSize: 5
+            FunctionResponseTypes: [ReportBatchItemFailures]
+
+  DlqConsumerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-dlq-consumer
+      CodeUri: ../backend/parsing/dlq_consumer/
+      Timeout: 30
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-dlq-consumer:*
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ParseDlq.QueueName
+        - SQSPollerPolicy:
+            QueueName: !GetAtt JdDlq.QueueName
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ScoreDlq.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:PutItem]
+              Resource: !GetAtt FailedJobsTable.Arn
+      Events:
+        ParseDlqEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ParseDlq.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+        JdDlqEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt JdDlq.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+        ScoreDlqEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ScoreDlq.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+
+  ApiJobsFunction:
+      Events:
+        ListJobs:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs
+            Method: GET
+        CreateJob:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs
+            Method: POST
+        GetJob:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}
+            Method: GET
+        CreateUploadUrls:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/uploads
+            Method: POST
+
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-jobs
+      CodeUri: ../backend/api/jobs/
+      Timeout: 15
+      Environment:
+        Variables:
+          JOBS_TABLE: !Ref JobsTable
+          UPLOADS_BUCKET: !Ref UploadsBucket
+          PARSER_VERSION: !Ref ParserVersion
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-jobs:*
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query]
+              Resource: !GetAtt JobsTable.Arn
+            - Effect: Allow
+              Action: [ssm:GetParameter]
+              Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rs/${Stage}/threshold-default
+            - Effect: Allow
+              Action: [s3:PutObject]
+              Resource:
+                - !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/jd/*
+                - !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/resumes/*
+
+  ApiCandidatesFunction:
+      Events:
+        ListCandidates:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/candidates
+            Method: GET
+        GetCandidate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/candidates/{candidate_id}
+            Method: GET
+
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-candidates
+      CodeUri: ../backend/api/candidates/
+      Timeout: 15
+      Environment:
+        Variables:
+          CANDIDATES_TABLE: !Ref CandidatesTable
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-candidates:*
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query]
+              Resource: !GetAtt CandidatesTable.Arn
+
+  ApiDecisionFunction:
+      Events:
+        CandidateDecision:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/candidates/{candidate_id}/decision
+            Method: POST
+
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-decision
+      CodeUri: ../backend/api/decision/
+      Timeout: 15
+      Environment:
+        Variables:
+          CANDIDATES_TABLE: !Ref CandidatesTable
+          SES_SENDER: !Ref SesSender
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-decision:*
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:UpdateItem]
+              Resource: !GetAtt CandidatesTable.Arn
+            - Effect: Allow
+              Action: [ses:SendEmail, ses:SendRawEmail]
+              Resource: !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${SesSender}
+
+  ApiExportFunction:
+      Events:
+        ExportShortlist:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /jobs/{job_id}/shortlist.csv
+            Method: GET
+
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-export
+      CodeUri: ../backend/api/export/
+      Timeout: 15
+      Environment:
+        Variables:
+          CANDIDATES_TABLE: !Ref CandidatesTable
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-export:*
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:Query]
+              Resource: !GetAtt CandidatesTable.Arn
+
+  ApiFailedFunction:
+      Events:
+        ListFailedJobs:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /failed-jobs
+            Method: GET
+        RetryFailedJob:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeApi
+            Path: /failed-jobs/{failed_id}/retry
+            Method: POST
+
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-failed
+      CodeUri: ../backend/api/failed/
+      Timeout: 15
+      Environment:
+        Variables:
+          FAILED_TABLE: !Ref FailedJobsTable
+          SCORE_QUEUE_URL: !Ref ScoreQueue
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:CreateLogStream, logs:PutLogEvents]
+              Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-failed:*
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ScoreQueue.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:UpdateItem]
+              Resource:
+                - !GetAtt FailedJobsTable.Arn
+                - !Sub ${FailedJobsTable.Arn}/index/job_id-created_at
+
+  RecruiterUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub rs-${Stage}-recruiters
+      UsernameAttributes: [email]
+      AutoVerifiedAttributes: [email]
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: true
+          Mutable: true
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  RecruiterUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub rs-${Stage}-web
+      UserPoolId: !Ref RecruiterUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+
+  RecruiterGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: recruiters
+      UserPoolId: !Ref RecruiterUserPool
+      Description: Authorized recruiter accounts.
+
+  ResumeApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub rs-${Stage}-api
+      StageName: v1
+      OpenApiVersion: 3.0.1
+      EndpointConfiguration:
+        Type: REGIONAL
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt RecruiterUserPool.Arn
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          ThrottlingRateLimit: 50
+          ThrottlingBurstLimit: 100
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiGatewayDefault4xx:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref ResumeApi
+      ResponseType: DEFAULT_4XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+
+  ApiGatewayDefault5xx:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref ResumeApi
+      ResponseType: DEFAULT_5XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+
+  FrontendOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub rs-${Stage}-frontend-oac
+        Description: Restrict frontend bucket access to this CloudFront distribution.
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub Resume Screener ${Stage} dashboard
+        DefaultRootObject: index.html
+        PriceClass: PriceClass_100
+        HttpVersion: http2and3
+        Origins:
+          - Id: FrontendS3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt FrontendOriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+        DefaultCacheBehavior:
+          TargetOriginId: FrontendS3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponsePagePath: /index.html
+            ResponseCode: '200'
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponsePagePath: /index.html
+            ResponseCode: '200'
+            ErrorCachingMinTTL: 0
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-frontend-${AWS::AccountId}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}
+  ParseLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-parse
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  JdParseLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-jd-parse
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ScoreLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-score
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  DlqConsumerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-dlq-consumer
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiJobsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-jobs
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiCandidatesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-candidates
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiDecisionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-decision
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiExportLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-export
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+  ApiFailedLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-failed
+      RetentionInDays: 14
+      Tags:
+        Project: resume-screener
+        Stage: !Ref Stage
+
+
+  CustomRecognizerParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /rs/${Stage}/custom-recognizer-arn
+      Type: String
+      Value: DISABLED
+      Description: Set to a deployed Comprehend recognizer endpoint ARN to enable custom entities.
+
+  ThresholdDefaultParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub /rs/${Stage}/threshold-default
+      Type: String
+      Value: '60'
+      Description: Default candidate score threshold.
+
+  OpsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub rs-${Stage}-ops-alerts
+      DisplayName: Resume Screener operational alerts
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  OpsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasAlarmEmail
+    Properties:
+      Protocol: email
+      Endpoint: !Ref AlarmEmail
+      TopicArn: !Ref OpsTopic
+
+  ParseDlqAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-parse-dlq-depth
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions: [{Name: QueueName, Value: !GetAtt ParseDlq.QueueName}]
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  JdDlqAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-jd-dlq-depth
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions: [{Name: QueueName, Value: !GetAtt JdDlq.QueueName}]
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ScoreDlqAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-score-dlq-depth
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions: [{Name: QueueName, Value: !GetAtt ScoreDlq.QueueName}]
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-5xx
+      AlarmDescription: API Gateway 5XX responses >= 1 in five minutes.
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub rs-${Stage}-api
+        - Name: Stage
+          Value: v1
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  MonthlyCostBudget:
+    Type: AWS::Budgets::Budget
+    Condition: HasAlarmEmail
+    Properties:
+      Budget:
+        BudgetName: !Sub rs-${Stage}-monthly-cost
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetUsd
+          Unit: USD
+        TimeUnit: MONTHLY
+        BudgetType: COST
+        CostTypes:
+          IncludeTax: true
+          IncludeSubscription: true
+          UseBlended: false
+          IncludeRefund: false
+          IncludeCredit: false
+          IncludeUpfront: true
+          IncludeRecurring: true
+          IncludeOtherSubscription: true
+          IncludeSupport: true
+          IncludeDiscount: true
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlarmEmail
+  ParseErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-parse-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-parse
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  JdParseErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-jd-parse-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-jd-parse
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ScoreErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-score-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-score
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  DlqConsumerErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-dlq-consumer-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-dlq-consumer
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiJobsErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-jobs-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-jobs
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiCandidatesErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-candidates-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-candidates
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiDecisionErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-decision-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-decision
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiExportErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-export-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-export
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+  ApiFailedErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub rs-${Stage}-api-failed-errors
+      AlarmDescription: Lambda errors >= 1 in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub rs-${Stage}-api-failed
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref OpsTopic]
+
+
+Outputs:
+  UploadsBucketName:
+    Description: Private bucket for JD and resume uploads.
+    Value: !Ref UploadsBucket
+  FrontendBucketName:
+    Description: Private bucket for the static frontend.
+    Value: !Ref FrontendBucket
+  CloudFrontUrl:
+    Description: HTTPS URL for the recruiter dashboard.
+    Value: !Sub https://${FrontendDistribution.DomainName}
+  JobsTableName:
+    Value: !Ref JobsTable
+  CandidatesTableName:
+    Value: !Ref CandidatesTable
+  FailedJobsTableName:
+    Value: !Ref FailedJobsTable
+  ApiUrl:
+    Description: API Gateway v1 base URL.
+    Value: !Sub https://${ResumeApi}.execute-api.${AWS::Region}.amazonaws.com/v1/
+  UserPoolId:
+    Value: !Ref RecruiterUserPool
+  UserPoolClientId:
+    Value: !Ref RecruiterUserPoolClient
+  ParseQueueUrl:
+    Value: !Ref ParseQueue
+  JdQueueUrl:
+    Value: !Ref JdQueue
+  ScoreQueueUrl:
+    Value: !Ref ScoreQueue
+  CloudFrontDomainName:
+    Value: !GetAtt FrontendDistribution.DomainName
