@@ -68,6 +68,14 @@ Resources:
             Status: Enabled
             Prefix: parsed/
             ExpirationInDays: 30
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - !Sub https://${FrontendDistribution.DomainName}
+            AllowedMethods: [PUT, GET, HEAD]
+            AllowedHeaders: ['*']
+            ExposedHeaders: [ETag]
+            MaxAge: 3000
       NotificationConfiguration:
         QueueConfigurations:
           - Event: s3:ObjectCreated:*
@@ -722,6 +730,75 @@ Resources:
         gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
         gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
 
+  FrontendOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub rs-${Stage}-frontend-oac
+        Description: Restrict frontend bucket access to this CloudFront distribution.
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub Resume Screener ${Stage} dashboard
+        DefaultRootObject: index.html
+        PriceClass: PriceClass_100
+        HttpVersion: http2and3
+        Origins:
+          - Id: FrontendS3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt FrontendOriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+        DefaultCacheBehavior:
+          TargetOriginId: FrontendS3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponsePagePath: /index.html
+            ResponseCode: '200'
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponsePagePath: /index.html
+            ResponseCode: '200'
+            ErrorCachingMinTTL: 0
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-frontend-${AWS::AccountId}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}
+
 Outputs:
   UploadsBucketName:
     Description: Private bucket for JD and resume uploads.
@@ -729,6 +806,9 @@ Outputs:
   FrontendBucketName:
     Description: Private bucket for the static frontend.
     Value: !Ref FrontendBucket
+  CloudFrontUrl:
+    Description: HTTPS URL for the recruiter dashboard.
+    Value: !Sub https://${FrontendDistribution.DomainName}
   JobsTableName:
     Value: !Ref JobsTable
   CandidatesTableName:
