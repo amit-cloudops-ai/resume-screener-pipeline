@@ -46,6 +46,7 @@ Globals:
 Resources:
   UploadsBucket:
     Type: AWS::S3::Bucket
+    DependsOn: UploadQueuePolicy
     Properties:
       BucketName: !Sub rs-${Stage}-uploads-${AWS::AccountId}
       PublicAccessBlockConfiguration:
@@ -67,6 +68,22 @@ Resources:
             Status: Enabled
             Prefix: parsed/
             ExpirationInDays: 30
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Event: s3:ObjectCreated:*
+            Queue: !GetAtt JdQueue.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: jd/
+          - Event: s3:ObjectCreated:*
+            Queue: !GetAtt ParseQueue.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: resumes/
       Tags:
         - Key: Project
           Value: resume-screener
@@ -171,6 +188,113 @@ Resources:
           Value: resume-screener
         - Key: Stage
           Value: !Ref Stage
+
+  ParseDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-parse-dlq
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  JdDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-jd-dlq
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  ScoreDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-score-dlq
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  ParseQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-parse-queue
+      VisibilityTimeout: 900
+      MessageRetentionPeriod: 345600
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ParseDlq.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  JdQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-jd-queue
+      VisibilityTimeout: 900
+      MessageRetentionPeriod: 345600
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt JdDlq.Arn
+        maxReceiveCount: 3
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  ScoreQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub rs-${Stage}-score-queue
+      VisibilityTimeout: 180
+      MessageRetentionPeriod: 345600
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ScoreDlq.Arn
+        maxReceiveCount: 5
+      Tags:
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
+
+  UploadQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref JdQueue
+        - !Ref ParseQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowUploadsBucketNotifications
+            Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Action: sqs:SendMessage
+            Resource:
+              - !GetAtt JdQueue.Arn
+              - !GetAtt ParseQueue.Arn
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
 
 Outputs:
   UploadsBucketName:
