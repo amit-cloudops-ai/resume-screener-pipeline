@@ -296,6 +296,266 @@ Resources:
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
 
+  ParseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-parse
+      CodeUri: ../backend/parsing/parse/
+      Timeout: 120
+      ReservedConcurrentExecutions: 5
+      Environment:
+        Variables:
+          CANDIDATES_TABLE: !Ref CandidatesTable
+          UPLOADS_BUCKET: !Ref UploadsBucket
+          SCORE_QUEUE_URL: !Ref ScoreQueue
+          PARSER_VERSION: !Ref ParserVersion
+          CUSTOM_RECOGNIZER_ARN: DISABLED
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ParseQueue.QueueName
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ScoreQueue.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [s3:GetObject]
+              Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/resumes/*
+            - Effect: Allow
+              Action: [s3:PutObject]
+              Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/parsed/*
+            - Effect: Allow
+              Action: [dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:GetItem]
+              Resource: !GetAtt CandidatesTable.Arn
+            - Effect: Allow
+              Action: [textract:StartDocumentTextDetection, textract:GetDocumentTextDetection]
+              Resource: '*'
+            - Effect: Allow
+              Action: [comprehend:DetectEntities, comprehend:BatchDetectEntities]
+              Resource: '*'
+            - Effect: Allow
+              Action: [ssm:GetParameter]
+              Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rs/${Stage}/custom-recognizer-arn
+      Events:
+        ParseQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ParseQueue.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+
+  JdParseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-jd-parse
+      CodeUri: ../backend/parsing/jd_parse/
+      Timeout: 120
+      Environment:
+        Variables:
+          JOBS_TABLE: !Ref JobsTable
+          FAILED_TABLE: !Ref FailedJobsTable
+          UPLOADS_BUCKET: !Ref UploadsBucket
+          SCORE_QUEUE_URL: !Ref ScoreQueue
+          PARSER_VERSION: !Ref ParserVersion
+          CUSTOM_RECOGNIZER_ARN: DISABLED
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - SQSPollerPolicy:
+            QueueName: !GetAtt JdQueue.QueueName
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ScoreQueue.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [s3:GetObject]
+              Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/jd/*
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query]
+              Resource:
+                - !GetAtt JobsTable.Arn
+                - !GetAtt CandidatesTable.Arn
+            - Effect: Allow
+              Action: [dynamodb:PutItem]
+              Resource: !GetAtt FailedJobsTable.Arn
+            - Effect: Allow
+              Action: [textract:StartDocumentTextDetection, textract:GetDocumentTextDetection]
+              Resource: '*'
+            - Effect: Allow
+              Action: [comprehend:DetectEntities, comprehend:BatchDetectEntities]
+              Resource: '*'
+            - Effect: Allow
+              Action: [ssm:GetParameter]
+              Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rs/${Stage}/custom-recognizer-arn
+      Events:
+        JdQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt JdQueue.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+
+  ScoreFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-score
+      CodeUri: ../backend/scoring/score/
+      Timeout: 30
+      Environment:
+        Variables:
+          JOBS_TABLE: !Ref JobsTable
+          CANDIDATES_TABLE: !Ref CandidatesTable
+          SCORER_VERSION: !Ref ScorerVersion
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ScoreQueue.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem]
+              Resource: !GetAtt JobsTable.Arn
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:UpdateItem]
+              Resource: !GetAtt CandidatesTable.Arn
+      Events:
+        ScoreQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ScoreQueue.Arn
+            BatchSize: 5
+            FunctionResponseTypes: [ReportBatchItemFailures]
+
+  DlqConsumerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-dlq-consumer
+      CodeUri: ../backend/parsing/dlq_consumer/
+      Timeout: 30
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ParseDlq.QueueName
+        - SQSPollerPolicy:
+            QueueName: !GetAtt JdDlq.QueueName
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ScoreDlq.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:PutItem]
+              Resource: !GetAtt FailedJobsTable.Arn
+      Events:
+        ParseDlqEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ParseDlq.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+        JdDlqEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt JdDlq.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+        ScoreDlqEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ScoreDlq.Arn
+            BatchSize: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+
+  ApiJobsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-jobs
+      CodeUri: ../backend/api/jobs/
+      Timeout: 15
+      Environment:
+        Variables:
+          JOBS_TABLE: !Ref JobsTable
+          UPLOADS_BUCKET: !Ref UploadsBucket
+          PARSER_VERSION: !Ref ParserVersion
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query]
+              Resource: !GetAtt JobsTable.Arn
+            - Effect: Allow
+              Action: [s3:PutObject]
+              Resource:
+                - !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/jd/*
+                - !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/resumes/*
+
+  ApiCandidatesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-candidates
+      CodeUri: ../backend/api/candidates/
+      Timeout: 15
+      Environment:
+        Variables:
+          CANDIDATES_TABLE: !Ref CandidatesTable
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query]
+              Resource: !GetAtt CandidatesTable.Arn
+
+  ApiDecisionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-decision
+      CodeUri: ../backend/api/decision/
+      Timeout: 15
+      Environment:
+        Variables:
+          CANDIDATES_TABLE: !Ref CandidatesTable
+          SES_SENDER: !Ref SesSender
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:UpdateItem]
+              Resource: !GetAtt CandidatesTable.Arn
+            - Effect: Allow
+              Action: [ses:SendEmail, ses:SendRawEmail]
+              Resource: !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${SesSender}
+
+  ApiExportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-export
+      CodeUri: ../backend/api/export/
+      Timeout: 15
+      Environment:
+        Variables:
+          CANDIDATES_TABLE: !Ref CandidatesTable
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:Query]
+              Resource: !GetAtt CandidatesTable.Arn
+
+  ApiFailedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-api-failed
+      CodeUri: ../backend/api/failed/
+      Timeout: 15
+      Environment:
+        Variables:
+          FAILED_TABLE: !Ref FailedJobsTable
+          SCORE_QUEUE_URL: !Ref ScoreQueue
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ScoreQueue.QueueName
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:UpdateItem]
+              Resource:
+                - !GetAtt FailedJobsTable.Arn
+                - !Sub ${FailedJobsTable.Arn}/index/job_id-created_at
+
 Outputs:
   UploadsBucketName:
     Description: Private bucket for JD and resume uploads.
