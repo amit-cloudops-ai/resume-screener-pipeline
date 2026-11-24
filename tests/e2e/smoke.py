@@ -42,6 +42,24 @@ def request(url, token, method="GET", payload=None, content=None, content_type=N
             pass
         return exc.code, raw
 
+
+def validate_scored_candidate(row):
+    required = ('name', 'email', 'skills', 'employers', 'titles', 'experience_years', 'score', 'score_breakdown', 'above_threshold')
+    missing = [key for key in required if key not in row]
+    if missing:
+        raise SmokeFailure('Scored candidate missing fields: ' + ', '.join(missing))
+    if row['email'] is not None and not isinstance(row['email'], str):
+        raise SmokeFailure('Candidate email must be a string or null.')
+    for key in ('skills', 'employers', 'titles'):
+        if not isinstance(row[key], list):
+            raise SmokeFailure('Candidate ' + key + ' must be an array.')
+    if not isinstance(row['score_breakdown'], dict):
+        raise SmokeFailure('Candidate score_breakdown must be an object.')
+    if not isinstance(row['above_threshold'], bool):
+        raise SmokeFailure('Candidate above_threshold must be boolean.')
+    if not isinstance(row['score'], (int, float)) or not 0 <= row['score'] <= 100:
+        raise SmokeFailure('Candidate score must be between 0 and 100.')
+
 def wait_candidates(api, token, job_id, timeout=300):
     deadline = time.monotonic() + timeout
     latest = []
@@ -53,6 +71,9 @@ def wait_candidates(api, token, job_id, timeout=300):
         scored = sum(x.get("status") == "SCORED" for x in latest)
         failed = sum(x.get("status") == "FAILED" for x in latest)
         if len(latest) == 10 and scored == 9 and failed == 1:
+            for row in latest:
+                if row.get('status') == 'SCORED':
+                    validate_scored_candidate(row)
             return latest
         time.sleep(5)
     raise SmokeFailure(f"Expected 9 SCORED + 1 FAILED within {timeout}s; got {len(latest)} records.")
@@ -143,7 +164,8 @@ def run(args):
         "s3": {"bucket": {"name": bucket}, "object": {
             "key": urllib.parse.quote(missing_key, safe="/"), "size": 0}}}]}
     sqs.send_message(QueueUrl=queue, MessageBody=json.dumps(event))
-    wait_failed_record(api, token, job_id, missing_key)
+    # Queue visibility is 900 seconds; allow two retry visibility intervals plus DLQ processing.
+    wait_failed_record(api, token, job_id, missing_key, timeout=2100)
 
     # B5: score ordering is descending.
     status, body = request(f"{api}/jobs/{job_id}/candidates", token)

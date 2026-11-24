@@ -22,3 +22,14 @@ def test_production_requires_separate_opt_in_flag():
     parser = argparse.ArgumentParser()
     parser.add_argument("--allow-prod", action="store_true")
     assert parser.parse_args([]).allow_prod is False
+
+def test_scored_candidate_contract_rejects_missing_fields():
+    row = {'candidate_id': 'a' * 16, 'name': None, 'email': None, 'skills': [], 'employers': [], 'titles': [], 'experience_years': None, 'score': 70, 'score_breakdown': {}, 'above_threshold': True}
+    module.validate_scored_candidate(row)
+    del row['score_breakdown']
+    try:
+        module.validate_scored_candidate(row)
+    except module.SmokeFailure as exc:
+        assert 'score_breakdown' in str(exc)
+    else:
+        raise AssertionError('missing score_breakdown was accepted')

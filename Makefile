@@ -32,7 +32,7 @@ golden-evaluate: golden-generate
 	$(PY) scripts/evaluate_golden_dataset.py
 
 test: golden-generate
-	$(PY) -m pytest -q tests backend --ignore=tests/e2e
+	$(PY) -m pytest -q tests backend
 
 sam-validate:
 	sam validate --lint --template-file infra/template.yaml

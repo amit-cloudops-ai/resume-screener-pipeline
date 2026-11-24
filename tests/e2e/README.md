@@ -4,9 +4,9 @@ This script validates an already deployed stack. It does not deploy infrastructu
 
 ## Acceptance checks
 - B1: create one job, upload 9 valid synthetic resumes (4 digital PDFs, 3 DOCX, 2 scanned PDFs) plus one corrupt DOCX; require 9 SCORED + 1 FAILED and an OPEN failed_jobs record for the corrupt input.
-- B2: validate resulting scored candidate records through the live candidate API; schema/field constraints are additionally covered by repository integration tests.
+- B2: require name, email (string or null), skills[], employers[], titles[], experience_years, score (0–100), score_breakdown and above_threshold on every scored candidate.
 - B3: re-upload the same object and assert candidate count remains ten.
-- B4: enqueue an S3-event-shaped message for a deliberately missing object; require parse-queue redrive and DLQ consumer to persist an OPEN failed_jobs record.
+- B4: enqueue an S3-event-shaped message for a deliberately missing object; require parse-queue redrive (up to two 900-second visibility intervals) and DLQ consumer to persist an OPEN failed_jobs record. Allow up to 35 minutes for this check.
 - B5: assert candidate results are sorted by descending score.
 
 The run creates new synthetic records and objects, does not delete or modify existing jobs, and does not shortlist candidates or send SES email.
