@@ -1,36 +1,51 @@
-# RESOURCES — ledger of everything that exists in AWS (and how to delete it)
+# RESOURCES — AWS inventory, ownership and teardown
 
-RULE: any AWS resource created OUTSIDE `infra/template.yaml` (console, CLI, script) is added to section 2 THE MOMENT it is created. ChatGPT must ask "did we create anything by hand?" at the end of every session.
-Every resource gets tag `Project=resume-screener` (+ `Stage=dev|prod`). The SAM template applies it to all stack resources via stack tags.
+## Inventory status — 24 November 2026
 
-## 1. Created by the stacks (deleted by deleting the stack)
-| Stack | What it owns |
-|---|---|
-| rs-dev | S3 x2, DynamoDB x3, SQS x6, Lambdas, Cognito pool+client, API Gateway, CloudFront, alarms, SNS, log groups, IAM roles |
-| rs-prod | same as above |
-Stack IDs / URLs: fill in docs/STATE.md "Deployed environment facts".
+**The AWS account has not been inventoried in this work session.** No stack IDs, API URLs, CloudFront URLs, Cognito IDs or manual-resource ARNs have been recorded in `docs/STATE.md`. Therefore, the planned resources below must not be interpreted as proof that they exist or do not exist.
 
-## 2. Created BY HAND (NOT deleted with the stack) — keep this table current
-| Resource | Region | Created by (task) | Cost risk | Delete how (console) | Deleted? |
+Before the first deployment, inspect the AWS account in `us-east-1` and record any pre-existing `rs-` resources. After deployment, record every stack ID and output URL in `docs/STATE.md`. Any resource created outside `infra/template.yaml` must be recorded in section 2 immediately.
+
+Tag supported resources with `Project=resume-screener` and `Stage=dev|prod`. CloudFormation stack tags are propagated only to resource types that support tagging; retain resource names, ARNs and region for services without resource-level tags.
+
+## 1. Stack-owned resources (intended inventory; existence not verified)
+
+| Stack | Expected ownership | Existence |
+|---|---|---|
+| `rs-dev` | S3 x2, DynamoDB x3, SQS x6, Lambda functions, Cognito pool/client/group, API Gateway, CloudFront, alarms, SNS, log groups and IAM roles | NOT VERIFIED |
+| `rs-prod` | Same resource families as dev, isolated by stage | NOT VERIFIED |
+
+Stack IDs / URLs: fill in `docs/STATE.md` → "Deployed environment facts" only after successful deployment.
+
+## 2. Manual resources (planned or created outside the stack)
+
+The rows below are known manual-resource categories from the project plan. Their existence is currently **NOT VERIFIED**. Change the status to `CREATED` only after confirming the resource in AWS and recording its ARN/name. Do not delete a resource based only on its presence in this planning table.
+
+| Resource | Region | Owner/task | Cost risk | Existence | Delete how |
 |---|---|---|---|---|---|
-| Comprehend custom recogniser (model) | us-east-1 | A9 | low | Comprehend > Custom entity recognition > select > Delete | [ ] |
-| Comprehend endpoint (real-time) | us-east-1 | A9 | **HIGH (hourly)** | Comprehend > Endpoints > Delete | [ ] |
-| Comprehend training data S3 bucket/prefix | us-east-1 | A9 | low | S3 > empty then delete | [ ] |
-| SES verified identities (sender + demo emails) | us-east-1 | P5 | none | SES > Verified identities > Delete | [ ] |
-| AWS Budget alert | global | P9 | none | Billing > Budgets > Delete | [ ] |
-| Cognito users (if created by script outside template) | us-east-1 | P3 | none | gone with the user pool | [ ] |
-| (add rows) | | | | | |
+| Comprehend custom recogniser model | us-east-1 | Teammate A / A9 | Low | NOT VERIFIED | Comprehend → Custom entity recognition → select model → Delete |
+| Comprehend real-time endpoint | us-east-1 | Teammate A / A9 | **HIGH (hourly)** | NOT VERIFIED | Comprehend → Endpoints → Delete endpoint |
+| Comprehend training data S3 bucket/prefix | us-east-1 | Teammate A / A9 | Low | NOT VERIFIED | S3 → empty bucket/prefix, then delete bucket |
+| SES verified sender and demo-recipient identities | us-east-1 | Amit / P5 | No direct identity charge | NOT VERIFIED | SES → Verified identities → select identity → Delete |
+| AWS Budget and email notifications | Global | Amit / P9 | No direct budget charge | NOT VERIFIED | Billing → Budgets → select budget → Delete |
+| Cognito recruiter users created outside the stack | us-east-1 | Amit / P3 | No direct user charge at expected scale | NOT VERIFIED | Delete users from the user pool; deleting the pool removes its users |
 
-## 3. Teardown order (after submission is accepted)
-1. Comprehend: delete the **endpoint first** (stops billing), then the custom recogniser.
-2. S3: empty `rs-prod-uploads-*` and `rs-prod-frontend-*` (CloudFormation cannot delete non-empty buckets), same for dev. Also empty the Comprehend training bucket.
-3. CloudFormation > delete stack `rs-prod`, then `rs-dev`. Wait for DELETE_COMPLETE. If DELETE_FAILED, read the Events tab: it names the stuck resource (usually a non-empty bucket).
-4. Delete anything left in section 2 (SES identities, budget).
-5. CloudWatch > Log groups: delete any `/aws/lambda/rs-*` left behind.
-6. SAM artifact bucket (created by `--resolve-s3`, name starts with `aws-sam-cli-managed-default-`): empty and delete its stack `aws-sam-cli-managed-default`.
-7. Verify nothing remains (section 4).
+Add rows for every manual resource created. Record the exact physical resource identifier, region, creation date, owner/task and deletion status. Never store secrets or credentials here.
 
-## 4. Verification (proof it's all gone)
-- Console > Resource Groups & Tag Editor > Tag Editor > Regions: All regions, Resource types: All, Tag `Project = resume-screener` > must return 0 results.
-- Console search for `rs-` in: S3, DynamoDB, SQS, Lambda, CloudFront, Cognito, Comprehend, CloudWatch log groups.
-- Billing > Cost Explorer, group by Service, check again after 24-48 hours: no new Comprehend/CloudFront/Lambda charges.
+## 3. Teardown order (only after submission is accepted)
+
+1. Confirm the exact resources to remove from sections 1 and 2. Do not assume both stacks or all manual resources exist.
+2. If a Comprehend endpoint exists, delete the **endpoint first** to stop hourly charges; then delete its recogniser model if no longer needed.
+3. Empty uploads and frontend S3 buckets for each deployed stage, and empty any Comprehend training bucket. CloudFormation cannot delete non-empty S3 buckets.
+4. Delete deployed application stacks in reverse environment order: `rs-prod`, then `rs-dev`. Wait for `DELETE_COMPLETE`. If deletion fails, inspect CloudFormation Events and resolve the named resource.
+5. Delete confirmed manual SES identities, budgets and other resources that remain.
+6. Check for SAM artifact buckets created by `--resolve-s3` (often associated with `aws-sam-cli-managed-default`); empty and remove only if confirmed and no longer needed.
+7. Verify the account inventory and billing after cleanup.
+
+## 4. Verification (proof of cleanup)
+
+- Resource Groups & Tag Editor → Tag Editor → all regions/resource types → filter `Project = resume-screener`; confirm zero remaining tagged resources.
+- Search for `rs-` resources in S3, DynamoDB, SQS, Lambda, CloudFront, Cognito and CloudWatch log groups.
+- Inspect Comprehend endpoints/models and manually created S3 buckets separately because not every resource type necessarily supports the same tagging workflow.
+- Check Billing → Cost Explorer grouped by service again after 24–48 hours for residual Comprehend, CloudFront, Lambda or storage charges.
+- Record the verification date and result in this file before declaring cleanup complete.
