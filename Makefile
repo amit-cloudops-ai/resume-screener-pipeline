@@ -14,7 +14,7 @@ COMMON_PARAMS = SesSender=$(SES_SENDER) AlarmEmail=$(ALARM_EMAIL) MonthlyBudgetU
 SAM_DEPLOY_BASE = sam deploy --template-file .aws-sam/build/template.yaml --region $(REGION) --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --resolve-s3 --no-fail-on-empty-changeset
 COMMON_TAGS = Project=resume-screener
 
-.PHONY: verify repo contracts test golden-generate deploy-dev deploy-prod smoke sam-validate sam-build
+.PHONY: verify repo contracts test golden-generate golden-evaluate deploy-dev deploy-prod smoke sam-validate sam-build
 
 # One command that must be green before any commit / PR is called "done"
 verify: repo contracts test
@@ -27,6 +27,9 @@ contracts:
 
 golden-generate:
 	$(PY) scripts/generate_golden_documents.py
+
+golden-evaluate: golden-generate
+	$(PY) scripts/evaluate_golden_dataset.py
 
 test: golden-generate
 	$(PY) -m pytest -q tests backend --ignore=tests/e2e
