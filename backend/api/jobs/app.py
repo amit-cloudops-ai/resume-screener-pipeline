@@ -27,6 +27,7 @@ _ALLOWED = {
     ".pdf": "application/pdf",
     ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 }
+_ALLOWED_JD = {**_ALLOWED, ".txt": "text/plain"}
 _JOB_ID = re.compile(r"^[0-9a-f]{12}$")
 
 
@@ -167,21 +168,35 @@ def _create_job(event: dict, table, s3, ssm) -> dict:
         if not isinstance(description, str) or not description.strip():
             raise ValueError("description_text must be a non-empty string")
         key = f"jd/{job_id}/description.txt"
-        s3.put_object(Bucket=bucket, Key=key, Body=description.encode("utf-8"), ContentType="text/plain")
         job["jd_s3_key"] = key
         job["status"] = "JD_UPLOADED"
     elif file_name is not None:
         name = _safe_filename(file_name)
         extension = PurePosixPath(name).suffix.lower()
-        content_type = _ALLOWED.get(extension)
+        content_type = _ALLOWED_JD.get(extension)
         if content_type is None:
-            raise ValueError("JD file must be PDF or DOCX; use description_text for plain text")
+            raise ValueError("JD file must be PDF, DOCX or TXT")
         key = f"jd/{job_id}/{name}"
         jd_upload = {"file_name": name, "url": _presign(s3, bucket, key, content_type), "s3_key": key}
         job["jd_s3_key"] = key
         job["status"] = "JD_UPLOADED"
 
     table.put_item(Item=job, ConditionExpression="attribute_not_exists(job_id)")
+    if description is not None:
+        try:
+            s3.put_object(
+                Bucket=bucket, Key=job["jd_s3_key"],
+                Body=description.encode("utf-8"), ContentType="text/plain",
+            )
+        except Exception:
+            logger.exception("JD text upload failed for job_id=%s", job_id)
+            table.update_item(
+                Key={"job_id": job_id},
+                UpdateExpression="SET #status = :failed",
+                ExpressionAttributeNames={"#status": "status"},
+                ExpressionAttributeValues={":failed": "FAILED"},
+            )
+            return _error(500, "could not store job description")
     payload = {"job": job}
     if jd_upload:
         payload["jd_upload"] = jd_upload
