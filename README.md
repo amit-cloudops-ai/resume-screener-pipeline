@@ -4,7 +4,7 @@ An AWS-native resume screening workflow. Recruiters create a job, upload a job d
 
 ## Current status — 24 November 2026
 
-**Phase A steps 1–6 are complete; Step 7 recruiter dashboard implementation and Step 9 architecture/cost documentation are committed on the working branch. Step 8 smoke automation remains CI-verified. Step 10 final release-readiness audit is next. No AWS account access or deployment has been performed.**
+**Phase A repository work (Steps 1–10) is complete on the working branch, pending final audit CI evidence. The branch remains separate from main; no AWS account access, stack operation or deployment has been performed. See `docs/PHASE_A_STEP10_FINAL_AUDIT.md` for the audit decision and the exact Phase B boundary.**
 
 The integrated backend and SAM updates are in [draft PR #6](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6). The branch is separate from `main`; no code has been merged and no AWS resources have been deployed by this work.
 
@@ -24,7 +24,7 @@ Latest full Phase A CI run [45344840009](https://github.com/amit-cloudops-ai/res
 
 **Not yet complete:** Step 10 final Phase A release-readiness audit; AWS account preflight and live deployment acceptance (Cognito 401/200, S3-to-SQS, Textract/Comprehend, SES, alarms and live E2E smoke); production sender verification; demo video; and teammate clean-clone deployment rehearsal. The local integration test and offline smoke-script tests are not substitutes for deployed checks.
 
-Step 8 smoke automation and its offline tests passed [45342184687](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45342184687) on the Step 8 implementation head; this is offline verification only, and the live smoke test was not run. This is offline verification only; the live smoke test was not run.
+Step 8 smoke automation and its offline tests passed [45342184687](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45342184687) on the Step 8 implementation head. This is offline verification only; the live smoke test was not run.
 
 The Step 4–5 head [45339829162](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45339829162) also passed the complete CI matrix: backend verification and golden evaluation, frontend typecheck/build, SAM lint and SAM build.
 
@@ -96,13 +96,17 @@ Development deployment (only after repository review and explicit approval):
 
 ```bash
 make deploy-dev ALARM_EMAIL=you@example.com
+make deploy-frontend STAGE=dev
 ```
 
 Production deployment requires a verified SES sender and an alarm email:
 
 ```bash
 make deploy-prod ALARM_EMAIL=you@example.com SES_SENDER=verified-sender@example.com
+ALLOW_PROD=1 make deploy-frontend STAGE=prod
 ```
+
+**Frontend publishing is a separate, explicit step.** SAM creates the private S3 origin and CloudFront distribution but does not upload the React build. After the target stack reaches `CREATE_COMPLETE` or `UPDATE_COMPLETE`, run `make deploy-frontend STAGE=dev` (or `ALLOW_PROD=1 make deploy-frontend STAGE=prod`). The script reads the deployed API/Cognito outputs, builds with mock mode disabled, syncs the dedicated stage frontend bucket and submits a CloudFront invalidation. It refuses production publishing unless `ALLOW_PROD=1` is explicitly set.
 
 The optional Comprehend custom recognizer is disabled by default. To enable it, pass `CUSTOM_RECOGNIZER_ARN=<endpoint-arn>` during deployment. Redeployment is required to update the Lambda environment.
 
