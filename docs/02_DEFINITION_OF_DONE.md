@@ -41,7 +41,7 @@ Against fixtures/golden (12 hand-labelled resumes, 3 types):
 - [ ] F1. Demo video (<= 8 min) showing the full flow on prod.
 - [ ] F2. Sample Comprehend entity output for 3 resume types committed in docs/samples/.
 - [ ] F3. Written NLP matching explanation + 3 enhancements (docs/04_SCORING_LOGIC.md finalised).
-- [ ] F4. Architecture diagram committed (docs/architecture.png), cost sheet committed (docs/COST.md).
+- [ ] F4. Architecture diagram committed as a scalable vector (docs/architecture.svg) with editable source (docs/architecture.mmd); cost sheet committed (docs/COST.md).
 - [ ] F5. README deployment instructions tested by a teammate from a clean clone.
 
 ## G. Cleanup readiness
