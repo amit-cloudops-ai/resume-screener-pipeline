@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import math
+import os
 import re
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-SCORER_VERSION = "1.0.0"
+SCORER_VERSION = os.getenv("SCORER_VERSION", "1.0.0")
 SKILLS_WEIGHT = 0.5
 TITLE_WEIGHT = 0.3
 EXPERIENCE_WEIGHT = 0.2
