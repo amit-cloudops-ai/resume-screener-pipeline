@@ -5,6 +5,7 @@ import json
 from decimal import Decimal
 import logging
 import os
+import re
 from pathlib import PurePosixPath
 
 import boto3
@@ -40,6 +41,23 @@ def _clients():
 
 def _failure(failed_table, candidate_table, job_id, key, message_id, error):
     now = utc_now()
+    if not isinstance(job_id, str) or not re.fullmatch(r"[0-9a-f]{12}", job_id):
+        failed_id = __import__("hashlib").sha256(
+            f"UNKNOWN/{key}/{error.error_type}".encode("utf-8")
+        ).hexdigest()[:32]
+        failed_table.put_item(Item={
+            "failed_id": failed_id,
+            "job_id": "unknown",
+            "stage": "UNKNOWN",
+            "s3_key": key,
+            "error_type": "UNKNOWN",
+            "error_message": "Resume notification contains an invalid job identifier.",
+            "attempts": 0,
+            "message_id": message_id,
+            "status": "OPEN",
+            "created_at": now,
+        })
+        return
     candidate_id = candidate_id_for(job_id, key)
     existing = candidate_table.get_item(
         Key={"job_id": job_id, "candidate_id": candidate_id}
@@ -92,6 +110,8 @@ def _process(body, message_id, clients, context):
     if len(parts) != 3 or parts[0] != "resumes" or not parts[1]:
         raise PermanentDocumentError("UNSUPPORTED_TYPE", "Resume object key is outside resumes/{job_id}/{file_name}")
     job_id = parts[1]
+    if not re.fullmatch(r"[0-9a-f]{12}", job_id):
+        raise PermanentDocumentError("UNKNOWN", "Resume key contains an invalid job identifier")
     if bucket != os.environ["UPLOADS_BUCKET"]:
         raise PermanentDocumentError("UNSUPPORTED_TYPE", "Resume object is in an unexpected bucket")
     candidate_id = candidate_id_for(job_id, key)
