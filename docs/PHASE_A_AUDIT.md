@@ -118,3 +118,12 @@ The visual treatment is intentionally neutral. D16 requires approval of the dash
 ## Release boundary
 
 Steps 1–3 are repository-only. Do not access AWS until the complete Phase A repository gate has passed. Do not merge PR #8 or deploy AWS without explicit approval.
+
+## Step 8 — Live E2E smoke workflow
+
+The P10 placeholder has been replaced with tests/e2e/smoke.py, an explicit live acceptance runner for Definition of Done B1–B5. It creates a new smoke job, uploads nine valid golden documents (4 digital PDFs, 3 DOCX, 2 scanned PDFs) plus one corrupt DOCX, checks the 9 SCORED + 1 FAILED outcome and failed-jobs record, re-uploads an identical object to test idempotency, sends a missing-object event to exercise parse-queue retry/DLQ persistence, and checks score-descending ordering.
+
+The runner is dry-run by default; --execute is required for live API/AWS activity, and production additionally requires --allow-prod. It does not deploy, shortlist or send SES mail. It leaves synthetic test records/objects in place for explicit cleanup. Because parse queue visibility is 900 seconds with maxReceiveCount 3, the missing-object redrive check can take approximately 30 minutes; the script allows up to 35 minutes.
+
+Offline tests cover fixture selection, explicit execution opt-in and required scored-candidate fields. make verify now includes these tests. Live AWS execution remains NOT PERFORMED and must not be claimed from CI results.
+

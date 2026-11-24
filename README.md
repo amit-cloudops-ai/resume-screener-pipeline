@@ -4,7 +4,7 @@ An AWS-native resume screening workflow. Recruiters create a job, upload a job d
 
 ## Current status — 24 November 2026
 
-**Backend integration implemented; Phase A steps 1–5 are implemented on the working branch. Repository-only work continues; no AWS access or deployment has been performed.**
+**Backend integration implemented; Phase A steps 1–5 are verified and Step 8 smoke automation is implemented on the working branch. Steps 6–7 and 9–10 remain. No AWS access or deployment has been performed.**
 
 The integrated backend and SAM updates are in [draft PR #6](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6). The branch is separate from `main`; no code has been merged and no AWS resources have been deployed by this work.
 
@@ -17,7 +17,7 @@ The integrated backend and SAM updates are in [draft PR #6](https://github.com/a
 
 Phase A audit/golden evaluation CI run [45337062084](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45337062084) passed: `make verify` passed with 153 tests, `make golden-evaluate` passed, SAM lint validation passed, and SAM build passed. The 12-resume deterministic evaluation measured 100% skill precision/recall, 12/12 email extraction, 12/12 experience within ±1 year and 3/3 expected top-ranked candidates. These are mock-entity/pre-AWS metrics, not live Textract or Comprehend model results.
 
-**Not yet complete:** full recruiter dashboard, live AWS deployment, Cognito 401/200 proof, S3-to-SQS live delivery, live Textract/Comprehend/SES tests, production sender verification, operational alarm proof and live E2E smoke. The local integration test is not a substitute for those deployed checks.
+**Not yet complete:** approved dashboard direction and recruiter dashboard, live AWS deployment, Cognito 401/200 proof, S3-to-SQS live delivery, live Textract/Comprehend/SES tests, production sender verification, operational alarm proof and live E2E smoke. The local integration test is not a substitute for those deployed checks.
 
 The Step 4–5 head [45339829162](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45339829162) also passed the complete CI matrix: backend verification and golden evaluation, frontend typecheck/build, SAM lint and SAM build.\n\nSee [`docs/STATE.md`](docs/STATE.md) for the evidence-based status and remaining release gates.
 

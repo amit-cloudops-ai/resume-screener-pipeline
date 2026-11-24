@@ -50,5 +50,5 @@ deploy-prod:
 	sam build --template-file infra/template.yaml
 	$(SAM_DEPLOY_BASE) --stack-name rs-prod --parameter-overrides Stage=prod $(COMMON_PARAMS) --tags $(COMMON_TAGS) Stage=prod
 
-smoke:
+smoke: golden-generate
 	$(PY) tests/e2e/smoke.py --stage $(STAGE) --region $(REGION)

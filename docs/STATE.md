@@ -28,7 +28,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | P7 | Amit | Recruiter frontend pages | TODO | Not implemented. |
 | P8 | Amit | CloudFront deployment | DONE-UNVERIFIED | Distribution/OAC/bucket policy are defined in SAM; no live URL or browser proof. |
 | P9 | Amit | Alarms / budget | DONE-UNVERIFIED | Alarm and budget resources are defined; no deployed alarm/notification proof. |
-| P10 | Amit | Live E2E smoke script | TODO | Existing live smoke script remains a placeholder; local integration acceptance exists separately. |
+| P10 | Amit | Live E2E smoke script | DOING | Implemented guarded live smoke script for DoD B1–B5, offline tests and documentation. Dry-run by default; live AWS execution remains unrun until an approved deployment. CI verification pending. |
 | P11 | Amit | Backend integration | VERIFIED | Moto acceptance on CI run 45331272201: one JD + ten resumes -> nine SCORED candidates + one FAILED candidate; candidate and failed-job records validate against frozen schemas. |
 | P12 | Amit | Demo, architecture diagram and cost sheet | TODO | Not evidenced as complete. |
 | A1 | Teammate A | Skills taxonomy | VERIFIED | `backend/parsing/skills_taxonomy.json`; 160 canonical skills, 231 canonical/alias terms, no collisions; taxonomy test passes. |
@@ -69,6 +69,22 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 - Step 5 — frontend technical foundation is committed under `frontend/`: React 19, Vite, TypeScript, Cognito User Pool SRP sign-in module, session ID-token retrieval, API client sending the raw ID token (no Bearer prefix), runtime environment configuration and local mock mode. The shell is intentionally neutral; D16 requires visual direction approval before the dashboard design begins.
 - No API/OpenAPI/JSON/SQS contracts or SAM resources were changed.
 - Frontend typecheck and Vite production build passed GitHub Actions. Frontend has not been proven against a deployed Cognito pool or live API; mock mode is not authentication evidence.
+
+## Phase A — Step 8 implementation
+
+**Status: IMPLEMENTED; CI verification pending. Live AWS execution intentionally NOT performed.**
+
+- Replaced the P10 placeholder with a guarded deployment smoke script covering DoD B1–B5.
+- Uses the synthetic golden documents: 4 digital PDFs, 3 DOCX, 2 scanned PDFs and one deliberately corrupt DOCX.
+- Checks authenticated API access, creates a scoped smoke job, uploads ten files, waits for nine SCORED + one FAILED, checks required scored-candidate fields, and verifies an OPEN failed-jobs record for the corrupt file.
+- Re-uploads one identical S3 key and verifies candidate count remains ten.
+- Sends a missing-object S3-notification-shaped event to the parse queue and waits for retry/DLQ consumer persistence. The configured 900-second queue visibility means this check can take up to 35 minutes.
+- Verifies score-descending candidate order.
+- Safe by default: dry-run makes no AWS/API calls. Live execution requires --execute and a recruiter SMOKE_ID_TOKEN; production additionally requires --allow-prod.
+- The live run creates test records/objects and does not clean them up, shortlist candidates or send SES email. It does not deploy infrastructure.
+- Offline smoke-script tests are included in make verify; make smoke generates golden files before its default dry-run.
+
+No live AWS evidence is claimed. Step 8's live acceptance run remains a later deployment gate after explicit approval.
 
 ## CI evidence
 
@@ -117,9 +133,11 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 
 ## Next sequence
 
-1. Continue Phase A with Step 4 — reviewed extraction sample deliverables and service-mock boundary documentation.
-2. Complete Step 5–9: frontend foundation/design, recruiter dashboard, live smoke implementation, architecture/cost documentation.
-3. Complete Step 10 repository release-readiness audit and verify the exact final Phase A branch head.
+1. Complete Step 6 after Amit confirms one dashboard visual direction; D16 explicitly requires his approval.
+2. Complete Step 7 recruiter dashboard against the locked OpenAPI and existing backend routes.
+3. Step 8 live smoke automation is implemented; verify it in CI. Actual AWS execution remains gated on deployment approval.
+4. Complete Steps 9–10, resolve release-audit findings, then review Phase B readiness.
+5. Only after Phase A and explicit approval, perform AWS account preflight and dev deployment.
 4. Only after the full Phase A gate passes, request explicit approval for AWS account preflight and `rs-dev` deployment.
 5. Validate live AWS integrations, resolve development findings and freeze a production release candidate.
 6. Deploy `rs-prod` only after explicit production approval and successful development acceptance.
