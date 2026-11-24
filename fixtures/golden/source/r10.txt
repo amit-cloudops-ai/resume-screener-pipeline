@@ -1,0 +1,13 @@
+JAMES CARTER
+james.carter@example.com
+PROFESSIONAL SUMMARY
+Backend Developer with practical experience delivering reliable software and production systems.
+PROFESSIONAL EXPERIENCE
+Backend Developer | Pinecone Digital
+Jan 2021 - Dec 2025
+Selected responsibilities include building, operating, improving and documenting production services.
+TECHNICAL SKILLS
+python; java; spring boot; mysql; rest api; kubernetes
+EDUCATION
+Bachelor of Engineering | Example Institute
+All names, contact details, employers and education records in this sample are fictional.
