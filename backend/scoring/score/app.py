@@ -1,10 +1,4 @@
-import logging
+"""SAM entry point for the packaged scoring Lambda."""
+from handler import lambda_handler
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-
-def lambda_handler(event, context):
-    records = event.get("Records", [])
-    logger.info("score stub request_id=%s record_count=%d", getattr(context, "aws_request_id", "unknown"), len(records))
-    return {"batchItemFailures": []}
+__all__ = ["lambda_handler"]
