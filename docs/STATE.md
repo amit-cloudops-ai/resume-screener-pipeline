@@ -49,6 +49,11 @@ Submission target: 2026-11-25.
 - Repository file contents and open PR/branch state were inspected through GitHub on 2026-11-24.
 - The P2 SAM template contains five API function definitions whose `Events` blocks were outside `Properties`; corrected on `feat/P2-infrastructure-readiness`.
 - The API Jobs Lambda used DynamoDB Scan in B3 while its P2 IAM policy omitted `dynamodb:Scan`; permission added on `feat/P2-infrastructure-readiness`.
+- Resume parser now has FAILED_TABLE and failed_jobs PutItem access for permanent failures.
+- DLQ consumer now has FAILED_TABLE/CANDIDATES_TABLE and candidate GetItem access to derive the original resume key from score DLQ messages.
+- Failed-jobs API now has stage queue URLs, uploads bucket name, candidate table query access and send permissions for parse/JD/score retry queues. The retry handler is still a stub and its behaviour remains unverified.
+- Custom recognizer configuration now uses the stack parameter `CustomRecognizerArn` for Lambda environment values and mirrors it to SSM, avoiding a GetAtt read of a just-created SSM parameter. Redeploy is required to change the Lambda environment.
+- Makefile now exposes explicit SAM validation/build targets and deployment parameters for SES sender, alarm email, budget amount and optional recognizer ARN.
 - CI workflow on `feat/P2-infrastructure-readiness` now includes SAM lint validation and SAM build steps. These checks have NOT yet run.
 - No SAM validate/build, `make verify`, AWS deployment, live API auth, S3 event, queue, Textract, Comprehend, SES or E2E execution has been evidenced in this session.
 
