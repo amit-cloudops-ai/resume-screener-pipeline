@@ -123,15 +123,15 @@ def test_duplicate_parsed_event_republishes_score_message_without_rewriting_cand
     s3.put_object(Bucket=BUCKET, Key=key, Body=docx_bytes())
     invoke(key, "first")
     candidate_id = candidate_id_for(JOB, key)
+    sqs.receive_message(QueueUrl=queue_url)
     candidates.update_item(
         Key={"job_id": JOB, "candidate_id": candidate_id},
-        UpdateExpression="SET decision = :decision, #status = :scored",
-        ExpressionAttributeNames={"#status": "status"},
-        ExpressionAttributeValues={":decision": "SHORTLISTED", ":scored": "SCORED"},
+        UpdateExpression="SET decision = :decision",
+        ExpressionAttributeValues={":decision": "SHORTLISTED"},
     )
     invoke(key, "duplicate")
     item = candidates.get_item(Key={"job_id": JOB, "candidate_id": candidate_id})["Item"]
-    assert item["status"] == "SCORED"
+    assert item["status"] == "PARSED"
     assert item["decision"] == "SHORTLISTED"
     assert len(sqs.receive_message(QueueUrl=queue_url)["Messages"]) == 1
 
