@@ -60,8 +60,7 @@ def lambda_handler(event, context):
         while response.get("LastEvaluatedKey"):
             response = table.query(
                 KeyConditionExpression=Key("job_id").eq(job_id),
-                FilterExpression=Key("job_id").eq(job_id),
-                ExclusiveStartKey=response["LastEvaluatedKey"],
+                    ExclusiveStartKey=response["LastEvaluatedKey"],
             )
             candidates.extend(response.get("Items", []))
         shortlisted = [item for item in candidates if item.get("decision") == "SHORTLISTED"]
