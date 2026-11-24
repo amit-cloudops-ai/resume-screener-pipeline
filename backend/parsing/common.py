@@ -31,6 +31,7 @@ DATE_RANGE_RE = re.compile(
     re.I,
 )
 YEAR_RANGE_RE = re.compile(r"\b(19\d{2}|20\d{2})\s*(?:-|–|—|to)\s*(Present|Current|19\d{2}|20\d{2})\b", re.I)
+YEARS_PLUS_RE = re.compile(r"\b(\d+(?:\.\d+)?)\s*\+\s*(?:years|year|yrs|yr)\b", re.I)
 
 
 class PermanentDocumentError(Exception):
@@ -250,6 +251,11 @@ def experience_years(text: str):
             intervals.append((start, end))
 
     if not intervals:
+        # Resume summaries often state total experience without dated roles.
+        # Use this fallback only when no explicit employment intervals were found.
+        fallback = YEARS_PLUS_RE.search(text)
+        if fallback:
+            return round(min(float(fallback.group(1)), 40), 1)
         return None
     intervals.sort()
     total, left, right = 0, intervals[0][0], intervals[0][1]
@@ -260,18 +266,16 @@ def experience_years(text: str):
             total += right - left + 1
             left, right = start, end
     total += right - left + 1
-    return round(min(total / 12, 60), 1)
+    return round(min(total / 12, 40), 1)
 
 
 def derive_fields(text: str, entities: dict) -> dict:
     standard, custom = entities.get("standard", []), entities.get("custom", [])
     people = [e.get("Text", "").strip() for e in standard if e.get("Type") == "PERSON" and e.get("Text")]
     employers = sorted({e.get("Text", "").strip() for e in standard if e.get("Type") == "ORGANIZATION" and e.get("Text")})
+    # Comprehend standard TITLE labels creative works (books/films), not job
+    # titles. Job titles must come from the optional custom recognizer.
     titles = sorted({
-        e.get("Text", "").strip().casefold()
-        for e in standard
-        if e.get("Type", "").upper() == "TITLE" and e.get("Text")
-    } | {
         e.get("Text", "").strip().casefold()
         for e in custom
         if e.get("Type", "").upper() == "JOB_TITLE" and e.get("Text")
