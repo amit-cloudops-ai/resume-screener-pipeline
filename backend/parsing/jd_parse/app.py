@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from decimal import Decimal
 import logging
 import os
 import re
@@ -134,7 +135,7 @@ def _process(body, message_id, clients, context):
             ":parsed": "JD_PARSED",
             ":skills": required_skills,
             ":titles": titles,
-            ":years": _required_years(text),
+            ":years": Decimal(str(_required_years(text))) if _required_years(text) is not None else None,
             ":version": os.getenv("PARSER_VERSION", "1.0.0"),
             ":parsed_at": utc_now(),
             ":key": key,
