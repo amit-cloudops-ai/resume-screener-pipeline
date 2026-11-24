@@ -1,6 +1,8 @@
 """Moto-backed tests for B4 candidate API."""
 import os
 
+from decimal import Decimal
+
 import boto3
 import pytest
 from moto import mock_aws
