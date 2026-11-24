@@ -251,7 +251,15 @@ def derive_fields(text: str, entities: dict) -> dict:
     standard, custom = entities.get("standard", []), entities.get("custom", [])
     people = [e.get("Text", "").strip() for e in standard if e.get("Type") == "PERSON" and e.get("Text")]
     employers = sorted({e.get("Text", "").strip() for e in standard if e.get("Type") == "ORGANIZATION" and e.get("Text")})
-    titles = sorted({e.get("Text", "").strip().casefold() for e in custom if e.get("Type", "").upper() == "JOB_TITLE" and e.get("Text")})
+    titles = sorted({
+        e.get("Text", "").strip().casefold()
+        for e in standard
+        if e.get("Type", "").upper() == "TITLE" and e.get("Text")
+    } | {
+        e.get("Text", "").strip().casefold()
+        for e in custom
+        if e.get("Type", "").upper() == "JOB_TITLE" and e.get("Text")
+    })
     email = EMAIL_RE.search(text)
     return {
         "name": people[0] if people else None,
