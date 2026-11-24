@@ -25,7 +25,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | P4 | Amit | API Gateway + Cognito authorizer | DONE-UNVERIFIED | REST API and default Cognito authorizer are defined; no live 401/200 proof. |
 | P5 | Amit | SES identity and production access | TODO | SES sender verification and production-access approval not evidenced. |
 | P6 | Amit | Frontend shell + mocks | VERIFIED | React/Vite/TypeScript, Cognito SRP (including temporary-password challenge), raw ID-token API client, local mock mode and approved Editorial Hiring Desk visual system implemented. Final Step 7 frontend CI run is recorded below. |
-| P7 | Amit | Recruiter frontend pages | DOING | Full recruiter workflows implemented against the frozen API routes: jobs/JD, resume upload progress, candidate table/search/filter, score detail, shortlist/reject, CSV and failed-job retry. Final frontend CI verification is pending. |
+| P7 | Amit | Recruiter frontend pages | VERIFIED | Editorial Hiring Desk recruiter workflows implemented against the frozen API routes. GitHub Actions run 45344597945 passed all three jobs: make verify + golden evaluation, frontend TypeScript/production build, SAM lint/build. |
 | P8 | Amit | CloudFront deployment | DONE-UNVERIFIED | Distribution/OAC/bucket policy are defined in SAM; no live URL or browser proof. |
 | P9 | Amit | Alarms / budget | DONE-UNVERIFIED | Alarm and budget resources are defined; no deployed alarm/notification proof. |
 | P10 | Amit | Live E2E smoke script | VERIFIED | Guarded live smoke script for DoD B1–B5, offline tests and documentation pass CI run 45342184687. Dry-run by default; actual AWS execution remains a post-deployment gate. |
@@ -113,7 +113,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 ## Remaining release blockers
 
 1. Code and static infrastructure checks are green on the current integration head. Keep PR #6 draft until review and the remaining release gates are addressed.
-2. Recruiter frontend Step 7 is implemented; final CI verification is pending. Step 8 offline smoke automation is verified, but live AWS smoke remains a post-deployment acceptance gate.
+2. Step 7 recruiter frontend is VERIFIED by CI run 45344597945. Step 8 offline smoke automation is VERIFIED; live AWS smoke remains a post-deployment acceptance gate.
 3. Golden-set deterministic accuracy is benchmarked and passed. Actual AWS-generated Comprehend samples and live OCR/model accuracy remain outstanding.
 4. SES sender verification/production access is not confirmed.
 5. No AWS account inventory has been performed; do not assume there are no existing resources.
@@ -149,7 +149,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## Phase A — Step 7 recruiter dashboard
 
-**Status: IMPLEMENTED; final CI verification pending.** The frontend now contains the complete recruiter-facing workflow against the existing API routes: create/list jobs, submit a JD as text or PDF/DOCX/TXT, request presigned resume uploads, upload up to 50 PDF/DOCX files with per-file progress, search/filter/rank candidates, inspect profile and weighted score breakdown, shortlist with interview details, reject with confirmation, export shortlist CSV, and inspect/retry supported failed-job stages. No OpenAPI, JSON schema, SQS message or SAM resource was changed. Local mock mode uses synthetic records and makes no AWS requests. The live Cognito/API integration remains unverified until an approved deployment.
+**Status: VERIFIED — GitHub Actions run 45344597945 passed all three jobs.** The frontend now contains the complete recruiter-facing workflow against the existing API routes: create/list jobs, submit a JD as text or PDF/DOCX/TXT, request presigned resume uploads, upload up to 50 PDF/DOCX files with per-file progress, search/filter/rank candidates, inspect profile and weighted score breakdown, shortlist with interview details, reject with confirmation, export shortlist CSV, and inspect/retry supported failed-job stages. No OpenAPI, JSON schema, SQS message or SAM resource was changed. Local mock mode uses synthetic records and makes no AWS requests. The live Cognito/API integration remains unverified until an approved deployment.
 
 ## Phase A — Step 9 architecture and cost
 
