@@ -68,6 +68,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 - `make golden-evaluate`: passed; 100% skill precision/recall, 12/12 email, 12/12 experience within ±1 year and 3/3 top-1 ranking. See `docs/PHASE_A_ACCURACY.md`.
 - `sam validate --lint --template-file infra/template.yaml`: passed.
 - `sam build --template-file infra/template.yaml`: passed; all nine Lambda CodeUri packages built.
+- Final branch-head CI run [45337308283](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45337308283) also passed on commit `6e3fd7f09240f224b50b5d99b3871c9a4b6bb734`, including `make verify`, `make golden-evaluate`, SAM lint validation and SAM build.
 - The local integration acceptance processed ten synthetic resume files and one JD. Nine candidates reached SCORED, one corrupt DOCX became FAILED, and persisted candidate/failed-job items passed their JSON schemas.
 - The original backend integration run `45332343952` remains historical evidence; Phase A's latest full verification is run `45337062084`.
 
