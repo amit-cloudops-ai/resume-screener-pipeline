@@ -4,6 +4,16 @@ Automated, auditable resume screening on AWS. Recruiters upload a job descriptio
 
 **Status:** foundation only (docs, frozen contracts, fixtures, CI). Infrastructure, backend and frontend are not built yet. Live status: [`docs/STATE.md`](docs/STATE.md).
 
+## F13 Technologies Internship Context
+
+**Internship:** AWS Cloud Intern (Cloud Engineering) · F13 Technologies · September 2026 – Present  
+**Project sequence:** Project 3 of 3 · Currently in progress  
+**Collaboration:** Being developed collaboratively with the F13 Technologies intern team.
+
+This is the third major project in my F13 Technologies internship. The team is building an AWS-based resume screening and talent-acquisition pipeline, with document extraction, NLP-based information processing, explainable candidate scoring and recruiter workflows.
+
+The project is currently at its documented foundation stage: architecture, contracts, fixtures and CI are present, while the infrastructure, backend and frontend implementation remain in progress. This README deliberately distinguishes planned capabilities from completed implementation so the project is represented accurately.
+
 ## Where to start
 | You are | Read |
 |---|---|
