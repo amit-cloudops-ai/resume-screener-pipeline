@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { FormEvent, ChangeEvent } from "react";
+import type { FormEvent } from "react";
 import { api, downloadShortlist, uploadPresigned } from "./api";
 import type { Candidate, FailedJob, JobSummary } from "./api";
 import { completeNewPassword, hasCognitoConfiguration, signIn, signOut } from "./auth/cognito";
