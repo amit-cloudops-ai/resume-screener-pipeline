@@ -9,6 +9,7 @@ from collections import Counter
 from typing import Any
 
 import boto3
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
@@ -42,7 +43,7 @@ def _table():
 
 def _query_all(table, job_id: str) -> list[dict]:
     response = table.query(
-        KeyConditionExpression=boto3.dynamodb.conditions.Key("job_id").eq(job_id)
+        KeyConditionExpression=Key("job_id").eq(job_id)
     )
     items = response.get("Items", [])
     while response.get("LastEvaluatedKey"):
