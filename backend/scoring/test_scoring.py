@@ -225,3 +225,18 @@ def test_weights_are_exact(strong, job):
     assert breakdown["skills"]["weight"] == 0.5
     assert breakdown["title"]["weight"] == 0.3
     assert breakdown["experience"]["weight"] == 0.2
+
+
+def test_scorer_version_uses_deployment_environment(monkeypatch):
+    import importlib
+    import backend.scoring.scoring as scoring_module
+
+    monkeypatch.setenv("SCORER_VERSION", "2.1.0")
+    importlib.reload(scoring_module)
+    result = scoring_module.score_candidate(
+        {"skills": ["aws"], "titles": [], "experience_years": None},
+        {"required_skills": ["aws"], "jd_titles": [], "required_years": None},
+    )
+    assert result["score_breakdown"]["scorer_version"] == "2.1.0"
+    monkeypatch.delenv("SCORER_VERSION", raising=False)
+    importlib.reload(scoring_module)
