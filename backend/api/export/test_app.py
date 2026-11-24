@@ -2,6 +2,8 @@
 import csv
 import io
 
+from decimal import Decimal
+
 import boto3
 import pytest
 from moto import mock_aws
@@ -32,7 +34,7 @@ def table(monkeypatch):
         )
         table.put_item(Item={
             "job_id": JOB, "candidate_id": "0000000000000001",
-            "decision": "SHORTLISTED", "score": 91.5, "name": "Asha",
+            "decision": "SHORTLISTED", "score": Decimal("91.5"), "name": "Asha",
             "email": "asha@example.test", "skills": ["aws"],
             "score_breakdown": {"skills": {"matched": ["aws", "docker"], "missing": ["terraform"]}},
             "titles": ["cloud engineer"], "experience_years": 4,
@@ -40,11 +42,11 @@ def table(monkeypatch):
         })
         table.put_item(Item={
             "job_id": JOB, "candidate_id": "0000000000000002",
-            "decision": "REJECTED", "score": 99, "name": "Not shortlisted",
+            "decision": "REJECTED", "score": Decimal("99"), "name": "Not shortlisted",
         })
         table.put_item(Item={
             "job_id": JOB, "candidate_id": "0000000000000003",
-            "decision": "SHORTLISTED", "score": 82, "name": "Bala",
+            "decision": "SHORTLISTED", "score": Decimal("82"), "name": "Bala",
             "email_status": "NO_EMAIL",
         })
         yield table
