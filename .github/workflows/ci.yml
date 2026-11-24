@@ -29,10 +29,10 @@ jobs:
         run: sam validate --lint --template-file infra/template.yaml
       - name: Build SAM application
         run: sam build --template-file infra/template.yaml
-      - name: Upload transformed CloudFormation template
+      - name: Upload SAM build template for review
         uses: actions/upload-artifact@v4
         with:
-          name: sam-transformed-template
+          name: sam-build-template
           path: .aws-sam/build/template.yaml
           if-no-files-found: error
           retention-days: 1
