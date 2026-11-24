@@ -316,7 +316,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub rs-${Stage}-parse
-      CodeUri: ../backend/parsing/parse/
+      CodeUri: ../backend/parsing/
+      Handler: parse.app.lambda_handler
       Timeout: 120
       ReservedConcurrentExecutions: 5
       Environment:
@@ -367,7 +368,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub rs-${Stage}-jd-parse
-      CodeUri: ../backend/parsing/jd_parse/
+      CodeUri: ../backend/parsing/
+      Handler: jd_parse.app.lambda_handler
       Timeout: 120
       Environment:
         Variables:
@@ -390,6 +392,9 @@ Resources:
             - Effect: Allow
               Action: [s3:GetObject]
               Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/jd/*
+            - Effect: Allow
+              Action: [s3:PutObject]
+              Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/parsed/*
             - Effect: Allow
               Action: [dynamodb:GetItem, dynamodb:UpdateItem]
               Resource: !GetAtt JobsTable.Arn
@@ -451,7 +456,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub rs-${Stage}-dlq-consumer
-      CodeUri: ../backend/parsing/dlq_consumer/
+      CodeUri: ../backend/parsing/
+      Handler: dlq_consumer.app.lambda_handler
       Timeout: 30
       Environment:
         Variables:
