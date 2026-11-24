@@ -220,7 +220,6 @@
   "buildah": [],
   "kaniko": [],
   "skopeo": [],
-  "harbor": [],
   "nexus repository": [],
   "jfrog artifactory": [],
   "sonarqube": [],
@@ -270,5 +269,8 @@
   ],
   "power bi": [
     "microsoft power bi"
+  ],
+  "harbor container registry": [
+    "harbor registry"
   ]
 }
