@@ -3,7 +3,7 @@ import json
 from decimal import Decimal
 from pathlib import Path
 
-from backend.parsing.common import derive_fields, experience_years
+from backend.parsing.common import derive_fields, experience_years, split_comprehend_text
 from backend.scoring.scoring import score_candidate
 
 
@@ -102,3 +102,20 @@ def test_scoring_still_rejects_boolean_numeric_values():
         assert "experience_years" in str(exc)
     else:
         raise AssertionError("boolean must not be accepted as a numeric experience value")
+
+
+def test_comprehend_chunking_prefers_sentence_boundaries_and_respects_limits():
+    first = "A" * 2000 + "."
+    second = "B" * 2000 + "."
+    third = "C" * 2000 + "."
+    chunks = split_comprehend_text(f"{first} {second} {third}")
+    assert chunks == [first + " " + second, third]
+    assert all(len(chunk) <= 4500 for chunk in chunks)
+    assert all(len(chunk.encode("utf-8")) <= 4800 for chunk in chunks)
+
+
+def test_comprehend_chunking_never_splits_utf8_codepoints():
+    text = ("Résumé ingénieur. " * 400)
+    chunks = split_comprehend_text(text)
+    assert "".join(chunks).replace(" ", "") == text.strip().replace(" ", "")
+    assert all(len(chunk.encode("utf-8")) <= 4800 for chunk in chunks)
