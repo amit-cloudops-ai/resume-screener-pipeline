@@ -260,7 +260,7 @@ def experience_years(text: str):
             total += right - left + 1
             left, right = start, end
     total += right - left + 1
-    return round(total / 12, 1)
+    return round(min(total / 12, 60), 1)
 
 
 def derive_fields(text: str, entities: dict) -> dict:
