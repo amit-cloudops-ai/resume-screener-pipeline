@@ -4,7 +4,7 @@ An AWS-native resume screening workflow. Recruiters create a job, upload a job d
 
 ## Current status — 24 November 2026
 
-**Phase A repository work (Steps 1–10) is complete on the working branch, pending final audit CI evidence. The branch remains separate from main; no AWS account access, stack operation or deployment has been performed. See `docs/PHASE_A_STEP10_FINAL_AUDIT.md` for the audit decision and the exact Phase B boundary.**
+**Phase A repository work (Steps 1–10) is complete on the working branch. The final audit and Phase B entry conditions are documented in `docs/PHASE_A_STEP10_FINAL_AUDIT.md`. The branch remains separate from main; no AWS account access, stack operation or deployment has been performed.**
 
 The integrated backend and SAM updates are in [draft PR #6](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6). The branch is separate from `main`; no code has been merged and no AWS resources have been deployed by this work.
 
@@ -52,6 +52,7 @@ See [`docs/STATE.md`](docs/STATE.md) for the evidence-based status and remaining
 | `docs/STATE.md` | Current implementation and verification status |
 | `docs/PHASE_A_AUDIT.md` | Repository-only audit and Phase A steps 1–3 evidence |
 | `docs/PHASE_A_ACCURACY.md` | Golden dataset metrics and evaluation limitations |
+| `docs/PHASE_A_STEP10_FINAL_AUDIT.md` | Final repository audit, findings, Phase B entry checklist and release boundary |
 | `contracts/` | Frozen OpenAPI, JSON schemas and SQS contracts |
 | `fixtures/` | Sample job, candidate and failure records |
 | `backend/parsing/` | Shared extraction, taxonomy, resume/JD/DLQ Lambdas |
@@ -59,6 +60,7 @@ See [`docs/STATE.md`](docs/STATE.md) for the evidence-based status and remaining
 | `backend/api/` | Recruiter API Lambdas |
 | `backend/integration/` | Local end-to-end integration acceptance |
 | `infra/` | AWS SAM template and deployment configuration |
+| `scripts/deploy_frontend.sh` | Guarded stage-specific React build, private S3 publish and CloudFront invalidation |
 | `frontend/` | React/Vite recruiter frontend with Editorial Hiring Desk dashboard, Cognito SRP and API workflows |
 | `tests/` | Contract and repository-level tests |
 
