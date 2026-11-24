@@ -1,6 +1,6 @@
 # infra/ (Owner: Amit)
 `template.yaml` = the ONLY place AWS resources are defined (see docs/01_ARCHITECTURE.md for the full resource list).
-Status: TODO (task P2). Every Lambda gets a stub handler first so teammates deploy real code into an already-wired stack.
+Status: IMPLEMENTED; static SAM validation/lint and build pass in CI. All nine Lambda handlers, event sources, IAM policies, data resources, Cognito/API, CloudFront and operational resources are defined in `template.yaml`. A live CloudFormation change-set review and deployment remain outstanding.
 Not in the template (done once by hand, documented here when done): Cognito recruiter users (`scripts/create_user.sh`), SES identity verification + production access, custom Comprehend recogniser training.
 
 ## Read before writing the template
