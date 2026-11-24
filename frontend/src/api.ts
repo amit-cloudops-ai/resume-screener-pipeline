@@ -112,7 +112,7 @@ async function mockRequest<T>(path:string, init:RequestInit):Promise<T> {
   if(path==="/failed-jobs") return {failed_jobs:mockFailed} as T;
   const retry=path.match(/^\/failed-jobs\/([^/]+)\/retry$/);
   if(retry){const row=mockFailed.find(x=>x.failed_id===retry[1]);if(!row)throw new ApiError("Failed job not found.",404);row.status="RETRIED";return row as T;}
-  if(path.endsWith("/decision") && method==="POST"){const [jobId,candidateId]=path.split("/").filter(Boolean).slice(1,4);const row=mockCandidates.find(x=>x.job_id===jobId&&x.candidate_id===candidateId);if(!row)throw new ApiError("Candidate not found.",404);const body=JSON.parse(String(init.body??"{}")) as {action:string};row.decision=body.action==="shortlist"?"SHORTLISTED":"REJECTED";row.email_status=body.action==="shortlist"?(row.email?"SENT":"NO_EMAIL"):"NOT_SENT";return row as T;}
+  if(path.endsWith("/decision") && method==="POST"){const parts=path.split("/").filter(Boolean);const jobId=parts[1];const candidateId=parts[3];const row=mockCandidates.find(x=>x.job_id===jobId&&x.candidate_id===candidateId);if(!row)throw new ApiError("Candidate not found.",404);const body=JSON.parse(String(init.body??"{}")) as {action:string};row.decision=body.action==="shortlist"?"SHORTLISTED":"REJECTED";row.email_status=body.action==="shortlist"?(row.email?"SENT":"NO_EMAIL"):"NOT_SENT";return row as T;}
   throw new ApiError("No mock response is configured for this route.",501);
 }
 export const api = {
