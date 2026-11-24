@@ -6,7 +6,9 @@ a presigned PUT URL alone cannot impose a content-length range.
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 import logging
+import os
 import os
 import re
 import secrets
@@ -33,13 +35,19 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
+def _json_default(value):
+    if isinstance(value, Decimal):
+        return int(value) if value == value.to_integral_value() else float(value)
+    raise TypeError(f"unsupported JSON value: {type(value).__name__}")
+
+
 def _reply(status: int, payload: Any, content_type: str = "application/json") -> dict:
     headers = {
         "Content-Type": content_type,
         "Access-Control-Allow-Origin": os.getenv("CORS_ORIGIN", ""),
         "Vary": "Origin",
     }
-    body = payload if content_type == "text/csv" else json.dumps(payload, default=str)
+    body = payload if content_type == "text/csv" else json.dumps(payload, default=_json_default)
     return {"statusCode": status, "headers": headers, "body": body}
 
 
@@ -139,7 +147,7 @@ def _create_job(event: dict, table, s3, ssm) -> dict:
         "job_id": job_id,
         "title": title.strip(),
         "status": "CREATED",
-        "threshold": threshold,
+        "threshold": Decimal(str(threshold)),
         "required_skills": [],
         "jd_titles": [],
         "required_years": None,
