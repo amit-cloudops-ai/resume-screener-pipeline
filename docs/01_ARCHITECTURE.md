@@ -37,7 +37,7 @@ Score Lambda (B): reads job + candidate -> writes score, breakdown, above_thresh
 | SSM params | `/rs/<stage>/custom-recognizer-arn` (value `DISABLED` = off; SSM cannot hold an empty string), `/rs/<stage>/threshold-default` (60) |
 
 ## Lambda env vars (every Lambda gets what it needs from this list; no others)
-`STAGE`, `JOBS_TABLE`, `CANDIDATES_TABLE`, `FAILED_TABLE`, `UPLOADS_BUCKET`, `SCORE_QUEUE_URL`, `PARSER_VERSION`, `SCORER_VERSION`, `CUSTOM_RECOGNIZER_ARN`, `SES_SENDER`, `LOG_LEVEL`.
+`STAGE`, `CORS_ORIGIN` (API responses; CloudFront origin), `JOBS_TABLE`, `CANDIDATES_TABLE`, `FAILED_TABLE`, `UPLOADS_BUCKET`, `SCORE_QUEUE_URL`, `PARSER_VERSION`, `SCORER_VERSION`, `CUSTOM_RECOGNIZER_ARN`, `SES_SENDER`, `LOG_LEVEL`.
 
 `CUSTOM_RECOGNIZER_ARN` rule: the custom recogniser is used ONLY when the value starts with `arn:aws:comprehend:`. Empty or `DISABLED` = skip it (taxonomy fallback only). The SAM stack parameter `CustomRecognizerArn` is the deployment-time source of truth; it is copied to the Lambda environment and mirrored to `/rs/<stage>/custom-recognizer-arn`. To enable/replace the endpoint, redeploy with `CustomRecognizerArn=<endpoint-arn>`; editing SSM alone does not change an already-deployed Lambda environment.
 
