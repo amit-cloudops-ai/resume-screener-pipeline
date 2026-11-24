@@ -21,3 +21,5 @@
 | D17 | All AWS resources tagged Project=resume-screener; hand-made resources logged in docs/RESOURCES.md; teardown = delete stacks + section 2 items | One-pass, provable cleanup |
 | D18 | contracts/openapi.yaml is OpenAPI 3.1 (needed for JSON Schema type arrays/const via $ref) and is validated in `make verify` | Real validity, not just file presence |
 | D19 | `make verify` = repo check (no empty/missing files) + contract validation + tests; CI runs it on every PR | Guards against a broken import/commit |
+
+| D20 (PROPOSED — pending approval from all three owners) | Candidates API validation errors use HTTP 400; contracts/openapi.yaml remains unchanged | Preserve B4 validation behavior while keeping the frozen API contract unchanged until all owners approve. |
