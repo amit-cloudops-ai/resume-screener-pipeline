@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { api } from "./api";
 import type { JobSummary } from "./api";
-import { hasCognitoConfiguration, signIn, signOut } from "./auth/cognito";
+import { completeNewPassword, hasCognitoConfiguration, signIn, signOut } from "./auth/cognito";
 import { config, missingRuntimeConfig } from "./config";
 
 export default function App() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordChallenge, setPasswordChallenge] = useState(false);
   const [signedIn, setSignedIn] = useState(config.mockApi);
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [error, setError] = useState("");
@@ -25,24 +27,44 @@ export default function App() {
 
   async function handleSignIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(""); setLoading(true);
-    try { await signIn(username.trim(), password); setSignedIn(true); setPassword(""); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : "Sign-in failed."); }
+    try {
+      const result = await signIn(username.trim(), password);
+      setPassword("");
+      setPasswordChallenge(result === "NEW_PASSWORD_REQUIRED");
+      if (result === "SIGNED_IN") setSignedIn(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Sign-in failed."); }
     finally { setLoading(false); }
   }
-  function handleSignOut() { signOut(); setSignedIn(false); setJobs([]); }
+
+  async function handleNewPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError(""); setLoading(true);
+    try { await completeNewPassword(newPassword); setNewPassword(""); setPasswordChallenge(false); setSignedIn(true); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "Unable to update the temporary password."); }
+    finally { setLoading(false); }
+  }
+
+  function handleSignOut() { signOut(); setSignedIn(false); setPasswordChallenge(false); setJobs([]); }
 
   const missing = missingRuntimeConfig();
   if (!signedIn) return (
     <main className="app-shell"><section className="auth-panel" aria-labelledby="login-title">
-      <p className="eyebrow">RECRUITER WORKSPACE</p><h1 id="login-title">Sign in</h1>
-      <p className="muted">Use the recruiter account provisioned by the administrator.</p>
+      <p className="eyebrow">RECRUITER WORKSPACE</p>
+      <h1 id="login-title">{passwordChallenge ? "Set a new password" : "Sign in"}</h1>
+      <p className="muted">{passwordChallenge ? "Your temporary password must be replaced before continuing." : "Use the recruiter account provisioned by the administrator."}</p>
       {!hasCognitoConfiguration() && !config.mockApi && <p className="notice" role="status">Cognito configuration is not available in this environment.</p>}
-      <form onSubmit={handleSignIn}>
-        <label htmlFor="username">Email</label><input id="username" type="email" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required />
-        <label htmlFor="password">Password</label><input id="password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
-        {error && <p className="error" role="alert">{error}</p>}
-        <button type="submit" disabled={loading || (!config.mockApi && !hasCognitoConfiguration())}>{loading ? "Signing in…" : "Sign in"}</button>
-      </form>
+      {!passwordChallenge ? (
+        <form onSubmit={handleSignIn}>
+          <label htmlFor="username">Email</label><input id="username" type="email" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required />
+          <label htmlFor="password">Password</label><input id="password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+          <button type="submit" disabled={loading || (!config.mockApi && !hasCognitoConfiguration())}>{loading ? "Signing in…" : "Sign in"}</button>
+        </form>
+      ) : (
+        <form onSubmit={handleNewPassword}>
+          <label htmlFor="new-password">New password</label><input id="new-password" type="password" autoComplete="new-password" minLength={12} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required />
+          <button type="submit" disabled={loading || newPassword.length < 12}>{loading ? "Updating…" : "Set password"}</button>
+        </form>
+      )}
+      {error && <p className="error" role="alert">{error}</p>}
       {config.mockApi && <p className="notice">Mock mode is enabled. No AWS authentication or API request is made.</p>}
     </section></main>
   );
