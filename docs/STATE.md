@@ -88,9 +88,9 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## CI evidence
 
-- Phase A CI run [45337062084](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45337062084) passed on PR #8 merge commit `99462daee207a6cd10a6319c1a270d0753ad07f2`, containing Phase A branch head `904f4ab6972032cd86687e02deb4699a8df0f37c`.
-- `make verify`: 153 tests passed; repository integrity, frozen contracts and generated golden document formats passed. 601 warnings were emitted, all recorded as Botocore `datetime.utcnow()` deprecation warnings.
-- `make golden-evaluate`: passed; 100% skill precision/recall, 12/12 email, 12/12 experience within ±1 year and 3/3 top-1 ranking. See `docs/PHASE_A_ACCURACY.md`.
+- Latest full Phase A CI run [45344840009](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45344840009) passed on the Step 7 implementation commit `d5ec687a4505103a70cb0e5122002d44c2685441` (3/3 jobs).
+- `make verify`: 159 tests passed; repository integrity, frozen contracts and generated golden document formats passed. 601 warnings were emitted, all recorded as Botocore `datetime.utcnow()` deprecation warnings.
+- `make golden-evaluate`: passed; 100% skill precision/recall (77 TP, 0 FP, 0 FN), 12/12 email, 12/12 experience within ±1 year and 3/3 top-1 ranking across three JDs. Evaluation is deterministic and uses synthetic mock entity fixtures, not live Textract/Comprehend. See `docs/PHASE_A_ACCURACY.md`.
 - `sam validate --lint --template-file infra/template.yaml`: passed.
 - `sam build --template-file infra/template.yaml`: passed; all nine Lambda CodeUri packages built.
 - Final Step 4–5 CI run [45339829162](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45339829162) passed on commit `2ef935be4d26334764a99e7ca1f797bef89c9bd6`: `make verify` (including sample-provenance tests), `make golden-evaluate`, frontend typecheck/build, SAM lint validation and SAM build.
