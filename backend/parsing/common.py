@@ -277,11 +277,17 @@ def derive_fields(text: str, entities: dict) -> dict:
         if e.get("Type", "").upper() == "JOB_TITLE" and e.get("Text")
     })
     email = EMAIL_RE.search(text)
+    date_entities = [
+        str(entity.get("Text", "")).strip()
+        for entity in standard
+        if entity.get("Type") == "DATE" and entity.get("Text")
+    ]
+    experience_text = "\n".join([text, *date_entities])
     return {
         "name": people[0] if people else None,
         "email": email.group(0).casefold() if email else None,
         "skills": normalise_skills(text, entities),
         "employers": employers,
         "titles": titles,
-        "experience_years": experience_years(text),
+        "experience_years": experience_years(experience_text),
     }
