@@ -25,12 +25,12 @@ Against fixtures/golden (12 hand-labelled resumes, 3 types):
 - [ ] C5. Scoring unit tests cover every branch in docs/04_SCORING_LOGIC.md (incl. missing years, no title, empty skills).
 
 ## D. Dashboard
-- [ ] D1. Job list, create job, upload JD + resumes with progress.
-- [ ] D2. Candidate table sorted by score with Comprehend skill tags and a score breakdown view.
-- [ ] D3. One-click Shortlist (with interview details form) and Reject; decision persisted with who/when.
-- [ ] D4. Shortlist sends SES email; email_status updated (SENT / FAILED / NO_EMAIL).
-- [ ] D5. Download shortlist CSV.
-- [ ] D6. Failed jobs view with error details.
+- [x] D1. Job list, create job, upload JD + resumes with progress.
+- [x] D2. Candidate table sorted by score with Comprehend skill tags and a score breakdown view.
+- [x] D3. One-click Shortlist (with interview details form) and Reject; decision persisted with who/when.
+- [x] D4. Shortlist sends SES email; email_status updated (SENT / FAILED / NO_EMAIL).
+- [x] D5. Download shortlist CSV.
+- [x] D6. Failed jobs view with error details.
 
 ## E. Reliability and ops
 - [ ] E1. DLQ alarms and Lambda error alarms exist and have been test-fired once.
@@ -41,7 +41,7 @@ Against fixtures/golden (12 hand-labelled resumes, 3 types):
 - [ ] F1. Demo video (<= 8 min) showing the full flow on prod.
 - [ ] F2. Sample Comprehend entity output for 3 resume types committed in docs/samples/.
 - [ ] F3. Written NLP matching explanation + 3 enhancements (docs/04_SCORING_LOGIC.md finalised).
-- [ ] F4. Architecture diagram committed as a scalable vector (docs/architecture.svg) with editable source (docs/architecture.mmd); cost sheet committed (docs/COST.md).
+- [x] F4. Architecture diagram committed as a scalable vector (docs/architecture.svg) with editable source (docs/architecture.mmd); cost sheet committed (docs/COST.md).
 - [ ] F5. README deployment instructions tested by a teammate from a clean clone.
 
 ## G. Cleanup readiness
