@@ -30,6 +30,7 @@ DATE_RANGE_RE = re.compile(
     r"Dec(?:ember)?|Present|Current)?\s*(19\d{2}|20\d{2})?",
     re.I,
 )
+YEAR_RANGE_RE = re.compile(r"\b(19\d{2}|20\d{2})\s*(?:-|–|—|to)\s*(Present|Current|19\d{2}|20\d{2})\b", re.I)
 
 
 class PermanentDocumentError(Exception):
@@ -222,17 +223,32 @@ def experience_years(text: str):
     intervals = []
     now = datetime.now(timezone.utc)
     for match in DATE_RANGE_RE.finditer(text):
-        start = int(match.group(2)) * 12 + MONTHS[match.group(1).casefold()[:3]] - 1
+        start_year = int(match.group(2))
+        start = start_year * 12 + MONTHS[match.group(1).casefold()[:3]] - 1
         end_month_text, end_year_text = match.group(3), match.group(4)
         if not end_month_text:
             continue
         if end_month_text.casefold() in {"present", "current"}:
             end = now.year * 12 + now.month - 1
         else:
-            end_year = int(end_year_text) if end_year_text else int(match.group(2))
+            end_year = int(end_year_text) if end_year_text else start_year
             end = end_year * 12 + MONTHS[end_month_text.casefold()[:3]] - 1
         if end >= start:
             intervals.append((start, end))
+
+    # Year-only ranges are common in resumes; count full calendar years.
+    for match in YEAR_RANGE_RE.finditer(text):
+        start_year = int(match.group(1))
+        end_text = match.group(2)
+        start = start_year * 12
+        end = (
+            now.year * 12 + now.month - 1
+            if end_text.casefold() in {"present", "current"}
+            else int(end_text) * 12 + 11
+        )
+        if end >= start:
+            intervals.append((start, end))
+
     if not intervals:
         return None
     intervals.sort()
