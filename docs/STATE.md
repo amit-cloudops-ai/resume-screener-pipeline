@@ -4,7 +4,7 @@ Last updated: 2026-11-24
 Integration branch: `feat/INT-full-pipeline-integration`
 Integration PR: [#6 — complete backend pipeline](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6) (draft, not merged)
 Phase A working branch: `feat/phase-a-steps-1-3`
-Phase A PR: [#8 — Phase A steps 1–3](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/8) (draft, base `feat/INT-full-pipeline-integration`, not merged)
+Phase A PR: [#8 — Phase A repository work](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/8) (draft, base `feat/INT-full-pipeline-integration`, not merged)
 Submission target: 2026-11-25
 AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 
@@ -24,7 +24,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | P3 | Amit | Cognito recruiter setup | DONE-UNVERIFIED | User pool, client and group are defined in SAM; no deployed pool/user evidence. |
 | P4 | Amit | API Gateway + Cognito authorizer | DONE-UNVERIFIED | REST API and default Cognito authorizer are defined; no live 401/200 proof. |
 | P5 | Amit | SES identity and production access | TODO | SES sender verification and production-access approval not evidenced. |
-| P6 | Amit | Frontend shell + mocks | TODO | `frontend/` still contains only its scaffold/readme. |
+| P6 | Amit | Frontend shell + mocks | DOING | React/Vite/TypeScript shell, Cognito SRP module, raw-ID-token API client and mock mode added; visual direction and full dashboard remain Step 6–7. CI build pending. |
 | P7 | Amit | Recruiter frontend pages | TODO | Not implemented. |
 | P8 | Amit | CloudFront deployment | DONE-UNVERIFIED | Distribution/OAC/bucket policy are defined in SAM; no live URL or browser proof. |
 | P9 | Amit | Alarms / budget | DONE-UNVERIFIED | Alarm and budget resources are defined; no deployed alarm/notification proof. |
@@ -40,7 +40,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | A7 | Teammate A | JD-parse Lambda | VERIFIED | Required skills/title/years, zero-skill failure, job state update and JD_READY fan-out implemented. |
 | A8 | Teammate A | DLQ consumer Lambda | VERIFIED | Stage mapping, source-key resolution, idempotent failed-job persistence implemented. |
 | A9 | Teammate A | Custom recognizer model/endpoint | TODO | Optional feature remains disabled; no training dataset or endpoint ARN. |
-| A10 | Teammate A | Three reviewed sample outputs | TODO | Automated test artifacts exist, but reviewed sample deliverables are not recorded. |
+| A10 | Teammate A | Three reviewed sample outputs | DONE-UNVERIFIED | Three reviewed synthetic examples committed under `docs/samples/`; actual Textract/Comprehend captures remain blocked on approved AWS deployment. |
 | B1 | Teammate B | Scoring library + tests | VERIFIED | Deterministic 50/30/20 scorer, edge cases, title seniority, thresholds and schema fields covered. |
 | B2 | Teammate B | Score Lambda | VERIFIED | SQS/DynamoDB handler accepts DynamoDB `Decimal` numeric values, duplicate idempotency and RESCORE behaviour covered. |
 | B3 | Teammate B | Jobs API + uploads | VERIFIED | Create/list/get, JD text/file, presigned resume URLs, validation, Cognito subject and CORS covered. Parser checks actual object size because presigned PUT itself does not impose a size range. |
@@ -60,6 +60,15 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 - Step 3 — deterministic accuracy evaluation completed. Report: `docs/PHASE_A_ACCURACY.md`. Skill precision 100% (77 TP, 0 FP), recall 100% (77 TP, 0 FN), email 12/12, experience within ±1 year 12/12, top-1 ranking 3/3.
 
 **Important limitation:** Golden-set entity fixtures for PERSON, ORGANIZATION and JOB_TITLE are deterministic mocks. These metrics do not represent live Textract OCR or Comprehend model accuracy. Live service sample outputs and service accuracy remain AWS-phase tasks.
+
+## Phase A — Steps 4–5 repository work
+
+**Status: IMPLEMENTED; CI verification pending on the current head.** No AWS access, deployment, stack operation or live service invocation was performed.
+
+- Step 4 — three reviewed synthetic examples are committed in `docs/samples/`: digital PDF (R01), two-column DOCX (R05), and image-only scanned PDF (R09). Each separates standard entities, optional custom entities, expected extracted text and parser-derived output. All carry `SYNTHETIC_MOCK` / `SYNTHETIC_EXPECTED_TEXT` labels. No Comprehend confidence scores or Textract Blocks are fabricated. Actual `AWS_CAPTURED` evidence remains a post-approval dev-deployment gate.
+- Step 5 — frontend technical foundation is committed under `frontend/`: React 19, Vite, TypeScript, Cognito User Pool SRP sign-in module, session ID-token retrieval, API client sending the raw ID token (no Bearer prefix), runtime environment configuration and local mock mode. The shell is intentionally neutral; D16 requires visual direction approval before the dashboard design begins.
+- No API/OpenAPI/JSON/SQS contracts or SAM resources were changed.
+- Frontend has not yet been proven against a deployed Cognito pool or live API. Build/typecheck CI is being added; mock mode is not authentication evidence.
 
 ## CI evidence
 

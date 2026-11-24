@@ -1,19 +1,36 @@
 {
   "evidence_class": "SYNTHETIC_MOCK",
   "warning": "Illustrative fixture only. Not returned by Amazon Textract or Amazon Comprehend.",
-  "source_fixture": {"resume_id": "R01", "file_name": "r01_resume.pdf", "format": "digital_pdf", "text_source": "fixtures/golden/source/r01.txt", "pdf_extraction_note": "Expected selectable text; no live Textract call was made."},
+  "source_fixture": {
+    "resume_id": "R01",
+    "file_name": "r01_resume.pdf",
+    "format": "digital_pdf",
+    "text_source": "fixtures/golden/source/r01.txt",
+    "pdf_extraction_note": "Expected selectable text from the synthetic source fixture; no live Textract call was made."
+  },
   "extracted_text_excerpt": "AVA MORGAN | ava.morgan@example.com | Senior DevOps Engineer | Northstar Cloud | Jan 2019 - Jun 2025 | aws; docker; kubernetes; terraform; python; linux; ci/cd; github actions; jenkins",
   "comprehend": {
     "standard": [
-      {"Type": "PERSON", "Text": "Ava Morgan", "Score": null},
-      {"Type": "ORGANIZATION", "Text": "Northstar Cloud", "Score": null},
-      {"Type": "DATE", "Text": "Jan 2019 - Jun 2025", "Score": null}
+      {"Type": "PERSON", "Text": "Ava Morgan", "Score": null, "note": "Illustrative entity; Score intentionally null because no model inference occurred."},
+      {"Type": "ORGANIZATION", "Text": "Northstar Cloud", "Score": null, "note": "Illustrative entity; employer interpretation is contextual."},
+      {"Type": "DATE", "Text": "Jan 2019 - Jun 2025", "Score": null, "note": "Illustrative date span; parser derives experience from text/date ranges."}
     ],
     "custom": [
-      {"Type": "JOB_TITLE", "Text": "Senior DevOps Engineer", "Score": null},
-      {"Type": "SKILL", "Text": "Kubernetes", "Score": null}
+      {"Type": "JOB_TITLE", "Text": "Senior DevOps Engineer", "Score": null, "note": "Illustrative custom-recognizer entity; requires a configured endpoint in a live run."},
+      {"Type": "SKILL", "Text": "Kubernetes", "Score": null, "note": "Illustrative custom-recognizer entity; taxonomy also matches raw text."}
     ]
   },
-  "parser_output": {"name": "Ava Morgan", "email": "ava.morgan@example.com", "skills": ["aws", "ci/cd", "docker", "git", "github actions", "jenkins", "kubernetes", "linux", "python", "terraform"], "employers": ["Northstar Cloud"], "titles": ["senior devops engineer"], "experience_years": 6.5},
-  "limitations": ["No OCR or entity model was invoked.", "Scores are null because no model inference occurred.", "Skills are taxonomy-derived from source text as well as illustrative custom entities."]
+  "parser_output": {
+    "name": "Ava Morgan",
+    "email": "ava.morgan@example.com",
+    "skills": ["aws", "ci/cd", "docker", "git", "github actions", "jenkins", "kubernetes", "linux", "python", "terraform"],
+    "employers": ["Northstar Cloud"],
+    "titles": ["senior devops engineer"],
+    "experience_years": 6.5
+  },
+  "limitations": [
+    "No OCR or entity model was invoked.",
+    "Confidence scores are not measured and are represented as null.",
+    "Skills are taxonomy-derived from the synthetic extracted text as well as illustrative custom entities."
+  ]
 }

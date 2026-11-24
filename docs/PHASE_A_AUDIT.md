@@ -90,6 +90,31 @@ Step 2 is VERIFIED: 12 synthetic resumes, 3 synthetic JDs, expected labels and r
 
 Step 3 is VERIFIED for the deterministic pre-AWS evaluation. See `docs/PHASE_A_ACCURACY.md` for measured metrics and limitations.
 
+## Step 4 — Reviewed extraction samples
+
+Three reviewed, repository-side examples are committed in `docs/samples/`:
+- R01 — digital PDF.
+- R05 — two-column DOCX.
+- R09 — raster-image-only scanned PDF.
+
+All samples are labelled `SYNTHETIC_MOCK`; the scanned sample separately labels its expected OCR text as `SYNTHETIC_EXPECTED_TEXT`. Standard entities (`PERSON`, `ORGANIZATION`, `DATE`) are kept separate from optional custom entities (`SKILL`, `JOB_TITLE`). The expected parser output is separate from provider-like entity arrays. Confidence values are null, not invented. Standard Comprehend `TITLE` is explicitly excluded from job-title derivation per D12.
+
+**Step 4 status:** repository-side reviewed synthetic deliverables are implemented. Actual Textract LINE blocks and Comprehend entity responses remain NOT CAPTURED and require explicit approval followed by development deployment. No live response is implied by these fixtures.
+
+## Step 5 — Frontend foundation and authentication structure
+
+Implemented under `frontend/`:
+- React + Vite + TypeScript project scaffold and build/typecheck scripts.
+- Cognito User Pool SRP sign-in module using the existing no-client-secret app-client decision (D5).
+- Session ID-token retrieval and sign-out.
+- API client with typed job-list response, error handling and the raw Cognito ID token in `Authorization` (no `Bearer ` prefix), matching the locked API contract.
+- Environment-based Cognito/API configuration and a local mock mode that does not contact AWS.
+- Accessible baseline sign-in/workspace shell with loading/error/empty states.
+
+The visual treatment is intentionally neutral. D16 requires approval of the dashboard visual direction before Step 6 design/build. The frontend has not been connected to a deployed Cognito pool or live API; mock mode is not live authentication evidence. No AWS resources were created.
+
+**Step 5 status:** foundation implemented; automated CI typecheck/build is the remaining repository verification gate.
+
 ## Release boundary
 
 Steps 1–3 are repository-only. Do not access AWS until the complete Phase A repository gate has passed. Do not merge PR #8 or deploy AWS without explicit approval.

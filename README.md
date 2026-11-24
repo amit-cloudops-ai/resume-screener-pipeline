@@ -4,20 +4,20 @@ An AWS-native resume screening workflow. Recruiters create a job, upload a job d
 
 ## Current status — 24 November 2026
 
-**Backend integration implemented; Phase A steps 1–3 verified. Repository-only work is continuing before any AWS account access.**
+**Backend integration implemented; Phase A steps 1–5 are implemented on the working branch. Repository-only work continues; no AWS access or deployment has been performed.**
 
 The integrated backend and SAM updates are in [draft PR #6](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6). The branch is separate from `main`; no code has been merged and no AWS resources have been deployed by this work.
 
 - **B1/B2:** deterministic scoring library, SQS scoring Lambda, DynamoDB Decimal conversion and idempotency.
 - **B3–B9:** jobs/uploads, candidate list/detail, recruiter decisions and SES, CSV export, failed-job listing/retry, NLP explanation and contract tests.
 - **Part A:** PDF Textract extraction, DOCX/TXT parsing, Comprehend standard/custom entity support, taxonomy normalization, field derivation, JD parsing and DLQ persistence.
-- **Phase A steps 1–3:** backend/SAM audit corrections, 160-skill taxonomy, reproducible 12-resume dataset (4 digital PDF, 4 two-column DOCX, 4 scanned image-only PDF), three labelled JDs and measurable accuracy report are verified on the Phase A branch.
+- **Phase A steps 1–3:** backend/SAM audit corrections, 160-skill taxonomy, reproducible 12-resume dataset and deterministic accuracy report are verified.\n- **Step 4:** three reviewed synthetic extraction examples cover digital PDF, two-column DOCX and scanned image-only PDF under `docs/samples/`. They are not live AWS service responses.\n- **Step 5:** React/Vite/TypeScript frontend shell, Cognito SRP authentication module, raw ID-token API client and mock mode are implemented. Final dashboard design awaits D16 approval in Step 6.
 - **Integration:** local Moto acceptance scenario exercises one JD and ten resumes, yielding nine scored candidates and one permanent parse failure.
 - **Infrastructure:** SAM validation/lint and build pass on the recorded CI run.
 
 Phase A audit/golden evaluation CI run [45337062084](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45337062084) passed: `make verify` passed with 153 tests, `make golden-evaluate` passed, SAM lint validation passed, and SAM build passed. The 12-resume deterministic evaluation measured 100% skill precision/recall, 12/12 email extraction, 12/12 experience within ±1 year and 3/3 expected top-ranked candidates. These are mock-entity/pre-AWS metrics, not live Textract or Comprehend model results.
 
-**Not yet complete:** recruiter frontend, live AWS deployment, Cognito 401/200 proof, S3-to-SQS live delivery, live Textract/Comprehend/SES tests, production sender verification, operational alarm proof and live E2E smoke. The local integration test is not a substitute for those deployed checks.
+**Not yet complete:** full recruiter dashboard, frontend CI verification, live AWS deployment, Cognito 401/200 proof, S3-to-SQS live delivery, live Textract/Comprehend/SES tests, production sender verification, operational alarm proof and live E2E smoke. The local integration test is not a substitute for those deployed checks.
 
 See [`docs/STATE.md`](docs/STATE.md) for the evidence-based status and remaining release gates.
 
@@ -50,7 +50,7 @@ See [`docs/STATE.md`](docs/STATE.md) for the evidence-based status and remaining
 | `backend/api/` | Recruiter API Lambdas |
 | `backend/integration/` | Local end-to-end integration acceptance |
 | `infra/` | AWS SAM template and deployment configuration |
-| `frontend/` | Recruiter dashboard (not yet implemented) |
+| `frontend/` | React/Vite recruiter frontend foundation; dashboard design and pages pending |
 | `tests/` | Contract and repository-level tests |
 
 ## Verification commands

@@ -1,24 +1,47 @@
 {
   "evidence_class": "SYNTHETIC_MOCK",
   "warning": "Illustrative fixture only. Neither Textract OCR nor Comprehend was invoked.",
-  "source_fixture": {"resume_id": "R09", "file_name": "r09_resume.pdf", "format": "scanned_pdf", "text_source": "fixtures/golden/source/r09.txt", "pdf_extraction_note": "The golden binary is raster-image-only. This excerpt is expected OCR text, not captured Textract output."},
+  "source_fixture": {
+    "resume_id": "R09",
+    "file_name": "r09_resume.pdf",
+    "format": "scanned_pdf",
+    "text_source": "fixtures/golden/source/r09.txt",
+    "pdf_extraction_note": "The golden binary is raster-image-only. The excerpt below is the expected text after OCR, not captured OCR output."
+  },
   "extracted_text_excerpt": "ISABELLA RAO | isabella.rao@example.com | Senior Software Engineer | Orbit Software | Jan 2018 - Dec 2025 | python; java; postgresql; rest api; docker; aws; redis",
   "textract": {
     "evidence_class": "SYNTHETIC_EXPECTED_TEXT",
-    "expected_lines": ["ISABELLA RAO", "isabella.rao@example.com", "Senior Software Engineer | Orbit Software", "Jan 2018 - Dec 2025", "python; java; postgresql; rest api; docker; aws; redis"],
-    "note": "Expected lines illustrating the Textract-to-Comprehend hand-off; not Textract Blocks or live OCR output."
+    "expected_lines": [
+      "ISABELLA RAO",
+      "isabella.rao@example.com",
+      "Senior Software Engineer | Orbit Software",
+      "Jan 2018 - Dec 2025",
+      "python; java; postgresql; rest api; docker; aws; redis"
+    ],
+    "note": "These are expected source lines for illustrating the hand-off to Comprehend. They are not Textract Blocks or a live OCR response."
   },
   "comprehend": {
     "standard": [
-      {"Type": "PERSON", "Text": "Isabella Rao", "Score": null},
-      {"Type": "ORGANIZATION", "Text": "Orbit Software", "Score": null},
-      {"Type": "DATE", "Text": "Jan 2018 - Dec 2025", "Score": null}
+      {"Type": "PERSON", "Text": "Isabella Rao", "Score": null, "note": "Illustrative entity; no model inference occurred."},
+      {"Type": "ORGANIZATION", "Text": "Orbit Software", "Score": null, "note": "Illustrative entity; employer interpretation is contextual."},
+      {"Type": "DATE", "Text": "Jan 2018 - Dec 2025", "Score": null, "note": "Illustrative date span; parser derives experience from text/date ranges."}
     ],
     "custom": [
-      {"Type": "JOB_TITLE", "Text": "Senior Software Engineer", "Score": null},
-      {"Type": "SKILL", "Text": "PostgreSQL", "Score": null}
+      {"Type": "JOB_TITLE", "Text": "Senior Software Engineer", "Score": null, "note": "Illustrative custom-recognizer entity; requires a configured endpoint in a live run."},
+      {"Type": "SKILL", "Text": "PostgreSQL", "Score": null, "note": "Illustrative custom-recognizer entity; taxonomy also matches raw text."}
     ]
   },
-  "parser_output": {"name": "Isabella Rao", "email": "isabella.rao@example.com", "skills": ["python", "java", "postgresql", "rest api", "docker", "aws", "redis"], "employers": ["Orbit Software"], "titles": ["senior software engineer"], "experience_years": 8.0},
-  "limitations": ["No Textract job or Comprehend request was made.", "No OCR errors, model confidence or service latency were recorded.", "Live OCR must be compared with hand-labelled expected lines after approved deployment."]
+  "parser_output": {
+    "name": "Isabella Rao",
+    "email": "isabella.rao@example.com",
+    "skills": ["python", "java", "postgresql", "rest api", "docker", "aws", "redis"],
+    "employers": ["Orbit Software"],
+    "titles": ["senior software engineer"],
+    "experience_years": 8.0
+  },
+  "limitations": [
+    "This file is the strongest example of the evidence boundary: image-only input does not mean OCR has been tested.",
+    "No Textract job, Comprehend request, model confidence or service latency was recorded.",
+    "Live OCR errors must be compared against the hand-labelled expected lines after approved deployment."
+  ]
 }
