@@ -95,6 +95,7 @@ def test_export_neutralizes_spreadsheet_formula_cells(table):
 
 
 def test_export_paginates_without_partition_key_filter(monkeypatch):
+    monkeypatch.setenv("CANDIDATES_TABLE", "rs-dev-candidates")
     calls = []
 
     class FakeTable:
