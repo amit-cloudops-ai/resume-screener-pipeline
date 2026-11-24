@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 import logging
 import os
 from pathlib import PurePosixPath
@@ -115,6 +116,9 @@ def _process(body, message_id, clients, context):
         text, comprehend, os.getenv("CUSTOM_RECOGNIZER_ARN", "DISABLED")
     )
     fields = derive_fields(text, entities)
+    candidate_fields = dict(fields)
+    if candidate_fields["experience_years"] is not None:
+        candidate_fields["experience_years"] = Decimal(str(candidate_fields["experience_years"]))
     now = existing.get("created_at", utc_now()) if existing else utc_now()
     item = {
         "job_id": job_id,
@@ -122,7 +126,7 @@ def _process(body, message_id, clients, context):
         "status": "PARSED",
         "source_key": key,
         "file_name": PurePosixPath(key).name,
-        **fields,
+        **candidate_fields,
         "parsed_s3_key": f"parsed/{job_id}/{candidate_id}.json",
         "parser_version": os.getenv("PARSER_VERSION", "1.0.0"),
         "score": None,
