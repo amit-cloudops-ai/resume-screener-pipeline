@@ -146,12 +146,12 @@ def test_comprehend_entities_chunks_long_text():
     assert all(length <= 4800 for length in client.lengths)
 
 
-def test_standard_comprehend_title_is_used_when_custom_recognizer_is_disabled():
+def test_standard_comprehend_title_is_ignored_when_custom_recognizer_is_disabled():
     fields = derive_fields(
         "Platform Engineer with AWS experience.",
         {"standard": [{"Type": "TITLE", "Text": "Platform Engineer"}], "custom": []},
     )
-    assert fields["titles"] == ["platform engineer"]
+    assert fields["titles"] == []
 
 
 def test_experience_supports_year_only_ranges():
