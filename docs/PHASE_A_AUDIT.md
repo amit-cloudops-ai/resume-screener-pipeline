@@ -45,7 +45,7 @@ AWS access: **NOT USED**. No AWS inventory, stack operation, change set, or depl
 
 ### Step 1 status
 
-Code-level audit and identified corrections are implemented on this working branch. Step 1 is **not complete until CI re-runs successfully on the latest head and the final code review is recorded**.
+Code-level audit and identified corrections are implemented on this working branch. Step 1 code review is complete on the working branch. The latest CI run is in progress; Step 1 becomes verified when the exact final branch head passes `make verify`, SAM lint validation and SAM build.
 
 ## Step 2 — Golden dataset
 
@@ -59,13 +59,20 @@ Code-level audit and identified corrections are implemented on this working bran
 
 All identities, employers, institutions and contact details are fictional.
 
-### Important remaining artifact gate
+### Reproducible document artifacts
 
-The source text and labels are present. The 12 actual PDF/DOCX binary files must also be materialized and validated in their declared formats before Step 2 can be marked complete. The `mock_entities` fixtures are test inputs, **not actual Comprehend responses**. Actual service-generated samples belong to the post-deployment validation stage.
+`scripts/generate_golden_documents.py` materializes all 12 binary documents under `fixtures/golden/resumes/` using the existing development dependencies and Python standard library:
+- 4 selectable-text digital PDFs.
+- 4 two-column DOCX files with skills in a two-column table.
+- 4 raster-image-only scanned PDFs with no PDF text layer.
+
+`make golden-generate` creates the assets. The test target runs the generator before pytest, and CI validates the generated file formats. The binary files are reproducible build artifacts rather than committed binaries.
+
+The `mock_entities` fixtures are test inputs, **not actual Comprehend responses**. Actual service-generated samples belong to post-deployment validation.
 
 ## Step 3 — Accuracy measurement
 
-Automated golden evaluation has been added for:
+Automated golden evaluation is implemented in `scripts/evaluate_golden_dataset.py` and exposed as `make golden-evaluate`. CI runs it after `make verify`. It measures:
 - Skill precision and recall (micro-averaged across the 12 resumes).
 - Email correctness (at least 11/12).
 - Experience within ±1 year (at least 10/12).
@@ -73,7 +80,7 @@ Automated golden evaluation has been added for:
 
 The deterministic evaluation uses the synthetic mock entity fixtures for PERSON, ORGANIZATION and JOB_TITLE. Therefore, it measures taxonomy matching, email extraction, date-derived experience, deterministic field mapping and scoring/ranking. It does **not** measure live Textract OCR or Comprehend model accuracy.
 
-Final metric values and CI run evidence will be recorded only after the full suite passes on the final Phase A branch head.
+Final metric values and CI run evidence will be recorded from the successful run on the final Phase A branch head.
 
 ## Release boundary
 
