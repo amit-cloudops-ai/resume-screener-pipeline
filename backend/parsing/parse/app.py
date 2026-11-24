@@ -202,6 +202,7 @@ def lambda_handler(event, context):
                 _failure(clients[5], clients[4], job_id, key, message_id, exc)
             except Exception:
                 logger.exception("permanent resume failure could not be recorded message_id=%s", message_id)
+                failures.append({"itemIdentifier": message_id})
         except Exception:
             logger.exception("transient resume processing failure message_id=%s", message_id)
             failures.append({"itemIdentifier": message_id})
