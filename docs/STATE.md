@@ -31,7 +31,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | P10 | Amit | Live E2E smoke script | VERIFIED | Guarded live smoke script for DoD B1–B5, offline tests and documentation pass CI run 45342184687. Dry-run by default; actual AWS execution remains a post-deployment gate. |
 | P11 | Amit | Backend integration | VERIFIED | Moto acceptance on CI run 45331272201: one JD + ten resumes -> nine SCORED candidates + one FAILED candidate; candidate and failed-job records validate against frozen schemas. |
 | P12 | Amit | Demo, architecture diagram and cost sheet | DOING | Step 9 architecture source/render, cost model and guarded frontend publish workflow are committed; demo video and teammate clean-clone deployment rehearsal remain as release-acceptance tasks. |
-| P13 | Amit | Phase A Step 10 final repository audit | VERIFIED | See docs/PHASE_A_STEP10_FINAL_AUDIT.md; CSV pagination defect fixed with regression test, frontend publishing workflow added, contracts/SAM/frontend reviewed. Final CI run recorded below. |
+| P13 | Amit | Phase A Step 10 final repository audit | VERIFIED | See docs/PHASE_A_STEP10_FINAL_AUDIT.md; CSV pagination defect fixed with regression test, frontend publishing workflow added, contracts/SAM/frontend reviewed. Final audit CI run 45346661338 passed 3/3 jobs on head c8d7a2d. |
 | A1 | Teammate A | Skills taxonomy | VERIFIED | `backend/parsing/skills_taxonomy.json`; 160 canonical skills, 231 canonical/alias terms, no collisions; taxonomy test passes. |
 | A2 | Teammate A | Golden set (12 resumes) | VERIFIED | 12 synthetic resumes committed as source text and reproducibly materialized as 4 digital PDFs, 4 two-column DOCX and 4 raster-only scanned PDFs; 3 labelled JDs and `expected.json`; CI validates generated files. |
 | A3 | Teammate A | PDF/DOCX/TXT extraction | VERIFIED | Textract async polling/pagination and DOCX paragraphs/tables implemented; mocked/unit tests pass. Golden generator validates digital PDF, image-only scanned PDF and two-column DOCX. TXT is enabled for JD only; live Textract remains unverified. |
@@ -89,8 +89,8 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## CI evidence
 
-- Latest full Phase A CI run [45344840009](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45344840009) passed on the Step 7 implementation commit `d5ec687a4505103a70cb0e5122002d44c2685441` (3/3 jobs).
-- `make verify`: 159 tests passed; repository integrity, frozen contracts and generated golden document formats passed. 601 warnings were emitted, all recorded as Botocore `datetime.utcnow()` deprecation warnings.
+- Latest full Phase A audit CI run [45346661338](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45346661338) passed on head `c8d7a2d16602e9f65c27136abc625c880672bafe` (3/3 jobs).
+- `make verify`: **160 tests passed**; repository integrity, frozen contracts, generated golden document formats and CSV pagination regression passed. 601 warnings were emitted, all recorded as Botocore `datetime.utcnow()` deprecation warnings.
 - `make golden-evaluate`: passed; 100% skill precision/recall (77 TP, 0 FP, 0 FN), 12/12 email, 12/12 experience within ±1 year and 3/3 top-1 ranking across three JDs. Evaluation is deterministic and uses synthetic mock entity fixtures, not live Textract/Comprehend. See `docs/PHASE_A_ACCURACY.md`.
 - `sam validate --lint --template-file infra/template.yaml`: passed.
 - `sam build --template-file infra/template.yaml`: passed; all nine Lambda CodeUri packages built.
@@ -113,7 +113,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## Remaining release blockers
 
-1. Code and static infrastructure checks are green on the current integration head. Keep PR #6 draft until review and the remaining release gates are addressed.
+1. Phase A code and static infrastructure checks are green on the Phase A working branch. Keep PR #8 draft and unmerged until reviewed; the integration PR #6 remains its base workstream.
 2. Step 7 recruiter frontend is VERIFIED by CI run 45344597945. Step 8 offline smoke automation is VERIFIED; live AWS smoke remains a post-deployment acceptance gate.
 3. Golden-set deterministic accuracy is benchmarked and passed. Actual AWS-generated Comprehend samples and live OCR/model accuracy remain outstanding.
 4. SES sender verification/production access is not confirmed.
@@ -154,7 +154,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## Phase A — Step 10 final repository audit
 
-**Status: VERIFIED for repository readiness; Phase B development preflight is the next stage after explicit approval.** The full audit, findings, corrections and evidence boundary are recorded in [docs/PHASE_A_STEP10_FINAL_AUDIT.md](PHASE_A_STEP10_FINAL_AUDIT.md).
+**Status: VERIFIED for repository readiness; Phase B development preflight is the next stage after explicit approval.** Final CI run [45346661338](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45346661338) passed all three jobs on head `c8d7a2d16602e9f65c27136abc625c880672bafe`. The full audit, findings, corrections and evidence boundary are recorded in [docs/PHASE_A_STEP10_FINAL_AUDIT.md](PHASE_A_STEP10_FINAL_AUDIT.md).
 
 - Fixed the shortlist CSV pagination query by removing an invalid partition-key FilterExpression and adding a two-page regression test.
 - Added scripts/deploy_frontend.sh and make deploy-frontend; the workflow reads stack outputs, requires a completed stack, builds with mock mode disabled, syncs the dedicated stage frontend bucket and invalidates CloudFront. Production publish requires ALLOW_PROD=1.
