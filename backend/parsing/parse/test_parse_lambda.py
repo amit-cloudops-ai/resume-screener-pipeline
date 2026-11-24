@@ -171,3 +171,15 @@ def test_transient_comprehend_failure_returns_partial_batch_failure(aws, monkeyp
     candidate_id = candidate_id_for(JOB, key)
     item = candidates.get_item(Key={"job_id": JOB, "candidate_id": candidate_id})["Item"]
     assert item["status"] == "PARSING"
+
+
+def test_invalid_job_id_is_recorded_as_unknown_without_candidate_row(aws):
+    candidates, failed, s3, _, _ = aws
+    key = "resumes/not-a-valid-job/resume.docx"
+    s3.put_object(Bucket=BUCKET, Key=key, Body=docx_bytes())
+    assert invoke(key) == {"batchItemFailures": []}
+    assert candidates.scan()["Items"] == []
+    item = failed.scan()["Items"][0]
+    assert item["job_id"] == "unknown"
+    assert item["stage"] == "UNKNOWN"
+    assert item["error_type"] == "UNKNOWN"
