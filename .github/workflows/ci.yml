@@ -12,6 +12,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
+      - name: Validate deployment script syntax
+        run: bash -n scripts/deploy_frontend.sh
       - run: make verify
       - run: make golden-evaluate
 
