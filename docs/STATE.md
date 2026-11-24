@@ -18,7 +18,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | ID | Owner | Task | Status | Evidence / remaining gate |
 |---|---|---|---|---|
 | P1 | Amit | Repository, ownership rules and CI | VERIFIED | PR #6 CI runs `make verify`; direct edits stay on feature branch; main unchanged. |
-| P2 | Amit | SAM infrastructure | VERIFIED | CI run 45331272201 passed SAM lint validation and build on commit b58c4214bca15fec09d9ccc7789a1717020f5a14. Live CloudFormation change-set review remains. |
+| P2 | Amit | SAM infrastructure | VERIFIED | CI run 45332343952 passed SAM lint validation and build on current integration head f755f86bca29eeafb68083e47451c5943d69ecbc. Live CloudFormation change-set review remains. |
 | P3 | Amit | Cognito recruiter setup | DONE-UNVERIFIED | User pool, client and group are defined in SAM; no deployed pool/user evidence. |
 | P4 | Amit | API Gateway + Cognito authorizer | DONE-UNVERIFIED | REST API and default Cognito authorizer are defined; no live 401/200 proof. |
 | P5 | Amit | SES identity and production access | TODO | SES sender verification and production-access approval not evidenced. |
@@ -51,12 +51,12 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 
 ## CI evidence
 
-- CI run `45331272201` passed on commit `b58c4214bca15fec09d9ccc7789a1717020f5a14`.
-- `make verify`: 130 tests passed; repository integrity and frozen contract checks passed.
+- CI run `45332343952` passed on current integration head `f755f86bca29eeafb68083e47451c5943d69ecbc`.
+- `make verify`: 138 tests passed; repository integrity and frozen contract checks passed.
 - `sam validate --lint --template-file infra/template.yaml`: passed.
 - `sam build --template-file infra/template.yaml`: passed; all nine Lambda CodeUri packages built.
 - The local integration acceptance processed ten synthetic resume files and one JD. Nine candidates reached SCORED, one corrupt DOCX became FAILED, and persisted candidate/failed-job items passed their JSON schemas.
-- Later commits add explicit Textract polling, Comprehend chunking and standard TITLE fallback tests. Their latest CI runs were still in progress at the time of this status update; verify the current PR head checks before merging.
+- Current PR #6 head has green CI: `make verify`, SAM lint validation and SAM build all passed in run `45332343952`.
 
 ## Architecture and contract controls
 
@@ -73,7 +73,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 
 ## Remaining release blockers
 
-1. The latest integration branch head must finish CI successfully after the most recent test/documentation commits.
+1. Code and static infrastructure checks are green on the current integration head. Keep PR #6 draft until review and the remaining release gates are addressed.
 2. Recruiter frontend and the live E2E smoke workflow remain unimplemented.
 3. Twelve-resume golden set and reviewed sample extraction outputs are missing; extraction/scoring accuracy is not yet benchmarked.
 4. SES sender verification/production access is not confirmed.
