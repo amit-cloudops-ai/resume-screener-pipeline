@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 import logging
+import os
 import os
 from datetime import datetime, timezone
 from urllib.parse import quote
@@ -15,6 +17,12 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
+def _json_default(value):
+    if isinstance(value, Decimal):
+        return int(value) if value == value.to_integral_value() else float(value)
+    raise TypeError(f"unsupported JSON value: {type(value).__name__}")
+
+
 def _reply(status: int, payload) -> dict:
     return {
         "statusCode": status,
@@ -23,7 +31,7 @@ def _reply(status: int, payload) -> dict:
             "Access-Control-Allow-Origin": os.getenv("CORS_ORIGIN", ""),
             "Vary": "Origin",
         },
-        "body": json.dumps(payload, default=str),
+        "body": json.dumps(payload, default=_json_default),
     }
 
 
