@@ -89,7 +89,7 @@ def split_comprehend_text(text: str, char_limit: int = 4500, byte_limit: int = M
     """Prefer sentence boundaries while respecting Comprehend's UTF-8 byte limit."""
     if char_limit < 1 or byte_limit < 1:
         raise ValueError("chunk limits must be positive")
-    sentences = re.split(r"(?<=[.!?])\\s+", text.strip())
+    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
     chunks, current = [], ""
 
     def append_long_sentence(sentence: str) -> None:
