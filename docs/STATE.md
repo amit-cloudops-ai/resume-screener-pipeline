@@ -14,7 +14,7 @@ Submission target: 2026-11-25.
 | ID | Owner | Task | Status | Evidence / next gate |
 |---|---|---|---|---|
 | P1 | Amit | Repo, CODEOWNERS, CI | DONE-UNVERIFIED | Repository exists; current CI runs make verify. Branch protection and full PR policy not evidenced. |
-| P2 | Amit | SAM infrastructure | DOING | PR #5: make verify, sam validate --lint and sam build passed on commit 0df967831275c7d2c60da8a848bd568be3eb737b. Template/CodeUri build verified; deployment and IAM runtime behaviour not verified. |
+| P2 | Amit | SAM infrastructure | DOING | PR #5: latest CI run 45328825772 passed on commit 473815664373b8439880f5206a5c26b9900a4515. make verify, sam validate --lint and sam build all green; deployment and IAM runtime behaviour not verified. |
 | P3 | Amit | Cognito recruiter setup | DONE-UNVERIFIED | User pool, app client and recruiter group are defined in SAM; no deployed pool/user evidence. |
 | P4 | Amit | API Gateway + Cognito authorizer | DONE-UNVERIFIED | REST API and default Cognito authorizer are defined; no live 401/200 proof. |
 | P5 | Amit | SES identity and production access | TODO | No verified sender or production-access evidence in repo. |
@@ -54,8 +54,8 @@ Submission target: 2026-11-25.
 - Failed-jobs API now has stage queue URLs, uploads bucket name, candidate table query access and send permissions for parse/JD/score retry queues. The retry handler is still a stub and its behaviour remains unverified.
 - Custom recognizer configuration now uses the stack parameter `CustomRecognizerArn` for Lambda environment values and mirrors it to SSM, avoiding a GetAtt read of a just-created SSM parameter. Redeploy is required to change the Lambda environment. The parser Lambdas no longer receive unused `ssm:GetParameter` access; only the Jobs API can read the threshold parameter.
 - Makefile now exposes explicit SAM validation/build targets and deployment parameters for SES sender, alarm email, budget amount and optional recognizer ARN. Dev and prod now pass explicit stage values independently; production deployment refuses to proceed without an alarm email and a non-disabled SES sender.
-- CI workflow on `feat/P2-infrastructure-readiness` includes SAM lint validation, SAM build and an artifact upload of the SAM build template for review. Latest template changes are awaiting their CI run.
-- GitHub Actions run 45328484443 passed on commit `0df967831275c7d2c60da8a848bd568be3eb737b`: `make verify` succeeded; `sam validate --lint --template-file infra/template.yaml` reported a valid SAM template; `sam build --template-file infra/template.yaml` succeeded for all nine Lambda CodeUri directories. These are CI build/static checks, not a CloudFormation deployment.
+- CI workflow on `feat/P2-infrastructure-readiness` includes SAM lint validation, SAM build and an artifact upload of the SAM build template for review. Latest CI run 45328825772 passed.
+- GitHub Actions run 45328825772 passed on PR #5 commit `473815664373b8439880f5206a5c26b9900a4515`: `make verify` succeeded; `sam validate --lint --template-file infra/template.yaml` reported a valid SAM template; `sam build --template-file infra/template.yaml` succeeded for all nine Lambda CodeUri directories; the SAM build template artifact was uploaded for inspection. These are CI build/static checks, not a CloudFormation deployment.
 - The first SAM lint run found the Cognito UserPool tag property and nine CloudWatch LogGroup tag schemas invalid; those were corrected, and the latest lint/build run passed.
 - No AWS deployment, live API auth, S3 event, queue, Textract, Comprehend, SES or E2E execution has been evidenced in this session.
 
