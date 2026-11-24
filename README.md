@@ -15,7 +15,7 @@ The integrated backend and SAM updates are in [draft PR #6](https://github.com/a
 - **Step 4:** three reviewed synthetic extraction examples cover digital PDF, two-column DOCX and scanned image-only PDF under `docs/samples/`. They are not live AWS service responses.
 - **Step 5:** React/Vite/TypeScript frontend foundation, Cognito SRP authentication (including first-login temporary-password challenge), raw ID-token API client and local mock mode are implemented and CI-verified.
 - **Step 6:** Amit approved A — Editorial Hiring Desk on 24 November 2026. D16 is updated in docs/DECISIONS.md and the approval record is in docs/PHASE_A_STEP6_DESIGN_REVIEW.md.
-- **Step 7:** Editorial recruiter workspace implemented against existing API routes: jobs/JD creation, batch resume uploads with per-file progress, candidate search/ranking/filtering, score breakdown, shortlist/reject, CSV export and failed-job retry. Frontend typecheck and production build passed GitHub Actions run 45344544449; the final full-matrix run is being checked.
+- **Step 7:** Editorial recruiter workspace implemented against existing API routes: jobs/JD creation, batch resume uploads with per-file progress, candidate search/ranking/filtering, score breakdown, shortlist/reject, CSV export and failed-job retry. GitHub Actions run 45344597945 passed the complete 3-job matrix, including frontend typecheck/build and SAM lint/build.
 - **Step 9:** docs/architecture.mmd, docs/architecture.svg, docs/COST.md and docs/PHASE_A_STEP9_ARCHITECTURE_AND_COST.md committed. Cost scenarios are explicitly partial processing estimates, not a full account bill.
 - **Integration:** local Moto acceptance scenario exercises one JD and ten resumes, yielding nine scored candidates and one permanent parse failure.
 - **Infrastructure:** SAM validation/lint and build pass on the recorded CI run.
@@ -24,7 +24,7 @@ Phase A audit/golden evaluation CI run [45337062084](https://github.com/amit-clo
 
 **Not yet complete:** Step 10 final Phase A release-readiness audit; AWS account preflight and live deployment acceptance (Cognito 401/200, S3-to-SQS, Textract/Comprehend, SES, alarms and live E2E smoke); production sender verification; demo video; and teammate clean-clone deployment rehearsal. The local integration test and offline smoke-script tests are not substitutes for deployed checks.
 
-Step 8 smoke automation and the complete CI matrix passed [45342184687](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45342184687) on the current branch head. This is offline verification only; the live smoke test was not run.
+Step 8 smoke automation and its offline tests passed [45342184687](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45342184687) on the Step 8 implementation head; this is offline verification only, and the live smoke test was not run. This is offline verification only; the live smoke test was not run.
 
 The Step 4–5 head [45339829162](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45339829162) also passed the complete CI matrix: backend verification and golden evaluation, frontend typecheck/build, SAM lint and SAM build.
 
