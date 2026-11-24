@@ -31,10 +31,16 @@ Deadline: submit Wed 25 Nov 2026. Prod deployed by Mon 23 Nov (buffer Tue 24). F
 - Never log resume text or PII to CloudWatch. Log IDs only.
 - RESOURCE LEDGER: anything created in AWS outside infra/template.yaml (console, CLI, script) MUST be added to docs/RESOURCES.md section 2 immediately, with how to delete it. Every resource must carry tag Project=resume-screener. At the end of every session ask the human: "Did we create anything by hand this session?"
 
-## 4b. GitHub connector rule (a previous repo was destroyed by this)
-- NEVER bulk create/overwrite files through a GitHub connector. It can commit EMPTY files. Output file contents in the chat; the human saves and commits with git.
-- After ANY commit, run `make verify`. It fails if any tracked file is empty or a required file is missing (scripts/check_repo.py).
+## 4b. GitHub connector rule (guarded direct-repository workflow)
+- AI assistants MAY create branches, create/update files, and open PRs directly through the connected GitHub account when the human explicitly authorizes repository edits.
+- NEVER write directly to `main`. All changes go to a task-scoped feature branch and are proposed through a PR.
+- Before every file update, fetch the current file from the target branch and use its current blob SHA. Never guess a SHA or overwrite from stale content.
+- Make writes sequentially, not in parallel, and verify each resulting commit by fetching the changed file and inspecting the resulting branch/PR diff.
+- Do not use bulk file generation or multi-file blind overwrites. Keep each commit small and task-scoped; do not create empty files.
 - Never delete or recreate the repo, never force-push, never rewrite history.
+- GitHub connector writes do not execute repository tests. A successful API write is NOT evidence that code builds or tests pass.
+- After any code/configuration change, require GitHub Actions to run `make verify` and the task-specific checks. If those checks cannot run, mark the change NOT VERIFIED and do not merge or deploy.
+- Human approval remains required for PR merges, contract changes, AWS deployment, and destructive operations unless explicitly authorized separately.
 
 ## 5. Fix protocol (this is what stops the fix-one-break-another loop)
 1. Reproduce: paste the exact error / failing output. No guessing from memory.
