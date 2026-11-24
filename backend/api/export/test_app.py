@@ -76,3 +76,19 @@ def test_invalid_job_id_returns_400(table):
         "httpMethod": "GET", "pathParameters": {"job_id": "bad"}
     }, None)
     assert response["statusCode"] == 400
+
+
+def test_export_neutralizes_spreadsheet_formula_cells(table):
+    table.update_item(
+        Key={"job_id": JOB, "candidate_id": "0000000000000001"},
+        UpdateExpression="SET #name = :name",
+        ExpressionAttributeNames={"#name": "name"},
+        ExpressionAttributeValues={":name": '=HYPERLINK("https://attacker.test","click")'},
+    )
+    response = lambda_handler({
+        "httpMethod": "GET",
+        "resource": "/jobs/{job_id}/shortlist.csv",
+        "pathParameters": {"job_id": JOB},
+    }, None)
+    rows = list(csv.DictReader(io.StringIO(response["body"])))
+    assert rows[0]["name"].startswith("'=")
