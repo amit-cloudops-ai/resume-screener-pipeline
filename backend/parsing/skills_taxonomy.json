@@ -257,5 +257,15 @@
   "mutual tls": [],
   "zero trust": [],
   "network security": [],
-  "firewalls": []
+  "firewalls": [],
+  "apache spark": [
+    "spark"
+  ],
+  "apache airflow": [
+    "airflow"
+  ],
+  "tableau": [],
+  "microsoft excel": [
+    "excel"
+  ]
 }
