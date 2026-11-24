@@ -484,6 +484,8 @@ Resources:
             FunctionResponseTypes: [ReportBatchItemFailures]
 
   ApiJobsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
       Events:
         ListJobs:
           Type: Api
@@ -510,8 +512,6 @@ Resources:
             Path: /jobs/{job_id}/uploads
             Method: POST
 
-    Type: AWS::Serverless::Function
-    Properties:
       FunctionName: !Sub rs-${Stage}-api-jobs
       CodeUri: ../backend/api/jobs/
       Timeout: 15
@@ -527,7 +527,7 @@ Resources:
               Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-jobs:*
         - Statement:
             - Effect: Allow
-              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query]
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query, dynamodb:Scan]
               Resource: !GetAtt JobsTable.Arn
             - Effect: Allow
               Action: [ssm:GetParameter]
@@ -539,6 +539,8 @@ Resources:
                 - !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/resumes/*
 
   ApiCandidatesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
       Events:
         ListCandidates:
           Type: Api
@@ -553,8 +555,6 @@ Resources:
             Path: /jobs/{job_id}/candidates/{candidate_id}
             Method: GET
 
-    Type: AWS::Serverless::Function
-    Properties:
       FunctionName: !Sub rs-${Stage}-api-candidates
       CodeUri: ../backend/api/candidates/
       Timeout: 15
@@ -572,6 +572,8 @@ Resources:
               Resource: !GetAtt CandidatesTable.Arn
 
   ApiDecisionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
       Events:
         CandidateDecision:
           Type: Api
@@ -580,8 +582,6 @@ Resources:
             Path: /jobs/{job_id}/candidates/{candidate_id}/decision
             Method: POST
 
-    Type: AWS::Serverless::Function
-    Properties:
       FunctionName: !Sub rs-${Stage}-api-decision
       CodeUri: ../backend/api/decision/
       Timeout: 15
@@ -603,6 +603,8 @@ Resources:
               Resource: !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/${SesSender}
 
   ApiExportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
       Events:
         ExportShortlist:
           Type: Api
@@ -611,8 +613,6 @@ Resources:
             Path: /jobs/{job_id}/shortlist.csv
             Method: GET
 
-    Type: AWS::Serverless::Function
-    Properties:
       FunctionName: !Sub rs-${Stage}-api-export
       CodeUri: ../backend/api/export/
       Timeout: 15
@@ -630,6 +630,8 @@ Resources:
               Resource: !GetAtt CandidatesTable.Arn
 
   ApiFailedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
       Events:
         ListFailedJobs:
           Type: Api
@@ -644,8 +646,6 @@ Resources:
             Path: /failed-jobs/{failed_id}/retry
             Method: POST
 
-    Type: AWS::Serverless::Function
-    Properties:
       FunctionName: !Sub rs-${Stage}-api-failed
       CodeUri: ../backend/api/failed/
       Timeout: 15
