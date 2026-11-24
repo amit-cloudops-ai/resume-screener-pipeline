@@ -164,25 +164,54 @@ def _write_two_column_docx(text: str, destination: Path) -> None:
 
 
 def _write_scanned_pdf(text: str, destination: Path) -> None:
-    commands = ["0 0 0 rg"]
-    y_top = 742
-    scale = 2
+    # Render the bitmap font into an actual grayscale raster image embedded in
+    # the PDF. The page contains no text operators; Textract must OCR the image.
+    width, height, scale = 1240, 1754, 3
+    pixels = bytearray([255]) * (width * height)
+    y0 = 80
     for line in text.splitlines():
-        for wrapped in textwrap.wrap(line.upper(), width=44) or [""]:
-            x0 = 36
+        for wrapped in textwrap.wrap(line.upper(), width=58) or [""]:
+            x0 = 75
             for character in wrapped:
-                glyph = FONT.get(character, FONT.get(" "))
+                glyph = FONT.get(character)
                 if glyph:
                     for row, bitmap_row in enumerate(glyph):
                         for column, bit in enumerate(bitmap_row):
                             if bit == "1":
-                                x = x0 + column * scale
-                                y = y_top - row * scale
-                                commands.append(f"{x} {y} {scale} {scale} re f")
+                                px = x0 + column * scale
+                                py = y0 + row * scale
+                                for dy in range(scale):
+                                    offset = (py + dy) * width + px
+                                    pixels[offset:offset + scale] = b"\\x00" * scale
                 x0 += 6 * scale
-            y_top -= 20
-    stream = zlib.compress(("\n".join(commands)).encode("ascii"))
-    destination.write_bytes(_pdf_document(stream, image_only=True))
+            y0 += 42
+    image_data = zlib.compress(bytes(pixels), level=9)
+    page_stream = b"q 612 0 0 792 0 0 cm /Im0 Do Q"
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>",
+        b"<< /Length " + str(len(page_stream)).encode("ascii") + b" >>\\nstream\\n" + page_stream + b"\\nendstream",
+        b"<< /Type /XObject /Subtype /Image /Width " + str(width).encode("ascii") +
+        b" /Height " + str(height).encode("ascii") +
+        b" /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length " +
+        str(len(image_data)).encode("ascii") + b" >>\\nstream\\n" + image_data + b"\\nendstream",
+    ]
+    pdf = bytearray(b"%PDF-1.4\\n")
+    offsets = [0]
+    for number, obj in enumerate(objects, start=1):
+        offsets.append(len(pdf))
+        pdf.extend(f"{number} 0 obj\\n".encode("ascii"))
+        pdf.extend(obj + b"\\nendobj\\n")
+    xref_offset = len(pdf)
+    pdf.extend(f"xref\\n0 {len(objects) + 1}\\n".encode("ascii"))
+    pdf.extend(b"0000000000 65535 f \\n")
+    for offset in offsets[1:]:
+        pdf.extend(f"{offset:010d} 00000 n \\n".encode("ascii"))
+    pdf.extend(
+        f"trailer\\n<< /Size {len(objects) + 1} /Root 1 0 R >>\\nstartxref\\n{xref_offset}\\n%%EOF\\n".encode("ascii")
+    )
+    destination.write_bytes(pdf)
 
 
 def main() -> int:
