@@ -1,0 +1,489 @@
+{
+  "dataset_version": "1.0.0",
+  "notice": "Entire dataset is synthetic. All names, example.com emails, employers and institutions are fictional. mock_entities are deterministic stand-ins for Comprehend output and are not live AWS responses.",
+  "resumes": [
+    {
+      "id": "R01",
+      "file_name": "r01_resume.pdf",
+      "format": "digital_pdf",
+      "name": "Ava Morgan",
+      "email": "ava.morgan@example.com",
+      "skills": [
+        "aws",
+        "docker",
+        "kubernetes",
+        "terraform",
+        "python",
+        "linux",
+        "ci/cd",
+        "github actions",
+        "jenkins"
+      ],
+      "employers": [
+        "Northstar Cloud"
+      ],
+      "titles": [
+        "senior devops engineer"
+      ],
+      "experience_years": 6.5,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Ava Morgan"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Northstar Cloud"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Senior DevOps Engineer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R02",
+      "file_name": "r02_resume.pdf",
+      "format": "digital_pdf",
+      "name": "Noah Patel",
+      "email": "noah.patel@example.com",
+      "skills": [
+        "aws",
+        "docker",
+        "kubernetes",
+        "terraform",
+        "linux",
+        "prometheus",
+        "grafana"
+      ],
+      "employers": [
+        "BluePeak Systems"
+      ],
+      "titles": [
+        "devops engineer"
+      ],
+      "experience_years": 5,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Noah Patel"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "BluePeak Systems"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "DevOps Engineer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R03",
+      "file_name": "r03_resume.pdf",
+      "format": "digital_pdf",
+      "name": "Mia Chen",
+      "email": "mia.chen@example.com",
+      "skills": [
+        "aws",
+        "python",
+        "terraform",
+        "cloudformation",
+        "github actions"
+      ],
+      "employers": [
+        "Meridian Tech"
+      ],
+      "titles": [
+        "cloud engineer"
+      ],
+      "experience_years": 4,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Mia Chen"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Meridian Tech"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Cloud Engineer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R04",
+      "file_name": "r04_resume.pdf",
+      "format": "digital_pdf",
+      "name": "Ethan Brooks",
+      "email": "ethan.brooks@example.com",
+      "skills": [
+        "docker",
+        "kubernetes",
+        "helm",
+        "argocd",
+        "prometheus",
+        "grafana"
+      ],
+      "employers": [
+        "Redwood Infrastructure"
+      ],
+      "titles": [
+        "platform engineer"
+      ],
+      "experience_years": 5.5,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Ethan Brooks"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Redwood Infrastructure"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Platform Engineer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R05",
+      "file_name": "r05_resume.docx",
+      "format": "two_column_docx",
+      "name": "Olivia Shah",
+      "email": "olivia.shah@example.com",
+      "skills": [
+        "python",
+        "sql",
+        "aws",
+        "apache spark",
+        "apache airflow",
+        "postgresql"
+      ],
+      "employers": [
+        "Lakeview Analytics"
+      ],
+      "titles": [
+        "data engineer"
+      ],
+      "experience_years": 6,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Olivia Shah"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Lakeview Analytics"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Data Engineer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R06",
+      "file_name": "r06_resume.docx",
+      "format": "two_column_docx",
+      "name": "Liam Garcia",
+      "email": "liam.garcia@example.com",
+      "skills": [
+        "python",
+        "sql",
+        "postgresql",
+        "etl",
+        "dbt",
+        "bigquery"
+      ],
+      "employers": [
+        "Cedar Data Works"
+      ],
+      "titles": [
+        "senior data engineer"
+      ],
+      "experience_years": 7,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Liam Garcia"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Cedar Data Works"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Senior Data Engineer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R07",
+      "file_name": "r07_resume.docx",
+      "format": "two_column_docx",
+      "name": "Sophia Kim",
+      "email": "sophia.kim@example.com",
+      "skills": [
+        "python",
+        "sql",
+        "aws",
+        "redshift",
+        "aws glue",
+        "athena"
+      ],
+      "employers": [
+        "Summit Data Labs"
+      ],
+      "titles": [
+        "data engineer"
+      ],
+      "experience_years": 4,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Sophia Kim"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Summit Data Labs"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Data Engineer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R08",
+      "file_name": "r08_resume.docx",
+      "format": "two_column_docx",
+      "name": "Mason Wilson",
+      "email": "mason.wilson@example.com",
+      "skills": [
+        "python",
+        "sql",
+        "microsoft excel",
+        "tableau",
+        "power bi"
+      ],
+      "employers": [
+        "Brightline Research"
+      ],
+      "titles": [
+        "data analyst"
+      ],
+      "experience_years": 3,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Mason Wilson"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Brightline Research"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Data Analyst"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R09",
+      "file_name": "r09_resume.pdf",
+      "format": "scanned_pdf",
+      "name": "Isabella Rao",
+      "email": "isabella.rao@example.com",
+      "skills": [
+        "python",
+        "java",
+        "postgresql",
+        "rest api",
+        "docker",
+        "aws",
+        "redis"
+      ],
+      "employers": [
+        "Orbit Software"
+      ],
+      "titles": [
+        "senior software engineer"
+      ],
+      "experience_years": 8,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Isabella Rao"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Orbit Software"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Senior Software Engineer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R10",
+      "file_name": "r10_resume.pdf",
+      "format": "scanned_pdf",
+      "name": "James Carter",
+      "email": "james.carter@example.com",
+      "skills": [
+        "python",
+        "java",
+        "spring boot",
+        "mysql",
+        "rest api",
+        "kubernetes"
+      ],
+      "employers": [
+        "Pinecone Digital"
+      ],
+      "titles": [
+        "backend developer"
+      ],
+      "experience_years": 5,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "James Carter"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Pinecone Digital"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Backend Developer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R11",
+      "file_name": "r11_resume.pdf",
+      "format": "scanned_pdf",
+      "name": "Amara Okafor",
+      "email": "amara.okafor@example.com",
+      "skills": [
+        "python",
+        "fastapi",
+        "postgresql",
+        "docker",
+        "redis",
+        "aws",
+        "graphql"
+      ],
+      "employers": [
+        "Blue Harbor Apps"
+      ],
+      "titles": [
+        "backend software engineer"
+      ],
+      "experience_years": 4,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Amara Okafor"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Blue Harbor Apps"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Backend Software Engineer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R12",
+      "file_name": "r12_resume.pdf",
+      "format": "scanned_pdf",
+      "name": "Lucas Nguyen",
+      "email": "lucas.nguyen@example.com",
+      "skills": [
+        "java",
+        "spring boot",
+        "mysql",
+        "apache kafka",
+        "microservices"
+      ],
+      "employers": [
+        "Maple Systems"
+      ],
+      "titles": [
+        "software engineer"
+      ],
+      "experience_years": 6,
+      "mock_entities": {
+        "standard": [
+          {
+            "Type": "PERSON",
+            "Text": "Lucas Nguyen"
+          },
+          {
+            "Type": "ORGANIZATION",
+            "Text": "Maple Systems"
+          }
+        ],
+        "custom": [
+          {
+            "Type": "JOB_TITLE",
+            "Text": "Software Engineer"
+          }
+        ]
+      }
+    }
+  ]
+}
