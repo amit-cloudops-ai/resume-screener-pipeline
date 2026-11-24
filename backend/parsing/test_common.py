@@ -152,3 +152,11 @@ def test_standard_comprehend_title_is_used_when_custom_recognizer_is_disabled():
         {"standard": [{"Type": "TITLE", "Text": "Platform Engineer"}], "custom": []},
     )
     assert fields["titles"] == ["platform engineer"]
+
+
+def test_experience_supports_year_only_ranges():
+    assert experience_years("Experience: 2018 - 2020") == 3.0
+
+
+def test_year_only_ranges_are_unioned_without_double_counting():
+    assert experience_years("2018 - 2020\n2019 - 2021") == 4.0
