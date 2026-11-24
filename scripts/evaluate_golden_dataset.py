@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from backend.parsing.common import derive_fields
 from backend.scoring.scoring import score_candidate
-
-ROOT = Path(__file__).resolve().parents[1]
 GOLDEN = ROOT / "fixtures" / "golden"
 
 
