@@ -51,8 +51,15 @@ Choose **A — Editorial Hiring Desk**. It gives the product a distinctive visua
 
 ## Approval record
 
-- Selected direction: NOT YET APPROVED.
-- Approved by: pending Amit confirmation.
-- Decision D16: remains open/unchanged until approval.
-- Step 6 completion: BLOCKED on explicit direction selection.
-- Step 7 dashboard build: must not start until this approval is recorded.
+- Selected direction: **A — Editorial Hiring Desk**.
+- Approved by: **Amit**.
+- Approval date: **24 November 2026**.
+- Decision D16: **APPROVED**; see docs/DECISIONS.md.
+- Step 6 completion: **COMPLETE** — visual direction approved and recorded.
+- Step 7 dashboard build: authorised and implemented on the Phase A working branch.
+
+## Step 7 implementation mapping
+
+The recruiter workspace now uses this approved visual system and implements the recruiter flows against the existing OpenAPI routes: job list/create, JD upload, batch resume uploads with per-file progress, candidate ranking/search/filter, candidate detail and weighted score breakdown, shortlist with interview details, reject confirmation, CSV export, failed-job inspection and stage-aware retry. The frontend retains the existing Cognito SRP module and raw ID-token Authorization header. No API/OpenAPI/JSON/SQS contract or SAM resource was changed.
+
+GitHub Actions run 45344544449 passed the frontend TypeScript check and production build. The full verification and SAM jobs are recorded separately in the run. Live Cognito/API behaviour remains a post-deployment acceptance gate.
