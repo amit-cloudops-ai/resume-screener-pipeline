@@ -4,6 +4,7 @@ from __future__ import annotations
 import math
 import os
 import re
+from decimal import Decimal
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -51,7 +52,7 @@ def _strings(value: Any, name: str) -> list[str]:
 def _number(value: Any, name: str, nullable: bool = False) -> float | None:
     if value is None and nullable:
         return None
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
+    if isinstance(value, bool) or not isinstance(value, (int, float, Decimal)):
         raise ValueError(f"{name} must be a number" + (" or null" if nullable else ""))
     result = float(value)
     if not math.isfinite(result) or result < 0:
