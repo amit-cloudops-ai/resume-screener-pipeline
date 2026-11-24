@@ -161,7 +161,7 @@ def test_one_jd_ten_resumes_yield_nine_scored_and_one_failed(env):
                     for message in group
                 ]
             }, None)
-            assert result == {"processed": len(group)}
+            assert result == {"batchItemFailures": []}
             processed_messages += len(group)
             for message in group:
                 sqs.delete_message(
