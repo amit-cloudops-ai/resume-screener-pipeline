@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -133,15 +134,25 @@ def _process_message(body: str, jobs_table, candidates_table) -> None:
 
 
 def lambda_handler(event, context):
-    """Process an SQS batch; an exception retries the batch per queue policy."""
+    """Process an SQS batch and report only failed message IDs for partial retries."""
     records = event.get("Records", []) if isinstance(event, dict) else []
     if not isinstance(records, list):
         raise ValueError("SQS event Records must be a list")
 
     jobs_table, candidates_table = _tables()
+    failures = []
     for record in records:
-        if not isinstance(record, dict) or not isinstance(record.get("body"), str):
-            raise ValueError("each SQS record must contain a string body")
-        _process_message(record["body"], jobs_table, candidates_table)
+        if not isinstance(record, dict) or not isinstance(record.get("messageId"), str):
+            raise ValueError("each SQS record must contain a messageId")
+        message_id = record["messageId"]
+        try:
+            if not isinstance(record.get("body"), str):
+                raise ValueError("each SQS record must contain a string body")
+            _process_message(record["body"], jobs_table, candidates_table)
+        except Exception:
+            logging.getLogger().exception(
+                "score message processing failed message_id=%s", message_id
+            )
+            failures.append({"itemIdentifier": message_id})
 
-    return {"processed": len(records)}
+    return {"batchItemFailures": failures}
