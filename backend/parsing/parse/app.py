@@ -110,6 +110,35 @@ def _process(body, message_id, clients, context):
             }),
         )
         return
+    if not existing or existing.get("status") != "PARSING":
+        now = existing.get("created_at", utc_now()) if existing else utc_now()
+        candidates.put_item(Item={
+            "job_id": job_id,
+            "candidate_id": candidate_id,
+            "status": "PARSING",
+            "source_key": key,
+            "file_name": PurePosixPath(key).name,
+            "name": None,
+            "email": None,
+            "skills": [],
+            "employers": [],
+            "titles": [],
+            "experience_years": None,
+            "parsed_s3_key": None,
+            "parser_version": os.getenv("PARSER_VERSION", "1.0.0"),
+            "score": None,
+            "above_threshold": None,
+            "score_breakdown": None,
+            "scored_at": None,
+            "decision": existing.get("decision", "PENDING") if existing else "PENDING",
+            "decision_history": existing.get("decision_history", []) if existing else [],
+            "email_status": existing.get("email_status", "NOT_SENT") if existing else "NOT_SENT",
+            "created_at": now,
+        })
+        existing = candidates.get_item(
+            Key={"job_id": job_id, "candidate_id": candidate_id},
+            ConsistentRead=True,
+        ).get("Item")
 
     text = extract_document_text(bucket, key, s3, textract, job_id, context)
     entities = comprehend_entities(
