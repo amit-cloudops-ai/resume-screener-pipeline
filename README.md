@@ -52,9 +52,11 @@ See [`docs/STATE.md`](docs/STATE.md) for the evidence-based status and remaining
 
 ## Verification commands
 
-Run from the repository root with Python 3.12, AWS SAM CLI and cfn-lint installed:
+Run from the repository root with Python 3.12, AWS SAM CLI and cfn-lint installed. Install the optional golden-document generator dependency as well:
 
 ```bash
+pip install -r requirements-dev.txt -r requirements-golden.txt
+make golden-generate
 make verify
 make sam-validate
 make sam-build
