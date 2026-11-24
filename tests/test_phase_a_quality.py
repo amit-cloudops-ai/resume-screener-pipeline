@@ -1,6 +1,5 @@
 """Phase A quality regression tests for parser requirements discovered in the release audit."""
 import json
-import zlib
 from decimal import Decimal
 from docx import Document
 from pathlib import Path
@@ -152,9 +151,7 @@ def test_golden_dataset_contains_twelve_resumes_and_three_jds():
         if row["format"] == "digital_pdf":
             assert b"/Subtype /Image" not in data
         if row["format"] == "scanned_pdf":
-            stream = data.split(b"stream\\n", 1)[1].split(b"\\nendstream", 1)[0]
-            rendered_page = zlib.decompress(stream)
-            assert b" re f" in rendered_page
+            assert b"/Subtype /Image" in data
             assert b"BT" not in data and b" Tj" not in data
         if row["format"] == "two_column_docx":
             document = Document(asset)
