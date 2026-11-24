@@ -32,8 +32,8 @@ def table(monkeypatch):
             BillingMode="PAY_PER_REQUEST",
         )
         for candidate_id, score, decision in [
-            ("0000000000000001", 88.5, "SHORTLISTED"),
-            ("0000000000000002", 72.0, "PENDING"),
+            ("0000000000000001", Decimal("88.5"), "SHORTLISTED"),
+            ("0000000000000002", Decimal("72.0"), "PENDING"),
             ("0000000000000003", None, "PENDING"),
         ]:
             table.put_item(Item={
