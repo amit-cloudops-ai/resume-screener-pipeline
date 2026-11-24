@@ -89,3 +89,58 @@ def test_docx_paragraph_and_table_content_is_preserved():
     text = _docx_text(output.getvalue())
     assert "Platform Engineer" in text
     assert "AWS | Kubernetes" in text
+
+
+def test_pdf_textract_async_job_polls_and_reads_all_pages(monkeypatch):
+    from backend.parsing.common import _pdf_text
+
+    class FakeTextract:
+        def __init__(self):
+            self.polls = 0
+            self.tokens = []
+
+        def start_document_text_detection(self, **kwargs):
+            self.start_args = kwargs
+            return {"JobId": "textract-job-1"}
+
+        def get_document_text_detection(self, **kwargs):
+            self.tokens.append(kwargs.get("NextToken"))
+            if self.polls == 0:
+                self.polls += 1
+                return {"JobStatus": "IN_PROGRESS"}
+            if self.polls == 1:
+                self.polls += 1
+                return {"JobStatus": "SUCCEEDED"}
+            if kwargs.get("NextToken") == "page-2":
+                return {"JobStatus": "SUCCEEDED", "Blocks": [
+                    {"BlockType": "LINE", "Text": "Second page"},
+                ]}
+            return {
+                "JobStatus": "SUCCEEDED",
+                "Blocks": [{"BlockType": "LINE", "Text": "First page"}],
+                "NextToken": "page-2",
+            }
+
+    monkeypatch.setattr("backend.parsing.common.time.sleep", lambda _: None)
+    textract = FakeTextract()
+    assert _pdf_text("uploads", "resumes/job/resume.pdf", textract, "job") == "First page\nSecond page"
+    assert len(textract.start_args["ClientRequestToken"]) == 64
+    assert textract.tokens == [None, None, None, "page-2"]
+
+
+def test_comprehend_entities_chunks_long_text():
+    from backend.parsing.common import comprehend_entities
+
+    class FakeComprehend:
+        def __init__(self):
+            self.lengths = []
+
+        def detect_entities(self, **kwargs):
+            self.lengths.append(len(kwargs["Text"].encode("utf-8")))
+            return {"Entities": []}
+
+    client = FakeComprehend()
+    result = comprehend_entities("AWS and Docker. " * 1000, client)
+    assert result == {"standard": [], "custom": []}
+    assert len(client.lengths) > 1
+    assert all(length <= 4800 for length in client.lengths)
