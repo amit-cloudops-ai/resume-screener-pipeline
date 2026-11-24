@@ -5,7 +5,6 @@ import json
 from decimal import Decimal
 import logging
 import os
-import os
 from datetime import datetime, timezone
 from urllib.parse import quote
 
