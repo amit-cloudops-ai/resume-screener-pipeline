@@ -272,5 +272,10 @@
   ],
   "harbor container registry": [
     "harbor registry"
-  ]
+  ],
+  "etl": [],
+  "dbt": [],
+  "bigquery": [],
+  "spring boot": [],
+  "microservices": []
 }
