@@ -42,6 +42,7 @@ Globals:
     Environment:
       Variables:
         STAGE: !Ref Stage
+        CORS_ORIGIN: !Sub https://${FrontendDistribution.DomainName}
         LOG_LEVEL: INFO
     Tags:
       Project: resume-screener
@@ -755,7 +756,7 @@ Resources:
       Cors:
         AllowMethods: "'GET,POST,OPTIONS'"
         AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
-        AllowOrigin: "'*'"
+        AllowOrigin: !Sub "'https://${FrontendDistribution.DomainName}'"
       Auth:
         DefaultAuthorizer: CognitoAuthorizer
         AddDefaultAuthorizerToCorsPreflight: false
@@ -777,7 +778,7 @@ Resources:
       RestApiId: !Ref ResumeApi
       ResponseType: DEFAULT_4XX
       ResponseParameters:
-        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Origin: !Sub "'https://${FrontendDistribution.DomainName}'"
         gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
         gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
 
@@ -787,7 +788,7 @@ Resources:
       RestApiId: !Ref ResumeApi
       ResponseType: DEFAULT_5XX
       ResponseParameters:
-        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Origin: !Sub "'https://${FrontendDistribution.DomainName}'"
         gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
         gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
 
