@@ -11,7 +11,7 @@ AWS access: **NOT USED**. No AWS inventory, stack operation, change set, or depl
 
 | Finding | Risk | Correction | Evidence |
 |---|---|---|---|
-| Skills taxonomy contained 56 canonical entries although the work split requires at least 150 | Coverage gaps and false negatives for common cloud/data/platform roles | Expanded taxonomy to 155 canonical skills and checked canonical/alias uniqueness | `tests/test_phase_a_quality.py::test_taxonomy_meets_work_split_minimum_and_has_no_alias_collisions` |
+| Skills taxonomy contained 56 canonical entries although the work split requires at least 150 | Coverage gaps and false negatives for common cloud/data/platform roles | Expanded taxonomy to 160 canonical skills and checked canonical/alias uniqueness | `tests/test_phase_a_quality.py::test_taxonomy_meets_work_split_minimum_and_has_no_alias_collisions` |
 | Standard Comprehend `TITLE` entities were mapped to candidate job titles | False job titles because standard TITLE represents creative works, contrary to locked decision D12 | Removed standard TITLE as a job-title source; custom `JOB_TITLE` remains the supported source | `tests/test_phase_a_quality.py::test_standard_comprehend_title_is_not_treated_as_a_job_title`; updated legacy parser test |
 | Experience parser did not support the specified `N+ years` fallback | Candidates with summary-only experience were left unscored for experience | Added fallback only when no explicit date intervals are present | `tests/test_phase_a_quality.py::test_experience_uses_n_plus_fallback_when_dates_are_absent` |
 | Experience was capped at 60 years instead of the 40-year work-split requirement | Out-of-spec experience values | Set implementation cap to 40; frozen schema still permits up to 60, so no contract change was needed | `tests/test_phase_a_quality.py::test_experience_fallback_is_capped_at_40_years` and cap/date-union tests |
@@ -45,7 +45,7 @@ AWS access: **NOT USED**. No AWS inventory, stack operation, change set, or depl
 
 ### Step 1 status
 
-Code-level audit and identified corrections are implemented on this working branch. Step 1 code review is complete on the working branch. The latest CI run is in progress; Step 1 becomes verified when the exact final branch head passes `make verify`, SAM lint validation and SAM build.
+Code-level audit and identified corrections are implemented on this working branch. Step 1 is VERIFIED on the audited branch. The CI run passed `make verify`, SAM lint validation and SAM build; see `docs/STATE.md` for the run evidence.
 
 ## Step 2 — Golden dataset
 
@@ -80,7 +80,15 @@ Automated golden evaluation is implemented in `scripts/evaluate_golden_dataset.p
 
 The deterministic evaluation uses the synthetic mock entity fixtures for PERSON, ORGANIZATION and JOB_TITLE. Therefore, it measures taxonomy matching, email extraction, date-derived experience, deterministic field mapping and scoring/ranking. It does **not** measure live Textract OCR or Comprehend model accuracy.
 
-Final metric values and CI run evidence will be recorded from the successful run on the final Phase A branch head.
+The measured results are recorded in `docs/PHASE_A_ACCURACY.md`: 100% skill precision/recall, 12/12 emails, 12/12 experience values within ±1 year and 3/3 expected top-ranked candidates. These are deterministic mock-entity results, not live Textract/Comprehend model metrics.
+
+### Step 2 status
+
+Step 2 is VERIFIED: 12 synthetic resumes, 3 synthetic JDs, expected labels and reproducible digital PDF/DOCX/scanned-image PDF generation are committed. CI generated and validated the exact 4/4/4 format split.
+
+### Step 3 status
+
+Step 3 is VERIFIED for the deterministic pre-AWS evaluation. See `docs/PHASE_A_ACCURACY.md` for measured metrics and limitations.
 
 ## Release boundary
 
