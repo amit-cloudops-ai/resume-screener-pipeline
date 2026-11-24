@@ -67,36 +67,19 @@ def parse_s3_notification(body: str) -> tuple[str, str]:
 
 
 def split_utf8(text: str, limit: int = MAX_COMPREHEND_BYTES) -> list[str]:
-    """Split on UTF-8 codepoint boundaries; each chunk stays below Comprehend's limit."""
+    """Split on UTF-8 codepoint boundaries without changing the source text."""
     chunks, current, used = [], [], 0
-    for paragraph in text.splitlines() or [text]:
-        paragraph = paragraph.strip()
-        if not paragraph:
-            continue
-        if len(paragraph.encode("utf-8")) > limit:
-            if current:
-                chunks.append("\n".join(current))
-                current, used = [], 0
-            segment, segment_bytes = [], 0
-            for char in paragraph:
-                size = len(char.encode("utf-8"))
-                if segment_bytes + size > limit:
-                    chunks.append("".join(segment))
-                    segment, segment_bytes = [], 0
-                segment.append(char)
-                segment_bytes += size
-            if segment:
-                chunks.append("".join(segment))
-            continue
-        size = len(paragraph.encode("utf-8"))
-        extra = size + (1 if current else 0)
-        if used + extra > limit:
-            chunks.append("\n".join(current))
+    for char in text:
+        size = len(char.encode("utf-8"))
+        if size > limit:
+            raise ValueError("Comprehend chunk limit is smaller than one UTF-8 codepoint")
+        if used + size > limit:
+            chunks.append("".join(current))
             current, used = [], 0
-        current.append(paragraph)
-        used += size + (1 if len(current) > 1 else 0)
+        current.append(char)
+        used += size
     if current:
-        chunks.append("\n".join(current))
+        chunks.append("".join(current))
     return chunks or [""]
 
 
