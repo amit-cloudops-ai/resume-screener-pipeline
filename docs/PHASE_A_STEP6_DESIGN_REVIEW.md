@@ -1,6 +1,6 @@
 # Phase A Step 6 — dashboard visual direction review
 
-Decision D16 is locked: the dashboard direction is not selected, and Amit must confirm before P6 dashboard design/build starts. This document presents three concrete directions for approval. No dashboard-specific visual system or page layout should be implemented until one is selected.
+Decision D16 was approved by Amit on 24 November 2026: A — Editorial Hiring Desk. This approval authorises the dashboard-specific visual system and page layout described below.
 
 ## Product constraints shared by all directions
 
