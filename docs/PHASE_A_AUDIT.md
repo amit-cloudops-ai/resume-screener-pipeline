@@ -111,9 +111,9 @@ Implemented under `frontend/`:
 - Environment-based Cognito/API configuration and a local mock mode that does not contact AWS.
 - Accessible baseline sign-in/workspace shell with loading/error/empty states.
 
-The visual treatment is intentionally neutral. D16 requires approval of the dashboard visual direction before Step 6 design/build. The frontend has not been connected to a deployed Cognito pool or live API; mock mode is not live authentication evidence. No AWS resources were created.
+The visual treatment is intentionally neutral. D16 requires approval of the dashboard visual direction before Step 6 design/build. The frontend typecheck and Vite production build passed CI run 45339630424. The frontend has not been connected to a deployed Cognito pool or live API; mock mode is not live authentication evidence. No AWS resources were created.
 
-**Step 5 status:** foundation implemented; automated CI typecheck/build is the remaining repository verification gate.
+**Step 5 status:** foundation implemented and automated frontend typecheck/build passed CI. Live Cognito/API verification remains a deployment gate.
 
 ## Release boundary
 

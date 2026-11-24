@@ -24,7 +24,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | P3 | Amit | Cognito recruiter setup | DONE-UNVERIFIED | User pool, client and group are defined in SAM; no deployed pool/user evidence. |
 | P4 | Amit | API Gateway + Cognito authorizer | DONE-UNVERIFIED | REST API and default Cognito authorizer are defined; no live 401/200 proof. |
 | P5 | Amit | SES identity and production access | TODO | SES sender verification and production-access approval not evidenced. |
-| P6 | Amit | Frontend shell + mocks | DOING | React/Vite/TypeScript shell, Cognito SRP module, raw-ID-token API client and mock mode added; visual direction and full dashboard remain Step 6–7. CI build pending. |
+| P6 | Amit | Frontend shell + mocks | DOING | React/Vite/TypeScript shell, Cognito SRP module (including first-login temporary-password challenge), raw-ID-token API client and mock mode added. Frontend typecheck/build passed CI; visual direction and dashboard remain Step 6–7. |
 | P7 | Amit | Recruiter frontend pages | TODO | Not implemented. |
 | P8 | Amit | CloudFront deployment | DONE-UNVERIFIED | Distribution/OAC/bucket policy are defined in SAM; no live URL or browser proof. |
 | P9 | Amit | Alarms / budget | DONE-UNVERIFIED | Alarm and budget resources are defined; no deployed alarm/notification proof. |
@@ -40,7 +40,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | A7 | Teammate A | JD-parse Lambda | VERIFIED | Required skills/title/years, zero-skill failure, job state update and JD_READY fan-out implemented. |
 | A8 | Teammate A | DLQ consumer Lambda | VERIFIED | Stage mapping, source-key resolution, idempotent failed-job persistence implemented. |
 | A9 | Teammate A | Custom recognizer model/endpoint | TODO | Optional feature remains disabled; no training dataset or endpoint ARN. |
-| A10 | Teammate A | Three reviewed sample outputs | DONE-UNVERIFIED | Three reviewed synthetic examples committed under `docs/samples/`; actual Textract/Comprehend captures remain blocked on approved AWS deployment. |
+| A10 | Teammate A | Three reviewed sample outputs | VERIFIED | Three reviewed synthetic examples committed under `docs/samples/`; automated tests enforce provenance and match parser output to golden labels. Actual Textract/Comprehend captures remain blocked on approved AWS deployment. |
 | B1 | Teammate B | Scoring library + tests | VERIFIED | Deterministic 50/30/20 scorer, edge cases, title seniority, thresholds and schema fields covered. |
 | B2 | Teammate B | Score Lambda | VERIFIED | SQS/DynamoDB handler accepts DynamoDB `Decimal` numeric values, duplicate idempotency and RESCORE behaviour covered. |
 | B3 | Teammate B | Jobs API + uploads | VERIFIED | Create/list/get, JD text/file, presigned resume URLs, validation, Cognito subject and CORS covered. Parser checks actual object size because presigned PUT itself does not impose a size range. |
@@ -63,12 +63,12 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 
 ## Phase A — Steps 4–5 repository work
 
-**Status: IMPLEMENTED; CI verification pending on the current head.** No AWS access, deployment, stack operation or live service invocation was performed.
+**Status: IMPLEMENTED; CI verification passed on commit `f749e5db0e622f33803f233aa9f6c3507627480a` (run 45339630424). A sample-provenance regression test has since been added and its new-head CI run is pending.** No AWS access, deployment, stack operation or live service invocation was performed.
 
 - Step 4 — three reviewed synthetic examples are committed in `docs/samples/`: digital PDF (R01), two-column DOCX (R05), and image-only scanned PDF (R09). Each separates standard entities, optional custom entities, expected extracted text and parser-derived output. All carry `SYNTHETIC_MOCK` / `SYNTHETIC_EXPECTED_TEXT` labels. No Comprehend confidence scores or Textract Blocks are fabricated. Actual `AWS_CAPTURED` evidence remains a post-approval dev-deployment gate.
 - Step 5 — frontend technical foundation is committed under `frontend/`: React 19, Vite, TypeScript, Cognito User Pool SRP sign-in module, session ID-token retrieval, API client sending the raw ID token (no Bearer prefix), runtime environment configuration and local mock mode. The shell is intentionally neutral; D16 requires visual direction approval before the dashboard design begins.
 - No API/OpenAPI/JSON/SQS contracts or SAM resources were changed.
-- Frontend has not yet been proven against a deployed Cognito pool or live API. Build/typecheck CI is being added; mock mode is not authentication evidence.
+- Frontend typecheck and Vite production build passed GitHub Actions. Frontend has not been proven against a deployed Cognito pool or live API; mock mode is not authentication evidence.
 
 ## CI evidence
 
