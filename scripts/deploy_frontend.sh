@@ -22,6 +22,11 @@ command -v aws >/dev/null || { echo "AWS CLI v2 is required." >&2; exit 2; }
 command -v python3 >/dev/null || { echo "Python 3 is required." >&2; exit 2; }
 command -v npm >/dev/null || { echo "Node.js/npm is required." >&2; exit 2; }
 
+stack_status="$(aws cloudformation describe-stacks --stack-name "$STACK" --region "$REGION" --query 'Stacks[0].StackStatus' --output text)"
+case "$stack_status" in
+  CREATE_COMPLETE|UPDATE_COMPLETE) ;;
+  *) echo "Stack $STACK is not ready for frontend publishing (status: $stack_status)." >&2; exit 1 ;;
+esac
 outputs="$(aws cloudformation describe-stacks --stack-name "$STACK" --region "$REGION" --query 'Stacks[0].Outputs' --output json)"
 get_output() {
   printf '%s' "$outputs" | python3 -c 'import json,sys; rows=json.load(sys.stdin); key=sys.argv[1]; print(next((x["OutputValue"] for x in rows if x["OutputKey"]==key), ""))' "$1"
