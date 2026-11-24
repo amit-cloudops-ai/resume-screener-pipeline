@@ -135,3 +135,15 @@ def test_jd_parse_duplicate_is_idempotent(resources):
     second = jobs.get_item(Key={"job_id": JOB})["Item"]["jd_parsed_at"]
     assert first == second
     assert len(sqs.receive_message(QueueUrl=queue_url, MaxNumberOfMessages=10)["Messages"]) == 2
+
+
+def test_missing_job_does_not_create_malformed_job_record(resources):
+    jobs, _, failed, s3, _, _ = resources
+    jobs.delete_item(Key={"job_id": JOB})
+    key = f"jd/{JOB}/orphan.txt"
+    s3.put_object(Bucket=BUCKET, Key=key, Body=b"AWS and Docker")
+    assert invoke(key) == {"batchItemFailures": []}
+    assert jobs.get_item(Key={"job_id": JOB}).get("Item") is None
+    item = failed.scan()["Items"][0]
+    assert item["error_type"] == "UNKNOWN"
+    assert item["stage"] == "JD_PARSE"
