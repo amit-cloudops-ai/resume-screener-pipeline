@@ -1,47 +1,95 @@
 #!/usr/bin/env python3
-"""Materialize the synthetic PDF/DOCX golden resumes from committed text fixtures."""
+"""Materialize synthetic PDF/DOCX golden resumes from committed text fixtures.
+
+The scanned-style PDFs contain vectorized bitmap glyphs and no PDF text layer,
+so a PDF renderer must rasterize the page before OCR can read it.
+"""
 from __future__ import annotations
 
 import json
+import textwrap
+import zlib
 from pathlib import Path
-from zipfile import BadZipFile
 
 from docx import Document
-from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 GOLDEN = ROOT / "fixtures" / "golden"
 SOURCE = GOLDEN / "source"
 OUTPUT = GOLDEN / "resumes"
 
+# Compact 5x7 bitmap alphabet; used only to draw OCR-style image-only PDFs.
+FONT = {
+"A":("01110","10001","10001","11111","10001","10001","10001"),
+"B":("11110","10001","10001","11110","10001","10001","11110"),
+"C":("01111","10000","10000","10000","10000","10000","01111"),
+"D":("11110","10001","10001","10001","10001","10001","11110"),
+"E":("11111","10000","10000","11110","10000","10000","11111"),
+"F":("11111","10000","10000","11110","10000","10000","10000"),
+"G":("01111","10000","10000","10111","10001","10001","01111"),
+"H":("10001","10001","10001","11111","10001","10001","10001"),
+"I":("11111","00100","00100","00100","00100","00100","11111"),
+"J":("00111","00010","00010","00010","10010","10010","01100"),
+"K":("10001","10010","10100","11000","10100","10010","10001"),
+"L":("10000","10000","10000","10000","10000","10000","11111"),
+"M":("10001","11011","10101","10101","10001","10001","10001"),
+"N":("10001","11001","10101","10011","10001","10001","10001"),
+"O":("01110","10001","10001","10001","10001","10001","01110"),
+"P":("11110","10001","10001","11110","10000","10000","10000"),
+"Q":("01110","10001","10001","10001","10101","10010","01101"),
+"R":("11110","10001","10001","11110","10100","10010","10001"),
+"S":("01111","10000","10000","01110","00001","00001","11110"),
+"T":("11111","00100","00100","00100","00100","00100","00100"),
+"U":("10001","10001","10001","10001","10001","10001","01110"),
+"V":("10001","10001","10001","10001","10001","01010","00100"),
+"W":("10001","10001","10001","10101","10101","10101","01010"),
+"X":("10001","10001","01010","00100","01010","10001","10001"),
+"Y":("10001","10001","01010","00100","00100","00100","00100"),
+"Z":("11111","00001","00010","00100","01000","10000","11111"),
+"0":("01110","10001","10011","10101","11001","10001","01110"),
+"1":("00100","01100","00100","00100","00100","00100","01110"),
+"2":("01110","10001","00001","00010","00100","01000","11111"),
+"3":("11110","00001","00001","01110","00001","00001","11110"),
+"4":("00010","00110","01010","10010","11111","00010","00010"),
+"5":("11111","10000","10000","11110","00001","00001","11110"),
+"6":("01110","10000","10000","11110","10001","10001","01110"),
+"7":("11111","00001","00010","00100","01000","01000","01000"),
+"8":("01110","10001","10001","01110","10001","10001","01110"),
+"9":("01110","10001","10001","01111","00001","00001","01110"),
+"@":("01110","10001","10111","10101","10111","10000","01110"),
+".":("00000","00000","00000","00000","00000","00110","00110"),
+",":("00000","00000","00000","00000","00110","00100","01000"),
+":":("00000","00110","00110","00000","00110","00110","00000"),
+"/":("00001","00010","00010","00100","01000","01000","10000"),
+"-":("00000","00000","00000","11111","00000","00000","00000"),
+"+":("00000","00100","00100","11111","00100","00100","00000"),
+";":("00000","00110","00110","00000","00110","00100","01000"),
+"|":("00100","00100","00100","00100","00100","00100","00100"),
+"(":("00010","00100","01000","01000","01000","00100","00010"),
+")":("01000","00100","00010","00010","00010","00100","01000"),
+"'":("00100","00100","00000","00000","00000","00000","00000"),
+"&":("01100","10010","10100","01000","10101","10010","01101"),
+"_":("00000","00000","00000","00000","00000","00000","11111"),
+}
 
-def _pdf_escape(value: str) -> str:
-    value = value.encode("ascii", "replace").decode("ascii")
-    return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-
-
-def _write_text_pdf(text: str, destination: Path) -> None:
-    lines = text.splitlines()
-    commands = ["BT", "/F1 10 Tf", "42 750 Td"]
-    for line in lines:
-        commands.append(f"({_pdf_escape(line[:105])}) Tj")
-        commands.append("0 -20 Td")
-    commands.append("ET")
-    stream = ("\n".join(commands) + "\n").encode("ascii")
+def _pdf_document(stream: bytes, *, image_only: bool) -> bytes:
+    page = (
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
+        b"/Resources << >> /Contents 4 0 R >>"
+    )
     objects = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
         b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
-        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-        b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\nstream\n" + stream + b"endstream",
+        page,
+        b"<< /Length " + str(len(stream)).encode("ascii") +
+        b" /Filter /FlateDecode >>\nstream\n" + stream + b"\nendstream",
     ]
     pdf = bytearray(b"%PDF-1.4\n")
     offsets = [0]
     for number, obj in enumerate(objects, start=1):
         offsets.append(len(pdf))
         pdf.extend(f"{number} 0 obj\n".encode("ascii"))
-        pdf.extend(obj)
-        pdf.extend(b"\nendobj\n")
+        pdf.extend(obj + b"\nendobj\n")
     xref_offset = len(pdf)
     pdf.extend(f"xref\n0 {len(objects) + 1}\n".encode("ascii"))
     pdf.extend(b"0000000000 65535 f \n")
@@ -50,7 +98,44 @@ def _write_text_pdf(text: str, destination: Path) -> None:
     pdf.extend(
         f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF\n".encode("ascii")
     )
+    return bytes(pdf)
+
+
+def _write_text_pdf(text: str, destination: Path) -> None:
+    def escape(value: str) -> str:
+        value = value.encode("ascii", "replace").decode("ascii")
+        return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+    commands = ["BT /F1 10 Tf 42 750 Td"]
+    for line in text.splitlines():
+        commands.extend([f"({_escape_line(line)}) Tj", "0 -20 Td"])
+    commands.append("ET")
+    stream = zlib.compress(("\n".join(commands)).encode("ascii"))
+    # Text PDF has a real selectable text layer.
+    pdf = _pdf_document(stream, image_only=False)
+    # Insert the font resource into the page dictionary.
+    pdf = pdf.replace(b"/Resources << >>", b"/Resources << /Font << /F1 5 0 R >> >>")
+    # Add the Helvetica font object and rebuild xref offsets with the helper.
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        b"<< /Length " + str(len(stream)).encode("ascii") + b" /Filter /FlateDecode >>\nstream\n" + stream + b"\nendstream",
+    ]
+    pdf = bytearray(b"%PDF-1.4\n")
+    offsets = [0]
+    for number, obj in enumerate(objects, start=1):
+        offsets.append(len(pdf)); pdf.extend(f"{number} 0 obj\n".encode("ascii")); pdf.extend(obj+b"\nendobj\n")
+    xref_offset=len(pdf); pdf.extend(f"xref\n0 {len(objects)+1}\n".encode("ascii")); pdf.extend(b"0000000000 65535 f \n")
+    for offset in offsets[1:]: pdf.extend(f"{offset:010d} 00000 n \n".encode("ascii"))
+    pdf.extend(f"trailer\n<< /Size {len(objects)+1} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF\n".encode("ascii"))
     destination.write_bytes(pdf)
+
+
+def _escape_line(value: str) -> str:
+    value = value.encode("ascii", "replace").decode("ascii")
+    return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
 
 def _write_two_column_docx(text: str, destination: Path) -> None:
@@ -58,12 +143,12 @@ def _write_two_column_docx(text: str, destination: Path) -> None:
     doc = Document()
     doc.add_heading(lines[0], 0)
     doc.add_paragraph(lines[1])
-    for heading, line_indexes in (
+    for heading, indexes in (
         ("PROFESSIONAL SUMMARY", [3]),
         ("PROFESSIONAL EXPERIENCE", [5, 6, 7]),
     ):
         doc.add_heading(heading, level=1)
-        for index in line_indexes:
+        for index in indexes:
             doc.add_paragraph(lines[index])
     doc.add_heading("TECHNICAL SKILLS", level=1)
     skills = [item.strip() for item in lines[9].split(";") if item.strip()]
@@ -79,23 +164,31 @@ def _write_two_column_docx(text: str, destination: Path) -> None:
 
 
 def _write_scanned_pdf(text: str, destination: Path) -> None:
-    # Raster-only page: no PDF text layer. Textract must OCR the image.
-    image = Image.new("1", (1240, 1754), 1)
-    draw = ImageDraw.Draw(image)
-    font_path = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
-    font = ImageFont.truetype(str(font_path), 22) if font_path.exists() else ImageFont.load_default()
-    y = 80
+    commands = ["0 0 0 rg"]
+    y_top = 742
+    scale = 2
     for line in text.splitlines():
-        draw.text((75, y), line[:100], fill=0, font=font)
-        y += 112
-    image.save(destination, format="PDF", resolution=150)
+        for wrapped in textwrap.wrap(line.upper(), width=44) or [""]:
+            x0 = 36
+            for character in wrapped:
+                glyph = FONT.get(character, FONT.get(" "))
+                if glyph:
+                    for row, bitmap_row in enumerate(glyph):
+                        for column, bit in enumerate(bitmap_row):
+                            if bit == "1":
+                                x = x0 + column * scale
+                                y = y_top - row * scale
+                                commands.append(f"{x} {y} {scale} {scale} re f")
+                x0 += 6 * scale
+            y_top -= 20
+    stream = zlib.compress(("\n".join(commands)).encode("ascii"))
+    destination.write_bytes(_pdf_document(stream, image_only=True))
 
 
 def main() -> int:
     expected = json.loads((GOLDEN / "expected.json").read_text(encoding="utf-8"))
     OUTPUT.mkdir(parents=True, exist_ok=True)
     counts = {"digital_pdf": 0, "two_column_docx": 0, "scanned_pdf": 0}
-
     for row in expected["resumes"]:
         source_path = SOURCE / f"{row['id'].lower()}.txt"
         if not source_path.is_file():
@@ -118,14 +211,14 @@ def main() -> int:
         data = path.read_bytes()
         if row["format"] in {"digital_pdf", "scanned_pdf"}:
             assert data.startswith(b"%PDF-"), path
+        if row["format"] == "digital_pdf":
+            assert b" Tj" in data and b"/Subtype /Image" not in data, path
         if row["format"] == "scanned_pdf":
-            assert b"/Subtype /Image" in data and b"BT" not in data, path
+            assert b" re f" in zlib.decompress(data[data.index(b"stream\n")+7:data.index(b"\nendstream")]), path
+            assert b" Tj" not in data and b"BT" not in data, path
         if row["format"] == "two_column_docx":
-            try:
-                doc = Document(path)
-            except (BadZipFile, Exception) as exc:
-                raise AssertionError(f"invalid DOCX fixture: {path}") from exc
-            assert doc.tables and len(doc.tables[0].columns) == 2, path
+            document = Document(path)
+            assert document.tables and len(document.tables[0].columns) == 2, path
 
     print("golden documents generated:", counts)
     return 0
