@@ -34,21 +34,21 @@ This is not a production release approval. No repository-only audit can prove IA
 **Finding:** The second-page query supplied a `FilterExpression` against `job_id`, which is already the partition key in the `KeyConditionExpression`. DynamoDB Query does not allow a partition-key condition to be repeated in a filter expression. Exports could fail once the query required pagination.  
 **Correction:** Removed the invalid filter expression. Added a regression test that simulates two query pages and asserts both pages are included without a partition-key filter.  
 **Files:** `backend/api/export/app.py`, `backend/api/export/test_app.py`.  
-**Status:** FIXED; final CI evidence is recorded below after the workflow completes.
+**Status:** FIXED and regression-tested. Final CI passed 160 tests, including the new two-page pagination test.
 
 ### F-02 — Static frontend was not published by SAM deployment
 
 **Severity:** High  
 **Finding:** The SAM stack created a private frontend S3 bucket and CloudFront distribution, but `make deploy-dev` / `make deploy-prod` only deployed infrastructure. There was no documented or scripted step to build the React app with the deployed Cognito/API outputs, upload it to the bucket and invalidate CloudFront. A successful stack deployment could therefore still serve an empty frontend origin.  
 **Correction:** Added `scripts/deploy_frontend.sh` and `make deploy-frontend`. The script reads the stack outputs, validates required API/Cognito/CloudFront values, confirms the destination bucket matches the stage-specific frontend naming convention, builds with `VITE_MOCK_API=false`, syncs only that dedicated frontend bucket, and submits a CloudFront invalidation. Production publishing requires the separate `ALLOW_PROD=1` opt-in. CI runs `bash -n` against the script.  
-**Status:** IMPLEMENTED; syntax and CI evidence are recorded below after the workflow completes.
+**Status:** IMPLEMENTED and syntax-checked in CI. The frontend build and SAM lint/build also passed.
 
 ### F-03 — Documentation drift
 
 **Severity:** Low  
 **Finding:** README repeated the Step 8 CI limitation sentence and cited an earlier run as the latest full CI run.  
 **Correction:** Update README and STATE to reference the final audit head and remove duplicated status text.  
-**Status:** TO VERIFY in the final documentation commit.
+**Status:** FIXED — README duplicate status text removed, CI references reconciled, Phase A completion and Phase B gates aligned across README and STATE.
 
 ## 4. Architecture and security review notes
 
@@ -104,11 +104,13 @@ The unchecked items in `docs/02_DEFINITION_OF_DONE.md` remain unchecked until th
 
 ## 7. Final evidence
 
-The final audit head and CI run will be recorded here after the audit documentation and deployment workflow changes are committed. The passing workflow must include:
-- `make verify` including the new paginated CSV export regression test;
-- `make golden-evaluate`;
-- `bash -n scripts/deploy_frontend.sh`;
-- frontend TypeScript/production build;
-- SAM lint validation and SAM build.
+GitHub Actions run [45346661338](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45346661338) passed on code/documentation head `c8d7a2d16602e9f65c27136abc625c880672bafe` (3/3 jobs):
+- `make verify`: **160 passed**, 601 Botocore `datetime.utcnow()` deprecation warnings;
+- `make golden-evaluate`: passed; 100% skill precision/recall (77 TP, 0 FP, 0 FN), 12/12 email, 12/12 experience within ±1 year, 3/3 expected top-ranked candidates;
+- `bash -n scripts/deploy_frontend.sh`: passed;
+- frontend TypeScript/production build: passed;
+- SAM lint validation and SAM build: passed.
+
+The 601 warnings originate from Botocore's use of deprecated `datetime.utcnow()` in the installed SDK dependency, not from project source. They are non-failing but should be revisited when updating the pinned AWS SDK dependency. The deterministic golden metrics use synthetic mock entity fixtures and do not establish live Textract/Comprehend accuracy. Subsequent branch commits, if any, are documentation/PR metadata only; rerun CI after any executable-code change.
 
 **Release boundary:** PR #8 remains draft and unmerged. Do not merge it, access AWS, create a CloudFormation change set or deploy any stage without the next explicit approval.
