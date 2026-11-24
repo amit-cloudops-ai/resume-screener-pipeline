@@ -84,7 +84,7 @@ def test_lambda_scores_candidate_and_writes_contract_fields(aws_tables):
 
     result = lambda_handler(sqs_event(), None)
 
-    assert result == {"processed": 1}
+    assert result == {"batchItemFailures": []}
     item = from_dynamodb_values(candidates.get_item(
         Key={"job_id": "a1b2c3d4e5f6", "candidate_id": "0123456789abcdef"}
     )["Item"])
@@ -168,8 +168,8 @@ def test_job_not_jd_parsed_raises_for_sqs_retry(aws_tables):
         ExpressionAttributeValues={":status": "JD_UPLOADED"},
     )
 
-    with pytest.raises(RuntimeError, match="not JD_PARSED"):
-        lambda_handler(sqs_event(), None)
+    result = lambda_handler(sqs_event(), None)
+    assert result == {"batchItemFailures": [{"itemIdentifier": "message-1"}]}
 
 
 def test_missing_candidate_raises(aws_tables):
@@ -183,14 +183,14 @@ def test_missing_candidate_raises(aws_tables):
             }),
         }]
     }
-    with pytest.raises(LookupError, match="candidate not found"):
-        lambda_handler(event, None)
+    result = lambda_handler(event, None)
+    assert result == {"batchItemFailures": [{"itemIdentifier": "message-2"}]}
 
 
 def test_invalid_message_raises(aws_tables):
     event = {"Records": [{"messageId": "bad", "body": "{not-json"}]}
-    with pytest.raises(ValueError, match="valid JSON"):
-        lambda_handler(event, None)
+    result = lambda_handler(event, None)
+    assert result == {"batchItemFailures": [{"itemIdentifier": "bad"}]}
 
 
 def test_candidate_decision_is_not_overwritten(aws_tables):
@@ -206,3 +206,19 @@ def test_candidate_decision_is_not_overwritten(aws_tables):
         Key={"job_id": "a1b2c3d4e5f6", "candidate_id": "0123456789abcdef"}
     )["Item"]
     assert item["decision"] == "SHORTLISTED"
+
+
+def test_partial_batch_failure_does_not_retry_successful_messages(aws_tables):
+    _, candidates = aws_tables
+    event = {
+        "Records": [
+            sqs_event()["Records"][0],
+            {"messageId": "bad-record", "body": "{not-json"},
+        ]
+    }
+    result = lambda_handler(event, None)
+    assert result == {"batchItemFailures": [{"itemIdentifier": "bad-record"}]}
+    item = candidates.get_item(
+        Key={"job_id": "a1b2c3d4e5f6", "candidate_id": "0123456789abcdef"}
+    )["Item"]
+    assert item["status"] == "SCORED"
