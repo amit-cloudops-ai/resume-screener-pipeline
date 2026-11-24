@@ -715,7 +715,7 @@ Resources:
           Name: email
           Required: true
           Mutable: true
-      Tags:
+      UserPoolTags:
         Project: resume-screener
         Stage: !Ref Stage
 
@@ -865,8 +865,10 @@ Resources:
       LogGroupName: !Sub /aws/lambda/rs-${Stage}-parse
       RetentionInDays: 14
       Tags:
-        Project: resume-screener
-        Stage: !Ref Stage
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
 
   JdParseLogGroup:
     Type: AWS::Logs::LogGroup
@@ -874,8 +876,10 @@ Resources:
       LogGroupName: !Sub /aws/lambda/rs-${Stage}-jd-parse
       RetentionInDays: 14
       Tags:
-        Project: resume-screener
-        Stage: !Ref Stage
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
 
   ScoreLogGroup:
     Type: AWS::Logs::LogGroup
@@ -883,8 +887,10 @@ Resources:
       LogGroupName: !Sub /aws/lambda/rs-${Stage}-score
       RetentionInDays: 14
       Tags:
-        Project: resume-screener
-        Stage: !Ref Stage
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
 
   DlqConsumerLogGroup:
     Type: AWS::Logs::LogGroup
@@ -892,8 +898,10 @@ Resources:
       LogGroupName: !Sub /aws/lambda/rs-${Stage}-dlq-consumer
       RetentionInDays: 14
       Tags:
-        Project: resume-screener
-        Stage: !Ref Stage
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
 
   ApiJobsLogGroup:
     Type: AWS::Logs::LogGroup
@@ -901,8 +909,10 @@ Resources:
       LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-jobs
       RetentionInDays: 14
       Tags:
-        Project: resume-screener
-        Stage: !Ref Stage
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
 
   ApiCandidatesLogGroup:
     Type: AWS::Logs::LogGroup
@@ -910,8 +920,10 @@ Resources:
       LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-candidates
       RetentionInDays: 14
       Tags:
-        Project: resume-screener
-        Stage: !Ref Stage
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
 
   ApiDecisionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -919,8 +931,10 @@ Resources:
       LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-decision
       RetentionInDays: 14
       Tags:
-        Project: resume-screener
-        Stage: !Ref Stage
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
 
   ApiExportLogGroup:
     Type: AWS::Logs::LogGroup
@@ -928,8 +942,10 @@ Resources:
       LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-export
       RetentionInDays: 14
       Tags:
-        Project: resume-screener
-        Stage: !Ref Stage
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
 
   ApiFailedLogGroup:
     Type: AWS::Logs::LogGroup
@@ -937,8 +953,10 @@ Resources:
       LogGroupName: !Sub /aws/lambda/rs-${Stage}-api-failed
       RetentionInDays: 14
       Tags:
-        Project: resume-screener
-        Stage: !Ref Stage
+        - Key: Project
+          Value: resume-screener
+        - Key: Stage
+          Value: !Ref Stage
 
 
   CustomRecognizerParameter:
