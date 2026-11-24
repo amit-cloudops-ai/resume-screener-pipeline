@@ -4,17 +4,18 @@ An AWS-native resume screening workflow. Recruiters create a job, upload a job d
 
 ## Current status — 24 November 2026
 
-**Backend integration implemented; release gates remain.**
+**Backend integration implemented; Phase A steps 1–3 verified. Repository-only work is continuing before any AWS account access.**
 
 The integrated backend and SAM updates are in [draft PR #6](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6). The branch is separate from `main`; no code has been merged and no AWS resources have been deployed by this work.
 
 - **B1/B2:** deterministic scoring library, SQS scoring Lambda, DynamoDB Decimal conversion and idempotency.
 - **B3–B9:** jobs/uploads, candidate list/detail, recruiter decisions and SES, CSV export, failed-job listing/retry, NLP explanation and contract tests.
 - **Part A:** PDF Textract extraction, DOCX/TXT parsing, Comprehend standard/custom entity support, taxonomy normalization, field derivation, JD parsing and DLQ persistence.
+- **Phase A steps 1–3:** backend/SAM audit corrections, 160-skill taxonomy, reproducible 12-resume dataset (4 digital PDF, 4 two-column DOCX, 4 scanned image-only PDF), three labelled JDs and measurable accuracy report are verified on the Phase A branch.
 - **Integration:** local Moto acceptance scenario exercises one JD and ten resumes, yielding nine scored candidates and one permanent parse failure.
 - **Infrastructure:** SAM validation/lint and build pass on the recorded CI run.
 
-CI run `45332343952` passed on implementation commit `f755f86bca29eeafb68083e47451c5943d69ecbc`: `make verify` passed with 138 tests, SAM lint validation passed, and SAM build passed. Subsequent README/status-only commits are also checked by CI.
+Phase A audit/golden evaluation CI run [45337062084](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45337062084) passed: `make verify` passed with 153 tests, `make golden-evaluate` passed, SAM lint validation passed, and SAM build passed. The 12-resume deterministic evaluation measured 100% skill precision/recall, 12/12 email extraction, 12/12 experience within ±1 year and 3/3 expected top-ranked candidates. These are mock-entity/pre-AWS metrics, not live Textract or Comprehend model results.
 
 **Not yet complete:** recruiter frontend, live AWS deployment, Cognito 401/200 proof, S3-to-SQS live delivery, live Textract/Comprehend/SES tests, production sender verification, operational alarm proof and live E2E smoke. The local integration test is not a substitute for those deployed checks.
 
@@ -40,6 +41,8 @@ See [`docs/STATE.md`](docs/STATE.md) for the evidence-based status and remaining
 | `docs/04_SCORING_LOGIC.md` | Scoring specification |
 | `docs/08_NLP_AND_SCORING.md` | Extraction and ranking explanation |
 | `docs/STATE.md` | Current implementation and verification status |
+| `docs/PHASE_A_AUDIT.md` | Repository-only audit and Phase A steps 1–3 evidence |
+| `docs/PHASE_A_ACCURACY.md` | Golden dataset metrics and evaluation limitations |
 | `contracts/` | Frozen OpenAPI, JSON schemas and SQS contracts |
 | `fixtures/` | Sample job, candidate and failure records |
 | `backend/parsing/` | Shared extraction, taxonomy, resume/JD/DLQ Lambdas |
