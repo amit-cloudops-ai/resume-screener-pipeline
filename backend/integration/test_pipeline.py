@@ -12,7 +12,7 @@ from moto import mock_aws
 
 from backend.parsing.parse.app import lambda_handler as parse_resume
 from backend.parsing.jd_parse.app import lambda_handler as parse_jd
-from backend.scoring.handler import lambda_handler as score_batch
+from backend.scoring.handler import lambda_handler as score_batch, _to_native
 
 JOB = "a1b2c3d4e5f6"
 BUCKET = "rs-dev-uploads-test"
@@ -159,4 +159,4 @@ def test_resume_and_jd_flow_produces_schema_valid_scored_candidate(env):
     schema = json.loads(
         __import__("pathlib").Path("contracts/candidate.schema.json").read_text()
     )
-    assert not list(Draft7Validator(schema).iter_errors(candidate))
+    assert not list(Draft7Validator(schema).iter_errors(_to_native(candidate)))
