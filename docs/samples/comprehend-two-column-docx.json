@@ -1,36 +1,19 @@
 {
   "evidence_class": "SYNTHETIC_MOCK",
   "warning": "Illustrative fixture only. Not returned by Amazon Comprehend.",
-  "source_fixture": {
-    "resume_id": "R05",
-    "file_name": "r05_resume.docx",
-    "format": "two_column_docx",
-    "text_source": "fixtures/golden/source/r05.txt",
-    "docx_extraction_note": "The real parser reads DOCX paragraphs and table cells using python-docx; this synthetic golden source represents the expected reading content."
-  },
+  "source_fixture": {"resume_id": "R05", "file_name": "r05_resume.docx", "format": "two_column_docx", "text_source": "fixtures/golden/source/r05.txt", "docx_extraction_note": "The parser reads DOCX paragraphs and table cells using python-docx; this fixture represents expected content."},
   "extracted_text_excerpt": "OLIVIA SHAH | olivia.shah@example.com | Data Engineer | Lakeview Analytics | Jan 2020 - Dec 2025 | python; sql; aws; apache spark; apache airflow; postgresql",
   "comprehend": {
     "standard": [
-      {"Type": "PERSON", "Text": "Olivia Shah", "Score": null, "note": "Illustrative entity; no model inference occurred."},
-      {"Type": "ORGANIZATION", "Text": "Lakeview Analytics", "Score": null, "note": "Illustrative entity; employer interpretation is contextual."},
-      {"Type": "DATE", "Text": "Jan 2020 - Dec 2025", "Score": null, "note": "Illustrative date span; parser derives experience from text/date ranges."}
+      {"Type": "PERSON", "Text": "Olivia Shah", "Score": null},
+      {"Type": "ORGANIZATION", "Text": "Lakeview Analytics", "Score": null},
+      {"Type": "DATE", "Text": "Jan 2020 - Dec 2025", "Score": null}
     ],
     "custom": [
-      {"Type": "JOB_TITLE", "Text": "Data Engineer", "Score": null, "note": "Illustrative custom-recognizer entity; requires a configured endpoint in a live run."},
-      {"Type": "SKILL", "Text": "Apache Spark", "Score": null, "note": "Illustrative custom-recognizer entity; taxonomy also matches raw text."}
+      {"Type": "JOB_TITLE", "Text": "Data Engineer", "Score": null},
+      {"Type": "SKILL", "Text": "Apache Spark", "Score": null}
     ]
   },
-  "parser_output": {
-    "name": "Olivia Shah",
-    "email": "olivia.shah@example.com",
-    "skills": ["python", "sql", "aws", "apache spark", "apache airflow", "postgresql"],
-    "employers": ["Lakeview Analytics"],
-    "titles": ["data engineer"],
-    "experience_years": 6.0
-  },
-  "limitations": [
-    "No Comprehend call was made.",
-    "The example does not prove table-order preservation for every DOCX layout; that behaviour is covered by parser tests.",
-    "Confidence scores are not measured and are represented as null."
-  ]
+  "parser_output": {"name": "Olivia Shah", "email": "olivia.shah@example.com", "skills": ["python", "sql", "aws", "apache spark", "apache airflow", "postgresql"], "employers": ["Lakeview Analytics"], "titles": ["data engineer"], "experience_years": 6.0},
+  "limitations": ["No Comprehend call was made.", "This fixture does not prove table-order preservation for every DOCX layout.", "Scores are null because no model inference occurred."]
 }
