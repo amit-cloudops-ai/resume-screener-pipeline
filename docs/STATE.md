@@ -14,7 +14,7 @@ Submission target: 2026-11-25.
 | ID | Owner | Task | Status | Evidence / next gate |
 |---|---|---|---|---|
 | P1 | Amit | Repo, CODEOWNERS, CI | DONE-UNVERIFIED | Repository exists; current CI runs make verify. Branch protection and full PR policy not evidenced. |
-| P2 | Amit | SAM infrastructure | DOING | PR #1 template inspected. API Events nesting and Jobs Scan IAM defects fixed on feat/P2-infrastructure-readiness; SAM validation/build pending CI. |
+| P2 | Amit | SAM infrastructure | DOING | PR #5: make verify, sam validate --lint and sam build passed on commit 0df967831275c7d2c60da8a848bd568be3eb737b. Template/CodeUri build verified; deployment and IAM runtime behaviour not verified. |
 | P3 | Amit | Cognito recruiter setup | DONE-UNVERIFIED | User pool, app client and recruiter group are defined in SAM; no deployed pool/user evidence. |
 | P4 | Amit | API Gateway + Cognito authorizer | DONE-UNVERIFIED | REST API and default Cognito authorizer are defined; no live 401/200 proof. |
 | P5 | Amit | SES identity and production access | TODO | No verified sender or production-access evidence in repo. |
@@ -55,12 +55,14 @@ Submission target: 2026-11-25.
 - Custom recognizer configuration now uses the stack parameter `CustomRecognizerArn` for Lambda environment values and mirrors it to SSM, avoiding a GetAtt read of a just-created SSM parameter. Redeploy is required to change the Lambda environment.
 - Makefile now exposes explicit SAM validation/build targets and deployment parameters for SES sender, alarm email, budget amount and optional recognizer ARN.
 - CI workflow on `feat/P2-infrastructure-readiness` now includes SAM lint validation and SAM build steps. These checks have NOT yet run.
-- No SAM validate/build, `make verify`, AWS deployment, live API auth, S3 event, queue, Textract, Comprehend, SES or E2E execution has been evidenced in this session.
+- GitHub Actions run 45328484443 passed on commit `0df967831275c7d2c60da8a848bd568be3eb737b`: `make verify` succeeded; `sam validate --lint --template-file infra/template.yaml` reported a valid SAM template; `sam build --template-file infra/template.yaml` succeeded for all nine Lambda CodeUri directories. These are CI build/static checks, not a CloudFormation deployment.
+- The first SAM lint run found the Cognito UserPool tag property and nine CloudWatch LogGroup tag schemas invalid; those were corrected, and the latest lint/build run passed.
+- No AWS deployment, live API auth, S3 event, queue, Textract, Comprehend, SES or E2E execution has been evidenced in this session.
 
 ## Blocked / critical gaps
-1. SAM validation and build must pass before any AWS deployment.
+1. SAM validation and build now pass on PR #5, but the rendered CloudFormation resource graph, deployment change set, and IAM runtime permissions still require review before AWS deployment.
 2. Parsing Lambdas, candidates/decision/export/failed API handlers and frontend are still missing or stubbed in the inspected branches.
-3. B3 requires CORS response headers and enforced 5 MB object-size validation before parsing; presigned PUT URL alone does not enforce the limit.
+3. B3 must add `Access-Control-Allow-Origin: CORS_ORIGIN` to Lambda proxy responses and enforce 5 MB object-size validation before parsing; API Gateway preflight/gateway responses are configured, but presigned PUT URL alone does not enforce the limit.
 4. Failed-job retry semantics must be reconciled with the frozen failed-job and SQS message contracts before implementation is considered complete.
 5. Contract changes require a DECISIONS.md entry and explicit approval from all three owners; no contract change is approved by this status update.
 6. AWS account inventory and deployed stack state have not been inspected. Do not assume no resources exist.
