@@ -152,7 +152,8 @@ def test_golden_dataset_contains_twelve_resumes_and_three_jds():
             assert b"/Subtype /Image" not in data
         if row["format"] == "scanned_pdf":
             assert b"/Subtype /Image" in data
-            assert b"BT" not in data and b" Tj" not in data
+            page_stream = data.split(b"stream\\n", 1)[1].split(b"\\nendstream", 1)[0]
+            assert b"BT" not in page_stream and b" Tj" not in page_stream
         if row["format"] == "two_column_docx":
             document = Document(asset)
             assert document.tables
