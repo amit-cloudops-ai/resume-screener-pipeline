@@ -1,0 +1,13 @@
+LIAM GARCIA
+liam.garcia@example.com
+PROFESSIONAL SUMMARY
+Senior Data Engineer with practical experience delivering reliable software and production systems.
+PROFESSIONAL EXPERIENCE
+Senior Data Engineer | Cedar Data Works
+Jan 2019 - Dec 2025
+Selected responsibilities include building, operating, improving and documenting production services.
+TECHNICAL SKILLS
+python; sql; postgresql; etl; dbt; bigquery
+EDUCATION
+Bachelor of Engineering | Example Institute
+All names, contact details, employers and education records in this sample are fictional.
