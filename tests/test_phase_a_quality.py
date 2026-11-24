@@ -1,8 +1,10 @@
 """Phase A quality regression tests for parser requirements discovered in the release audit."""
 import json
+from decimal import Decimal
 from pathlib import Path
 
 from backend.parsing.common import derive_fields, experience_years
+from backend.scoring.scoring import score_candidate
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -70,3 +72,33 @@ def test_experience_union_does_not_double_count_overlapping_roles():
 def test_experience_date_union_obeys_40_year_cap():
     text = "Jan 1970 - Dec 2025"
     assert experience_years(text) == 40
+
+
+def test_scoring_accepts_dynamodb_decimal_values():
+    result = score_candidate(
+        {
+            "skills": ["python", "docker"],
+            "titles": ["senior devops engineer"],
+            "experience_years": Decimal("6"),
+        },
+        {
+            "required_skills": ["python", "docker"],
+            "jd_titles": ["senior devops engineer"],
+            "required_years": Decimal("6"),
+            "threshold": Decimal("60"),
+        },
+    )
+    assert result["score"] == 100.0
+    assert result["above_threshold"] is True
+
+
+def test_scoring_still_rejects_boolean_numeric_values():
+    try:
+        score_candidate(
+            {"skills": ["python"], "experience_years": True},
+            {"required_skills": ["python"], "required_years": 1},
+        )
+    except ValueError as exc:
+        assert "experience_years" in str(exc)
+    else:
+        raise AssertionError("boolean must not be accepted as a numeric experience value")
