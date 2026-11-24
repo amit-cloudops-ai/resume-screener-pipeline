@@ -18,7 +18,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | ID | Owner | Task | Status | Evidence / remaining gate |
 |---|---|---|---|---|
 | P1 | Amit | Repository, ownership rules and CI | VERIFIED | PR #6 CI runs `make verify`; direct edits stay on feature branch; main unchanged. |
-| P2 | Amit | SAM infrastructure | VERIFIED | CI run 45332343952 passed SAM lint validation and build on current integration head f755f86bca29eeafb68083e47451c5943d69ecbc. Live CloudFormation change-set review remains. |
+| P2 | Amit | SAM infrastructure | VERIFIED | CI run 45332343952 passed SAM lint validation and build on implementation commit f755f86bca29eeafb68083e47451c5943d69ecbc. Live CloudFormation change-set review remains. |
 | P3 | Amit | Cognito recruiter setup | DONE-UNVERIFIED | User pool, client and group are defined in SAM; no deployed pool/user evidence. |
 | P4 | Amit | API Gateway + Cognito authorizer | DONE-UNVERIFIED | REST API and default Cognito authorizer are defined; no live 401/200 proof. |
 | P5 | Amit | SES identity and production access | TODO | SES sender verification and production-access approval not evidenced. |
@@ -51,12 +51,12 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 
 ## CI evidence
 
-- CI run `45332343952` passed on current integration head `f755f86bca29eeafb68083e47451c5943d69ecbc`.
+- CI run `45332343952` passed on implementation commit `f755f86bca29eeafb68083e47451c5943d69ecbc`.
 - `make verify`: 138 tests passed; repository integrity and frozen contract checks passed.
 - `sam validate --lint --template-file infra/template.yaml`: passed.
 - `sam build --template-file infra/template.yaml`: passed; all nine Lambda CodeUri packages built.
 - The local integration acceptance processed ten synthetic resume files and one JD. Nine candidates reached SCORED, one corrupt DOCX became FAILED, and persisted candidate/failed-job items passed their JSON schemas.
-- Current PR #6 head has green CI: `make verify`, SAM lint validation and SAM build all passed in run `45332343952`.
+- Implementation commit `f755f86bca29eeafb68083e47451c5943d69ecbc` has green CI: `make verify`, SAM lint validation and SAM build all passed in run `45332343952`. Subsequent documentation-only commits are rechecked by CI.
 
 ## Architecture and contract controls
 
