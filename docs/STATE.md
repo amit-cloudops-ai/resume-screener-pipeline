@@ -139,7 +139,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 3. Step 8: **VERIFIED for repository implementation and offline CI** — live execution remains a post-deployment acceptance gate.
 4. Step 9: **IMPLEMENTED** — architecture source, rendered SVG, cost worksheet and evidence note committed.
 5. Step 10: VERIFIED — full repository release-readiness audit completed; findings fixed and documented in docs/PHASE_A_STEP10_FINAL_AUDIT.md.
-6. Phase B begins with AWS account preflight and dev deployment only after Amit explicitly approves. Review the CloudFormation change set before execution and publish the frontend with make deploy-frontend STAGE=dev.
+6. Phase B is now authorised to begin with read-only AWS account preflight. Run `bash scripts/aws_preflight.sh` from the repository root in the configured WSL/AWS CLI environment; review caller identity, existing resources, budgets and Cost Explorer output. Check Billing → Credits manually because credits are not fully represented by this CLI inventory. No change set or resource creation is part of preflight. After the report is reviewed, prepare a development-only CloudFormation change set for explicit review before execution; publish the frontend with `make deploy-frontend STAGE=dev` only after the stack is approved and deployed.
 7. Validate live AWS integrations, resolve development findings, define data-retention policy, verify alarms/SES and complete the live smoke run.
 8. Complete teammate clean-clone rehearsal and demo evidence; deploy rs-prod only after separate explicit production approval and successful development acceptance.
 
