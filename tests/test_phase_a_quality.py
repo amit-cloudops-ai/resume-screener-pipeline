@@ -119,3 +119,82 @@ def test_comprehend_chunking_never_splits_utf8_codepoints():
     chunks = split_comprehend_text(text)
     assert "".join(chunks).replace(" ", "") == text.strip().replace(" ", "")
     assert all(len(chunk.encode("utf-8")) <= 4800 for chunk in chunks)
+
+
+def _golden_data():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1] / "fixtures" / "golden"
+    expected = json.loads((root / "expected.json").read_text(encoding="utf-8"))
+    jobs = json.loads((root / "job_descriptions.json").read_text(encoding="utf-8"))
+    return root, expected, jobs
+
+
+def test_golden_dataset_contains_twelve_resumes_and_three_jds():
+    root, expected, jobs = _golden_data()
+    resumes = expected["resumes"]
+    assert len(resumes) == 12
+    assert len(jobs["jobs"]) == 3
+    assert sum(row["format"] == "digital_pdf" for row in resumes) == 4
+    assert sum(row["format"] == "two_column_docx" for row in resumes) == 4
+    assert sum(row["format"] == "scanned_pdf" for row in resumes) == 4
+    for row in resumes:
+        assert (root / "source" / f"{row['id'].lower()}.txt").is_file()
+        assert row["email"].endswith("@example.com")
+
+
+def test_golden_deterministic_field_accuracy_meets_definition_of_done():
+    from backend.parsing.common import derive_fields
+
+    root, expected, _ = _golden_data()
+    true_positive = false_positive = false_negative = 0
+    email_correct = experience_within_tolerance = 0
+
+    for row in expected["resumes"]:
+        text = (root / "source" / f"{row['id'].lower()}.txt").read_text(encoding="utf-8")
+        actual = derive_fields(text, row["mock_entities"])
+        wanted, found = set(row["skills"]), set(actual["skills"])
+        true_positive += len(wanted & found)
+        false_positive += len(found - wanted)
+        false_negative += len(wanted - found)
+        email_correct += actual["email"] == row["email"]
+        years = actual["experience_years"]
+        experience_within_tolerance += (
+            years is not None and abs(years - row["experience_years"]) <= 1
+        )
+
+    precision = true_positive / (true_positive + false_positive)
+    recall = true_positive / (true_positive + false_negative)
+    assert precision >= 0.85
+    assert recall >= 0.85
+    assert email_correct >= 11
+    assert experience_within_tolerance >= 10
+
+
+def test_golden_job_rankings_match_human_labelled_top_candidate():
+    from backend.scoring.scoring import score_candidate
+    from backend.parsing.common import derive_fields
+
+    root, expected, jobs = _golden_data()
+    derived = {}
+    for row in expected["resumes"]:
+        text = (root / "source" / f"{row['id'].lower()}.txt").read_text(encoding="utf-8")
+        fields = derive_fields(text, row["mock_entities"])
+        derived[row["id"]] = fields
+
+    for job in jobs["jobs"]:
+        scored = []
+        for row in expected["resumes"]:
+            result = score_candidate(
+                derived[row["id"]],
+                {
+                    "required_skills": job["required_skills"],
+                    "jd_titles": job["jd_titles"],
+                    "required_years": job["required_years"],
+                    "threshold": 60,
+                },
+            )
+            scored.append((result["score"], row["id"]))
+        scored.sort(key=lambda item: (-item[0], item[1]))
+        assert scored[0][1] == job["expected_top_candidate"], (job["id"], scored)
