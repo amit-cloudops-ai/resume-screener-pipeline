@@ -10,14 +10,15 @@
       "email": "ava.morgan@example.com",
       "skills": [
         "aws",
-        "docker",
-        "kubernetes",
-        "terraform",
-        "python",
-        "linux",
         "ci/cd",
+        "docker",
+        "git",
         "github actions",
-        "jenkins"
+        "jenkins",
+        "kubernetes",
+        "linux",
+        "python",
+        "terraform"
       ],
       "employers": [
         "Northstar Cloud"
@@ -94,10 +95,11 @@
       "email": "mia.chen@example.com",
       "skills": [
         "aws",
-        "python",
-        "terraform",
         "cloudformation",
-        "github actions"
+        "git",
+        "github actions",
+        "python",
+        "terraform"
       ],
       "employers": [
         "Meridian Tech"
