@@ -24,8 +24,8 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | P3 | Amit | Cognito recruiter setup | DONE-UNVERIFIED | User pool, client and group are defined in SAM; no deployed pool/user evidence. |
 | P4 | Amit | API Gateway + Cognito authorizer | DONE-UNVERIFIED | REST API and default Cognito authorizer are defined; no live 401/200 proof. |
 | P5 | Amit | SES identity and production access | TODO | SES sender verification and production-access approval not evidenced. |
-| P6 | Amit | Frontend shell + mocks | VERIFIED | React/Vite/TypeScript, Cognito SRP (including temporary-password challenge), raw ID-token API client, local mock mode and approved Editorial Hiring Desk visual system implemented. Final Step 7 frontend CI run is recorded below. |
-| P7 | Amit | Recruiter frontend pages | VERIFIED | Editorial Hiring Desk recruiter workflows implemented against the frozen API routes. GitHub Actions run 45344597945 passed all three jobs: make verify + golden evaluation, frontend TypeScript/production build, SAM lint/build. |
+| P6 | Amit | Frontend shell + mocks | VERIFIED | React/Vite/TypeScript, Cognito SRP (including temporary-password challenge), raw ID-token API client, local mock mode and approved Editorial Hiring Desk visual system implemented. Step 7 frontend CI verification passed; see run 45344840009 below. |
+| P7 | Amit | Recruiter frontend pages | VERIFIED | Editorial Hiring Desk recruiter workflows implemented against the frozen API routes. GitHub Actions run 45344840009 passed all three jobs: make verify + golden evaluation, frontend TypeScript/production build, SAM lint/build. |
 | P8 | Amit | CloudFront deployment | DONE-UNVERIFIED | Distribution/OAC/bucket policy are defined in SAM; no live URL or browser proof. |
 | P9 | Amit | Alarms / budget | DONE-UNVERIFIED | Alarm and budget resources are defined; no deployed alarm/notification proof. |
 | P10 | Amit | Live E2E smoke script | VERIFIED | Guarded live smoke script for DoD B1–B5, offline tests and documentation pass CI run 45342184687. Dry-run by default; actual AWS execution remains a post-deployment gate. |
@@ -134,7 +134,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 ## Next sequence
 
 1. Step 6: **COMPLETE** — Amit approved A — Editorial Hiring Desk on 24 November 2026; D16 and the approval record are updated.
-2. Step 7: **VERIFIED** — complete recruiter dashboard implementation; CI run 45344597945 passed 3/3 jobs.
+2. Step 7: **VERIFIED** — complete recruiter dashboard implementation; CI run 45344840009 passed 3/3 jobs.
 3. Step 8: **VERIFIED for repository implementation and offline CI** — live execution remains a post-deployment acceptance gate.
 4. Step 9: **IMPLEMENTED** — architecture source, rendered SVG, cost worksheet and evidence note committed.
 5. Step 10: run the full Phase A release-readiness audit, fix findings, reconcile documentation and verify the final branch/PR.
@@ -148,7 +148,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## Phase A — Step 7 recruiter dashboard
 
-**Status: VERIFIED — GitHub Actions run 45344597945 passed all three jobs.** The frontend contains the complete recruiter-facing workflow against the existing API routes: create/list jobs, submit a JD as text or PDF/DOCX/TXT, request presigned resume uploads, upload up to 50 PDF/DOCX files with per-file progress, search/filter/rank candidates, inspect profile and weighted score breakdown, shortlist with interview details, reject with confirmation, export shortlist CSV, and inspect/retry supported failed-job stages. No OpenAPI, JSON schema, SQS message or SAM resource was changed. Local mock mode uses synthetic records and makes no AWS requests. The live Cognito/API integration remains unverified until an approved deployment.
+**Status: VERIFIED — GitHub Actions run 45344840009 passed all three jobs.** The frontend contains the complete recruiter-facing workflow against the existing API routes: create/list jobs, submit a JD as text or PDF/DOCX/TXT, request presigned resume uploads, upload up to 50 PDF/DOCX files with per-file progress, search/filter/rank candidates, inspect profile and weighted score breakdown, shortlist with interview details, reject with confirmation, export shortlist CSV, and inspect/retry supported failed-job stages. No OpenAPI, JSON schema, SQS message or SAM resource was changed. DoD D1–D6 are checked for the implemented recruiter workflows. Local mock mode uses synthetic records and makes no AWS requests. The live Cognito/API integration remains unverified until an approved deployment.
 
 ## Phase A — Step 9 architecture and cost
 
