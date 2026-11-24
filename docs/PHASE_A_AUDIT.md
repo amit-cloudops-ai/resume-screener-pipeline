@@ -99,7 +99,7 @@ Three reviewed, repository-side examples are committed in `docs/samples/`:
 
 All samples are labelled `SYNTHETIC_MOCK`; the scanned sample separately labels its expected OCR text as `SYNTHETIC_EXPECTED_TEXT`. Standard entities (`PERSON`, `ORGANIZATION`, `DATE`) are kept separate from optional custom entities (`SKILL`, `JOB_TITLE`). The expected parser output is separate from provider-like entity arrays. Confidence values are null, not invented. Standard Comprehend `TITLE` is explicitly excluded from job-title derivation per D12.
 
-**Step 4 status:** repository-side reviewed synthetic deliverables are implemented. Actual Textract LINE blocks and Comprehend entity responses remain NOT CAPTURED and require explicit approval followed by development deployment. No live response is implied by these fixtures.
+**Step 4 status:** VERIFIED. Three synthetic examples are committed and `tests/test_extraction_samples.py` validates provenance, allowed entity types, null confidence placeholders and exact parser-output parity with the golden labels. Actual Textract LINE blocks and Comprehend entity responses remain NOT CAPTURED and require explicit approval followed by development deployment. No live response is implied by these fixtures.
 
 ## Step 5 — Frontend foundation and authentication structure
 
@@ -113,7 +113,7 @@ Implemented under `frontend/`:
 
 The visual treatment is intentionally neutral. D16 requires approval of the dashboard visual direction before Step 6 design/build. The frontend typecheck and Vite production build passed CI run 45339630424. The frontend has not been connected to a deployed Cognito pool or live API; mock mode is not live authentication evidence. No AWS resources were created.
 
-**Step 5 status:** foundation implemented and automated frontend typecheck/build passed CI. Live Cognito/API verification remains a deployment gate.
+**Step 5 status:** VERIFIED for repository-side foundation and frontend typecheck/production build. CI run 45339829162 passed all jobs. Live Cognito/API verification remains a deployment gate.
 
 ## Release boundary
 

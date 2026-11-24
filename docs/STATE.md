@@ -63,7 +63,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 
 ## Phase A — Steps 4–5 repository work
 
-**Status: IMPLEMENTED; CI verification passed on commit `f749e5db0e622f33803f233aa9f6c3507627480a` (run 45339630424). A sample-provenance regression test has since been added and its new-head CI run is pending.** No AWS access, deployment, stack operation or live service invocation was performed.
+**Status: IMPLEMENTED; CI verification passed on commit `f749e5db0e622f33803f233aa9f6c3507627480a` (run 45339630424). The sample-provenance regression test and all repository checks passed on final Step 4–5 head `2ef935be4d26334764a99e7ca1f797bef89c9bd6` (CI run 45339829162).** No AWS access, deployment, stack operation or live service invocation was performed.
 
 - Step 4 — three reviewed synthetic examples are committed in `docs/samples/`: digital PDF (R01), two-column DOCX (R05), and image-only scanned PDF (R09). Each separates standard entities, optional custom entities, expected extracted text and parser-derived output. All carry `SYNTHETIC_MOCK` / `SYNTHETIC_EXPECTED_TEXT` labels. No Comprehend confidence scores or Textract Blocks are fabricated. Actual `AWS_CAPTURED` evidence remains a post-approval dev-deployment gate.
 - Step 5 — frontend technical foundation is committed under `frontend/`: React 19, Vite, TypeScript, Cognito User Pool SRP sign-in module, session ID-token retrieval, API client sending the raw ID token (no Bearer prefix), runtime environment configuration and local mock mode. The shell is intentionally neutral; D16 requires visual direction approval before the dashboard design begins.
@@ -77,7 +77,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 - `make golden-evaluate`: passed; 100% skill precision/recall, 12/12 email, 12/12 experience within ±1 year and 3/3 top-1 ranking. See `docs/PHASE_A_ACCURACY.md`.
 - `sam validate --lint --template-file infra/template.yaml`: passed.
 - `sam build --template-file infra/template.yaml`: passed; all nine Lambda CodeUri packages built.
-- Final branch-head CI run [45337308283](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45337308283) also passed on commit `6e3fd7f09240f224b50b5d99b3871c9a4b6bb734`, including `make verify`, `make golden-evaluate`, SAM lint validation and SAM build.
+- Final Step 4–5 CI run [45339829162](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45339829162) passed on commit `2ef935be4d26334764a99e7ca1f797bef89c9bd6`: `make verify` (including sample-provenance tests), `make golden-evaluate`, frontend typecheck/build, SAM lint validation and SAM build.
 - The local integration acceptance processed ten synthetic resume files and one JD. Nine candidates reached SCORED, one corrupt DOCX became FAILED, and persisted candidate/failed-job items passed their JSON schemas.
 - The original backend integration run `45332343952` remains historical evidence; Phase A's latest full verification is run `45337062084`.
 
