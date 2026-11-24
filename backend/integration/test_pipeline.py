@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import quote_plus
 
 import boto3
+from boto3.dynamodb.conditions import Key
 from docx import Document
 from jsonschema import Draft7Validator
 import pytest
@@ -170,7 +171,7 @@ def test_one_jd_ten_resumes_yield_nine_scored_and_one_failed(env):
 
     assert processed_messages == 18
     items = candidates.query(
-        KeyConditionExpression=boto3.dynamodb.conditions.Key("job_id").eq(JOB)
+        KeyConditionExpression=Key("job_id").eq(JOB)
     )["Items"]
     assert len(items) == 10
     scored = [item for item in items if item["status"] == "SCORED"]
