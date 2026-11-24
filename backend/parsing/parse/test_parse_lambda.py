@@ -152,7 +152,7 @@ def test_oversized_resume_is_recorded_as_permanent_failure(aws):
 
 
 def test_transient_comprehend_failure_returns_partial_batch_failure(aws, monkeypatch):
-    _, _, s3, _, _ = aws
+    candidates, _, s3, _, _ = aws
     key = f"resumes/{JOB}/priya.docx"
     s3.put_object(Bucket=BUCKET, Key=key, Body=docx_bytes())
 
@@ -168,3 +168,6 @@ def test_transient_comprehend_failure_returns_partial_batch_failure(aws, monkeyp
     monkeypatch.setattr(boto3, "client", client)
     result = invoke(key, "transient-message")
     assert result == {"batchItemFailures": [{"itemIdentifier": "transient-message"}]}
+    candidate_id = candidate_id_for(JOB, key)
+    item = candidates.get_item(Key={"job_id": JOB, "candidate_id": candidate_id})["Item"]
+    assert item["status"] == "PARSING"
