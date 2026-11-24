@@ -24,13 +24,13 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | P3 | Amit | Cognito recruiter setup | DONE-UNVERIFIED | User pool, client and group are defined in SAM; no deployed pool/user evidence. |
 | P4 | Amit | API Gateway + Cognito authorizer | DONE-UNVERIFIED | REST API and default Cognito authorizer are defined; no live 401/200 proof. |
 | P5 | Amit | SES identity and production access | TODO | SES sender verification and production-access approval not evidenced. |
-| P6 | Amit | Frontend shell + mocks | DOING | React/Vite/TypeScript shell, Cognito SRP module (including first-login temporary-password challenge), raw-ID-token API client and mock mode added. Frontend typecheck/build passed CI; visual direction and dashboard remain Step 6–7. |
-| P7 | Amit | Recruiter frontend pages | TODO | Not implemented. |
+| P6 | Amit | Frontend shell + mocks | VERIFIED | React/Vite/TypeScript, Cognito SRP (including temporary-password challenge), raw ID-token API client, local mock mode and approved Editorial Hiring Desk visual system implemented. Final Step 7 frontend CI run is recorded below. |
+| P7 | Amit | Recruiter frontend pages | DOING | Full recruiter workflows implemented against the frozen API routes: jobs/JD, resume upload progress, candidate table/search/filter, score detail, shortlist/reject, CSV and failed-job retry. Final frontend CI verification is pending. |
 | P8 | Amit | CloudFront deployment | DONE-UNVERIFIED | Distribution/OAC/bucket policy are defined in SAM; no live URL or browser proof. |
 | P9 | Amit | Alarms / budget | DONE-UNVERIFIED | Alarm and budget resources are defined; no deployed alarm/notification proof. |
 | P10 | Amit | Live E2E smoke script | VERIFIED | Guarded live smoke script for DoD B1–B5, offline tests and documentation pass CI run 45342184687. Dry-run by default; actual AWS execution remains a post-deployment gate. |
 | P11 | Amit | Backend integration | VERIFIED | Moto acceptance on CI run 45331272201: one JD + ten resumes -> nine SCORED candidates + one FAILED candidate; candidate and failed-job records validate against frozen schemas. |
-| P12 | Amit | Demo, architecture diagram and cost sheet | TODO | Not evidenced as complete. |
+| P12 | Amit | Demo, architecture diagram and cost sheet | DOING | Step 9 architecture source/render and cost model are committed; demo video and teammate clean-clone deployment rehearsal remain. |
 | A1 | Teammate A | Skills taxonomy | VERIFIED | `backend/parsing/skills_taxonomy.json`; 160 canonical skills, 231 canonical/alias terms, no collisions; taxonomy test passes. |
 | A2 | Teammate A | Golden set (12 resumes) | TODO | 12 synthetic resumes committed as source text and reproducibly materialized as 4 digital PDFs, 4 two-column DOCX and 4 raster-only scanned PDFs; 3 labelled JDs and `expected.json`; CI validates generated files. |
 | A3 | Teammate A | PDF/DOCX/TXT extraction | VERIFIED | Textract async polling/pagination and DOCX paragraphs/tables implemented; mocked/unit tests pass. Golden generator validates digital PDF, image-only scanned PDF and two-column DOCX. TXT is enabled for JD only; live Textract remains unverified. |
@@ -113,7 +113,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 ## Remaining release blockers
 
 1. Code and static infrastructure checks are green on the current integration head. Keep PR #6 draft until review and the remaining release gates are addressed.
-2. Recruiter frontend and the live E2E smoke workflow remain unimplemented.
+2. Recruiter frontend Step 7 is implemented; final CI verification is pending. Step 8 offline smoke automation is verified, but live AWS smoke remains a post-deployment acceptance gate.
 3. Golden-set deterministic accuracy is benchmarked and passed. Actual AWS-generated Comprehend samples and live OCR/model accuracy remain outstanding.
 4. SES sender verification/production access is not confirmed.
 5. No AWS account inventory has been performed; do not assume there are no existing resources.
@@ -141,3 +141,20 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 4. Only after the full Phase A gate passes, request explicit approval for AWS account preflight and `rs-dev` deployment.
 5. Validate live AWS integrations, resolve development findings and freeze a production release candidate.
 6. Deploy `rs-prod` only after explicit production approval and successful development acceptance.
+
+
+## Phase A — Step 6 approval
+
+**Status: COMPLETE.** On 24 November 2026, Amit explicitly approved **A — Editorial Hiring Desk**. D16 is updated in docs/DECISIONS.md and the complete rationale/approval record is in docs/PHASE_A_STEP6_DESIGN_REVIEW.md. The selected system uses warm off-white surfaces, forest-green actions, Newsreader editorial headings and IBM Plex Sans UI/data typography.
+
+## Phase A — Step 7 recruiter dashboard
+
+**Status: IMPLEMENTED; final CI verification pending.** The frontend now contains the complete recruiter-facing workflow against the existing API routes: create/list jobs, submit a JD as text or PDF/DOCX/TXT, request presigned resume uploads, upload up to 50 PDF/DOCX files with per-file progress, search/filter/rank candidates, inspect profile and weighted score breakdown, shortlist with interview details, reject with confirmation, export shortlist CSV, and inspect/retry supported failed-job stages. No OpenAPI, JSON schema, SQS message or SAM resource was changed. Local mock mode uses synthetic records and makes no AWS requests. The live Cognito/API integration remains unverified until an approved deployment.
+
+## Phase A — Step 9 architecture and cost
+
+**Status: IMPLEMENTED — repository documentation committed.** Artefacts: docs/architecture.mmd (editable source), docs/architecture.svg (rendered vector diagram), docs/COST.md (workload model and cost worksheet), and docs/PHASE_A_STEP9_ARCHITECTURE_AND_COST.md (completion/evidence note). The cost worksheet models OCR + standard Comprehend processing for 100, 500 and 2,000 resumes/month and separately highlights the cost of an always-on custom Comprehend endpoint. It does not claim an account-specific monthly bill. Re-price with AWS Pricing Calculator during Phase B preflight.
+
+## Phase A — Step 8 boundary reaffirmed
+
+Step 8 smoke automation remains VERIFIED for repository implementation and offline CI only. The live smoke run has not been performed. It creates a job, uploads synthetic documents and leaves test records/objects in the target stage; it must be run only after explicit deployment approval and with a planned cleanup window.
