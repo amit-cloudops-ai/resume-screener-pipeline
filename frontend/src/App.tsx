@@ -79,15 +79,16 @@ export default function App() {
     setSaving(true);setUploadRows(resumeFiles.map((file)=>({name:file.name,progress:0,state:"waiting"})));
     try{
       const urls=await api.createResumeUploads(selectedJobId,resumeFiles.map((file)=>({file_name:file.name,content_type:contentType(file)})));
+      let failedCount=0;
       await Promise.all(urls.uploads.map(async(upload)=>{
         const file=resumeFiles.find((item)=>item.name===upload.file_name);if(!file)return;
         setUploadRows((rows)=>rows.map((row)=>row.name===file.name?{...row,state:"uploading"}:row));
         try{await uploadPresigned(upload.url,file,(progress)=>setUploadRows((rows)=>rows.map((row)=>row.name===file.name?{...row,progress}:row)));setUploadRows((rows)=>rows.map((row)=>row.name===file.name?{...row,state:"done",progress:100}:row));}
-        catch(reason){setUploadRows((rows)=>rows.map((row)=>row.name===file.name?{...row,state:"failed",error:reason instanceof Error?reason.message:"Upload failed"}:row));}
+        catch(reason){failedCount+=1;setUploadRows((rows)=>rows.map((row)=>row.name===file.name?{...row,state:"failed",error:reason instanceof Error?reason.message:"Upload failed"}:row));}
       }));
-      await refreshWorkspace();const failed=uploadRows.filter((row)=>row.state==="failed").length;
-      setNotice("Upload requests completed. Processing is asynchronous; refresh this job to see parsing and scoring results.");
-      if(failed===0){setShowUpload(false);setResumeFiles([]);}
+      await refreshWorkspace();
+      setNotice(failedCount===0?"All resume files uploaded. Processing is asynchronous; refresh this job to see parsing and scoring results.":`${failedCount} file(s) failed to upload. Review the file statuses and retry the remaining files.`);
+      if(failedCount===0){setShowUpload(false);setResumeFiles([]);}
     }catch(reason){setError(reason instanceof Error?reason.message:"Unable to upload resumes.");}finally{setSaving(false);}
   }
 
