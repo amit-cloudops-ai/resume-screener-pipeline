@@ -50,7 +50,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | B6 | Teammate B | CSV export | VERIFIED | Exact header order, shortlist filtering, ranking and CSV output covered. |
 | B7 | Teammate B | Failed-jobs API + retry | VERIFIED | GSI/scan listing, PARSE/JD_PARSE/SCORE retry routing, conditional state transition and frozen SQS payload reconstruction covered. |
 | B8 | Teammate B | Written NLP explanation | VERIFIED | `docs/08_NLP_AND_SCORING.md` explains extraction, taxonomy, experience, scoring and limitations. |
-| B9 | Teammate B | Contract tests | VERIFIED | Frozen schema/route tests plus API handler tests and integrated persisted-record validation. |
+| B9 | Teammate B | Contract tests | VERIFIED | Added response-schema coverage for all 10 documented success operation/status pairs and every documented JSON Error response; PR #14 merged into integration branch. CI run 45352693565 passed `make verify`, SAM lint validation and SAM build. |
 
 ## Phase A — Steps 1–3 completion
 
