@@ -687,7 +687,7 @@ Resources:
               Resource: !GetAtt CandidatesTable.Arn
         - Statement:
             - Effect: Allow
-              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:UpdateItem]
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:UpdateItem, dynamodb:Scan]
               Resource:
                 - !GetAtt FailedJobsTable.Arn
                 - !Sub ${FailedJobsTable.Arn}/index/job_id-created_at
