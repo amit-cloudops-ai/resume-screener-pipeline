@@ -85,6 +85,39 @@ def split_utf8(text: str, limit: int = MAX_COMPREHEND_BYTES) -> list[str]:
     return chunks or [""]
 
 
+def split_comprehend_text(text: str, char_limit: int = 4500, byte_limit: int = MAX_COMPREHEND_BYTES) -> list[str]:
+    """Prefer sentence boundaries while respecting Comprehend's UTF-8 byte limit."""
+    if char_limit < 1 or byte_limit < 1:
+        raise ValueError("chunk limits must be positive")
+    sentences = re.split(r"(?<=[.!?])\\s+", text.strip())
+    chunks, current = [], ""
+
+    def append_long_sentence(sentence: str) -> None:
+        # A single oversized sentence has no safe sentence boundary; split it
+        # on UTF-8 codepoint boundaries as the deterministic fallback.
+        chunks.extend(split_utf8(sentence, byte_limit))
+
+    for sentence in sentences:
+        if not sentence:
+            continue
+        if len(sentence) > char_limit or len(sentence.encode("utf-8")) > byte_limit:
+            if current:
+                chunks.append(current)
+                current = ""
+            append_long_sentence(sentence)
+            continue
+        candidate = f"{current} {sentence}".strip() if current else sentence
+        if len(candidate) <= char_limit and len(candidate.encode("utf-8")) <= byte_limit:
+            current = candidate
+        else:
+            if current:
+                chunks.append(current)
+            current = sentence
+    if current:
+        chunks.append(current)
+    return chunks or [""]
+
+
 def _docx_text(data: bytes) -> str:
     try:
         document = Document(BytesIO(data))
@@ -179,7 +212,7 @@ def extract_document_text(bucket: str, key: str, s3, textract, job_id: str, cont
 
 def comprehend_entities(text: str, comprehend, custom_arn="DISABLED") -> dict:
     standard, custom = [], []
-    for chunk in split_utf8(text):
+    for chunk in split_comprehend_text(text):
         if not chunk:
             continue
         try:
