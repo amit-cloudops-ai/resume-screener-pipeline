@@ -1,6 +1,6 @@
 # STATE — live project baseline (evidence-based)
 
-Last updated: 2026-11-24
+Last updated: 2026-11-24 — Phase A Step 10 audit
 Integration branch: `feat/INT-full-pipeline-integration`
 Integration PR: [#6 — complete backend pipeline](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6) (draft, not merged)
 Phase A working branch: `feat/phase-a-steps-1-3`
@@ -30,9 +30,10 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | P9 | Amit | Alarms / budget | DONE-UNVERIFIED | Alarm and budget resources are defined; no deployed alarm/notification proof. |
 | P10 | Amit | Live E2E smoke script | VERIFIED | Guarded live smoke script for DoD B1–B5, offline tests and documentation pass CI run 45342184687. Dry-run by default; actual AWS execution remains a post-deployment gate. |
 | P11 | Amit | Backend integration | VERIFIED | Moto acceptance on CI run 45331272201: one JD + ten resumes -> nine SCORED candidates + one FAILED candidate; candidate and failed-job records validate against frozen schemas. |
-| P12 | Amit | Demo, architecture diagram and cost sheet | DOING | Step 9 architecture source/render and cost model are committed; demo video and teammate clean-clone deployment rehearsal remain. |
+| P12 | Amit | Demo, architecture diagram and cost sheet | DOING | Step 9 architecture source/render, cost model and guarded frontend publish workflow are committed; demo video and teammate clean-clone deployment rehearsal remain as release-acceptance tasks. |
+| P13 | Amit | Phase A Step 10 final repository audit | VERIFIED | See docs/PHASE_A_STEP10_FINAL_AUDIT.md; CSV pagination defect fixed with regression test, frontend publishing workflow added, contracts/SAM/frontend reviewed. Final CI run recorded below. |
 | A1 | Teammate A | Skills taxonomy | VERIFIED | `backend/parsing/skills_taxonomy.json`; 160 canonical skills, 231 canonical/alias terms, no collisions; taxonomy test passes. |
-| A2 | Teammate A | Golden set (12 resumes) | TODO | 12 synthetic resumes committed as source text and reproducibly materialized as 4 digital PDFs, 4 two-column DOCX and 4 raster-only scanned PDFs; 3 labelled JDs and `expected.json`; CI validates generated files. |
+| A2 | Teammate A | Golden set (12 resumes) | VERIFIED | 12 synthetic resumes committed as source text and reproducibly materialized as 4 digital PDFs, 4 two-column DOCX and 4 raster-only scanned PDFs; 3 labelled JDs and `expected.json`; CI validates generated files. |
 | A3 | Teammate A | PDF/DOCX/TXT extraction | VERIFIED | Textract async polling/pagination and DOCX paragraphs/tables implemented; mocked/unit tests pass. Golden generator validates digital PDF, image-only scanned PDF and two-column DOCX. TXT is enabled for JD only; live Textract remains unverified. |
 | A4 | Teammate A | Comprehend standard/custom entity extraction | VERIFIED | Standard/custom endpoint calls and UTF-8-safe 4.8 KB chunking implemented. Text is chunked at sentence boundaries up to 4,500 characters where possible. Live endpoint/service behaviour unverified. |
 | A5 | Teammate A | Candidate/JD field derivation | VERIFIED | Name/email/employer/title/skills/experience derivation and overlap-union tests implemented; custom `JOB_TITLE` only (standard Comprehend `TITLE` ignored); `N+ years` fallback; 40-year implementation cap. Golden deterministic metrics pass. |
@@ -137,10 +138,10 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 2. Step 7: **VERIFIED** — complete recruiter dashboard implementation; CI run 45344840009 passed 3/3 jobs.
 3. Step 8: **VERIFIED for repository implementation and offline CI** — live execution remains a post-deployment acceptance gate.
 4. Step 9: **IMPLEMENTED** — architecture source, rendered SVG, cost worksheet and evidence note committed.
-5. Step 10: run the full Phase A release-readiness audit, fix findings, reconcile documentation and verify the final branch/PR.
-6. Only after the Step 10 gate passes and Amit explicitly approves, perform AWS account preflight and dev deployment.
-7. Validate live AWS integrations, resolve development findings and freeze a production release candidate.
-8. Deploy rs-prod only after explicit production approval and successful development acceptance.
+5. Step 10: VERIFIED — full repository release-readiness audit completed; findings fixed and documented in docs/PHASE_A_STEP10_FINAL_AUDIT.md.
+6. Phase B begins with AWS account preflight and dev deployment only after Amit explicitly approves. Review the CloudFormation change set before execution and publish the frontend with make deploy-frontend STAGE=dev.
+7. Validate live AWS integrations, resolve development findings, define data-retention policy, verify alarms/SES and complete the live smoke run.
+8. Complete teammate clean-clone rehearsal and demo evidence; deploy rs-prod only after separate explicit production approval and successful development acceptance.
 
 ## Phase A — Step 6 approval
 
@@ -149,6 +150,19 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 ## Phase A — Step 7 recruiter dashboard
 
 **Status: VERIFIED — GitHub Actions run 45344840009 passed all three jobs.** The frontend contains the complete recruiter-facing workflow against the existing API routes: create/list jobs, submit a JD as text or PDF/DOCX/TXT, request presigned resume uploads, upload up to 50 PDF/DOCX files with per-file progress, search/filter/rank candidates, inspect profile and weighted score breakdown, shortlist with interview details, reject with confirmation, export shortlist CSV, and inspect/retry supported failed-job stages. No OpenAPI, JSON schema, SQS message or SAM resource was changed. DoD D1–D6 are checked for the implemented recruiter workflows. Local mock mode uses synthetic records and makes no AWS requests. The live Cognito/API integration remains unverified until an approved deployment.
+
+
+## Phase A — Step 10 final repository audit
+
+**Status: VERIFIED for repository readiness; Phase B development preflight is the next stage after explicit approval.** The full audit, findings, corrections and evidence boundary are recorded in [docs/PHASE_A_STEP10_FINAL_AUDIT.md](PHASE_A_STEP10_FINAL_AUDIT.md).
+
+- Fixed the shortlist CSV pagination query by removing an invalid partition-key FilterExpression and adding a two-page regression test.
+- Added scripts/deploy_frontend.sh and make deploy-frontend; the workflow reads stack outputs, requires a completed stack, builds with mock mode disabled, syncs the dedicated stage frontend bucket and invalidates CloudFront. Production publish requires ALLOW_PROD=1.
+- CI validates the deployment script with bash -n.
+- Reviewed the API/data/SQS contracts, frontend/auth/API client, backend handlers, SAM resource graph/IAM, smoke runner, architecture and cost documentation.
+- GitHub branch protection is currently disabled on main and the feature branch. Enable required PR/CI checks before merging the release candidate.
+- Candidate/JD retention needs a production policy: S3 lifecycle expires resumes/ and parsed/ after 30 days, while JD objects and DynamoDB candidate/job records currently have no equivalent expiry.
+- No AWS access, account inventory, CloudFormation change set, deployment, or live integration test was performed. Those are Phase B/production acceptance gates, not completed Phase A evidence.
 
 ## Phase A — Step 9 architecture and cost
 
