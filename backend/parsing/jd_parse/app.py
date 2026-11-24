@@ -170,6 +170,7 @@ def lambda_handler(event, context):
                 _record_failure(clients[6], clients[4], job_id, key, message_id, exc)
             except Exception:
                 logger.exception("permanent JD failure could not be recorded message_id=%s", message_id)
+                failures.append({"itemIdentifier": message_id})
         except Exception:
             logger.exception("transient JD processing failure message_id=%s", message_id)
             failures.append({"itemIdentifier": message_id})
