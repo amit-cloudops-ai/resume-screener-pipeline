@@ -63,6 +63,13 @@ The following design boundaries must remain explicit in Phase B:
 5. S3 lifecycle rules expire `resumes/` and `parsed/` objects after 30 days. JD objects and candidate/job records do not currently have an equivalent expiry policy. Confirm and document the candidate-data/JD retention and deletion policy before production use.
 6. Candidate scoring is decision support, not an autonomous hiring decision. Human review and bias/fairness assessment remain necessary before operational use.
 
+### F-04 — GitHub branch protection is not enabled
+
+**Severity:** Medium  
+**Finding:** GitHub reports branch protection disabled for both `main` and the Phase A working branch; required status checks are not enforced by repository rules. The current draft PR and explicit review boundary prevent this audit from merging anything, but repository settings do not technically prevent a future direct push or merge without CI.  
+**Action:** Before merging the release candidate to `main`, enable a ruleset/branch protection requiring pull requests and the CI checks (`verify`, `frontend-build`, `sam-validate`), disallow force pushes, and require at least one approval where practical. This is a merge-governance gate, not a reason to access AWS during Phase A.  
+**Status:** OPEN — GitHub settings were inspected read-only; no branch-protection setting was changed.
+
 ## 5. Phase B entry checklist
 
 Phase B may begin only after Amit's explicit approval. The first work is account-aware preflight and a development deployment, not production deployment.
