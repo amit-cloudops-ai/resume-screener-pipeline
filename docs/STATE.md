@@ -133,15 +133,14 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## Next sequence
 
-1. Step 6: select and approve one of the three directions in `docs/PHASE_A_STEP6_DESIGN_REVIEW.md`; D16 explicitly requires Amit's approval before P6/P7 design work.
-2. Complete Step 7 recruiter dashboard against the locked OpenAPI and existing backend routes.
-3. Step 8 smoke automation is implemented and CI-verified; actual AWS execution remains gated on deployment approval.
-4. Complete Steps 9–10, resolve release-audit findings, then review Phase B readiness.
-5. Only after Phase A and explicit approval, perform AWS account preflight and dev deployment.
-4. Only after the full Phase A gate passes, request explicit approval for AWS account preflight and `rs-dev` deployment.
-5. Validate live AWS integrations, resolve development findings and freeze a production release candidate.
-6. Deploy `rs-prod` only after explicit production approval and successful development acceptance.
-
+1. Step 6: **COMPLETE** — Amit approved A — Editorial Hiring Desk on 24 November 2026; D16 and the approval record are updated.
+2. Step 7: **VERIFIED** — complete recruiter dashboard implementation; CI run 45344597945 passed 3/3 jobs.
+3. Step 8: **VERIFIED for repository implementation and offline CI** — live execution remains a post-deployment acceptance gate.
+4. Step 9: **IMPLEMENTED** — architecture source, rendered SVG, cost worksheet and evidence note committed.
+5. Step 10: run the full Phase A release-readiness audit, fix findings, reconcile documentation and verify the final branch/PR.
+6. Only after the Step 10 gate passes and Amit explicitly approves, perform AWS account preflight and dev deployment.
+7. Validate live AWS integrations, resolve development findings and freeze a production release candidate.
+8. Deploy rs-prod only after explicit production approval and successful development acceptance.
 
 ## Phase A — Step 6 approval
 
@@ -149,7 +148,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## Phase A — Step 7 recruiter dashboard
 
-**Status: VERIFIED — GitHub Actions run 45344597945 passed all three jobs.** The frontend now contains the complete recruiter-facing workflow against the existing API routes: create/list jobs, submit a JD as text or PDF/DOCX/TXT, request presigned resume uploads, upload up to 50 PDF/DOCX files with per-file progress, search/filter/rank candidates, inspect profile and weighted score breakdown, shortlist with interview details, reject with confirmation, export shortlist CSV, and inspect/retry supported failed-job stages. No OpenAPI, JSON schema, SQS message or SAM resource was changed. Local mock mode uses synthetic records and makes no AWS requests. The live Cognito/API integration remains unverified until an approved deployment.
+**Status: VERIFIED — GitHub Actions run 45344597945 passed all three jobs.** The frontend contains the complete recruiter-facing workflow against the existing API routes: create/list jobs, submit a JD as text or PDF/DOCX/TXT, request presigned resume uploads, upload up to 50 PDF/DOCX files with per-file progress, search/filter/rank candidates, inspect profile and weighted score breakdown, shortlist with interview details, reject with confirmation, export shortlist CSV, and inspect/retry supported failed-job stages. No OpenAPI, JSON schema, SQS message or SAM resource was changed. Local mock mode uses synthetic records and makes no AWS requests. The live Cognito/API integration remains unverified until an approved deployment.
 
 ## Phase A — Step 9 architecture and cost
 
