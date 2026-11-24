@@ -1,6 +1,7 @@
 """Phase A quality regression tests for parser requirements discovered in the release audit."""
 import json
 from decimal import Decimal
+from docx import Document
 from pathlib import Path
 
 from backend.parsing.common import derive_fields, experience_years, split_comprehend_text
@@ -142,6 +143,20 @@ def test_golden_dataset_contains_twelve_resumes_and_three_jds():
     for row in resumes:
         assert (root / "source" / f"{row['id'].lower()}.txt").is_file()
         assert row["email"].endswith("@example.com")
+        asset = root / "resumes" / row["file_name"]
+        assert asset.is_file()
+        data = asset.read_bytes()
+        if row["format"] in {"digital_pdf", "scanned_pdf"}:
+            assert data.startswith(b"%PDF-")
+        if row["format"] == "digital_pdf":
+            assert b"/Subtype /Image" not in data
+        if row["format"] == "scanned_pdf":
+            assert b"/Subtype /Image" in data
+            assert b"BT" not in data
+        if row["format"] == "two_column_docx":
+            document = Document(asset)
+            assert document.tables
+            assert len(document.tables[0].columns) == 2
 
 
 def test_golden_deterministic_field_accuracy_meets_definition_of_done():
