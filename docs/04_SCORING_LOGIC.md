@@ -19,7 +19,7 @@
 **experience** = min(candidate_years / required_years, 1). required_years null or 0 -> 1.0. candidate_years null -> 0.
 
 **above_threshold** = final >= job.threshold (default 60).
-**score_breakdown** stores: each component score, weight, matched_skills, missing_skills, best_title_pair, years_counted, required_years, scorer_version. Rounded to 3 decimals for component scores.
+**score_breakdown** stores each component score and weight, `skills.matched`, `skills.missing`, `title.best_pair`, `experience.years_counted`, `experience.required_years`, and `scorer_version`. Component scores are rounded to 3 decimals. These field names match the frozen candidate schema.
 
 ## Why this is explainable / auditable
 Every number can be reproduced from the stored candidate + job rows and the breakdown. `parsed/{job}/{cand}.json` keeps raw Comprehend output. Decisions keep who/when history.
