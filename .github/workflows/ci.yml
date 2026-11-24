@@ -13,3 +13,19 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
       - run: make verify
+
+  sam-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install AWS SAM CLI and cfn-lint
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install aws-sam-cli cfn-lint
+      - name: Validate SAM template
+        run: sam validate --lint --template-file infra/template.yaml
+      - name: Build SAM application
+        run: sam build --template-file infra/template.yaml
