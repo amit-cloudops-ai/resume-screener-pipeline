@@ -20,6 +20,15 @@ _COLUMNS = [
     "titles", "experience_years", "decision", "email_status",
 ]
 
+def _safe_text(value) -> str:
+    """Neutralize spreadsheet formula prefixes in untrusted resume-derived text."""
+    text = "" if value is None else str(value)
+    if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
+        return "'" + text
+    return text
+
+
+
 
 def _error(status: int, message: str) -> dict:
     return {
@@ -71,12 +80,12 @@ def lambda_handler(event, context):
             skills = breakdown.get("skills") or {}
             writer.writerow({
                 "rank": rank,
-                "name": item.get("name") or "",
-                "email": item.get("email") or "",
+                "name": _safe_text(item.get("name")),
+                "email": _safe_text(item.get("email")),
                 "score": item.get("score") if item.get("score") is not None else "",
-                "skills_matched": "; ".join(skills.get("matched") or []),
-                "skills_missing": "; ".join(skills.get("missing") or []),
-                "titles": "; ".join(item.get("titles") or []),
+                "skills_matched": _safe_text("; ".join(skills.get("matched") or [])),
+                "skills_missing": _safe_text("; ".join(skills.get("missing") or [])),
+                "titles": _safe_text("; ".join(item.get("titles") or [])),
                 "experience_years": item.get("experience_years") if item.get("experience_years") is not None else "",
                 "decision": item.get("decision") or "",
                 "email_status": item.get("email_status") or "",
