@@ -97,7 +97,7 @@ def _safe_filename(value: Any) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError("file_name must be a non-empty string")
     name = PurePosixPath(unquote(value.strip())).name
-    if name in {"", ".", ".."} or "/" in name or "\\\\" in name:
+    if name in {"", ".", ".."} or "/" in name or chr(92) in name:
         raise ValueError("file_name is invalid")
     if len(name) > 180:
         raise ValueError("file_name must be at most 180 characters")
