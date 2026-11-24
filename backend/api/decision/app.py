@@ -157,7 +157,7 @@ def lambda_handler(event, context):
                         Destination={"ToAddresses": [email]},
                         Message={
                             "Subject": {"Data": "Interview invitation"},
-                            "Body": {"Text": {"Data": "\\n".join(body_lines)}},
+                            "Body": {"Text": {"Data": "\n".join(body_lines)}},
                         },
                     )
                     email_status = "SENT"
