@@ -355,9 +355,6 @@ Resources:
             - Effect: Allow
               Action: [comprehend:DetectEntities, comprehend:BatchDetectEntities]
               Resource: '*'
-            - Effect: Allow
-              Action: [ssm:GetParameter]
-              Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rs/${Stage}/custom-recognizer-arn
       Events:
         ParseQueueEvent:
           Type: SQS
@@ -394,10 +391,11 @@ Resources:
               Action: [s3:GetObject]
               Resource: !Sub arn:${AWS::Partition}:s3:::rs-${Stage}-uploads-${AWS::AccountId}/jd/*
             - Effect: Allow
-              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query]
-              Resource:
-                - !GetAtt JobsTable.Arn
-                - !GetAtt CandidatesTable.Arn
+              Action: [dynamodb:GetItem, dynamodb:UpdateItem]
+              Resource: !GetAtt JobsTable.Arn
+            - Effect: Allow
+              Action: [dynamodb:Query]
+              Resource: !GetAtt CandidatesTable.Arn
             - Effect: Allow
               Action: [dynamodb:PutItem]
               Resource: !GetAtt FailedJobsTable.Arn
@@ -407,9 +405,6 @@ Resources:
             - Effect: Allow
               Action: [comprehend:DetectEntities, comprehend:BatchDetectEntities]
               Resource: '*'
-            - Effect: Allow
-              Action: [ssm:GetParameter]
-              Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rs/${Stage}/custom-recognizer-arn
       Events:
         JdQueueEvent:
           Type: SQS
@@ -544,7 +539,7 @@ Resources:
               Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/rs-${Stage}-api-jobs:*
         - Statement:
             - Effect: Allow
-              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Query, dynamodb:Scan]
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:Scan]
               Resource: !GetAtt JobsTable.Arn
             - Effect: Allow
               Action: [ssm:GetParameter]
