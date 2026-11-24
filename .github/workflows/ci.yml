@@ -14,6 +14,8 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - name: Validate deployment script syntax
         run: bash -n scripts/deploy_frontend.sh
+      - name: Validate AWS preflight script syntax
+        run: bash -n scripts/aws_preflight.sh
       - run: make verify
       - run: make golden-evaluate
 
