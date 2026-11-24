@@ -127,6 +127,16 @@ def _process(body, message_id, clients, context):
         return
 
     titles = fields["titles"] or ([job["title"].strip().casefold()] if job.get("title") else [])
+    parsed_key = f"parsed/{job_id}/jd.json"
+    # Persist the audit artifact before marking the job ready. If this write
+    # fails, SQS retries while the job remains JD_UPLOADED.
+    s3.put_object(
+        Bucket=bucket,
+        Key=parsed_key,
+        Body=json.dumps({"entities": entities, "fields": fields}, ensure_ascii=False).encode("utf-8"),
+        ContentType="application/json",
+    )
+    required_years = _required_years(text)
     jobs.update_item(
         Key={"job_id": job_id},
         UpdateExpression=(
@@ -138,18 +148,11 @@ def _process(body, message_id, clients, context):
             ":parsed": "JD_PARSED",
             ":skills": required_skills,
             ":titles": titles,
-            ":years": Decimal(str(_required_years(text))) if _required_years(text) is not None else None,
+            ":years": Decimal(str(required_years)) if required_years is not None else None,
             ":version": os.getenv("PARSER_VERSION", "1.0.0"),
             ":parsed_at": utc_now(),
             ":key": key,
         },
-    )
-    parsed_key = f"parsed/{job_id}/jd.json"
-    s3.put_object(
-        Bucket=bucket,
-        Key=parsed_key,
-        Body=json.dumps({"entities": entities, "fields": fields}, ensure_ascii=False).encode("utf-8"),
-        ContentType="application/json",
     )
     _send_ready(candidates, sqs, os.environ["SCORE_QUEUE_URL"], job_id)
 
