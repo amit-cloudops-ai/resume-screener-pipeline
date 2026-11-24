@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import io
 import logging
 import os
@@ -28,7 +29,7 @@ def _error(status: int, message: str) -> dict:
             "Access-Control-Allow-Origin": os.getenv("CORS_ORIGIN", ""),
             "Vary": "Origin",
         },
-        "body": __import__("json").dumps({"error": message}),
+        "body": json.dumps({"error": message}),
     }
 
 
@@ -45,7 +46,6 @@ def lambda_handler(event, context):
         ).Table(os.environ["CANDIDATES_TABLE"])
         response = table.query(
             KeyConditionExpression=Key("job_id").eq(job_id),
-            FilterExpression=Key("job_id").eq(job_id),
         )
         candidates = response.get("Items", [])
         while response.get("LastEvaluatedKey"):
