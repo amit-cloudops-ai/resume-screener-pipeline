@@ -127,3 +127,5 @@ The runner is dry-run by default; --execute is required for live API/AWS activit
 
 Offline tests cover fixture selection, explicit execution opt-in and required scored-candidate fields. make verify now includes these tests. Live AWS execution remains NOT PERFORMED and must not be claimed from CI results.
 
+
+Step 8 verification evidence: GitHub Actions [45342184687](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45342184687) passed backend verification (including the new smoke script tests), golden evaluation, frontend build, SAM lint and SAM build on the current implementation head. This is not live AWS E2E evidence.

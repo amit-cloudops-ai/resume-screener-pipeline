@@ -28,7 +28,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | P7 | Amit | Recruiter frontend pages | TODO | Not implemented. |
 | P8 | Amit | CloudFront deployment | DONE-UNVERIFIED | Distribution/OAC/bucket policy are defined in SAM; no live URL or browser proof. |
 | P9 | Amit | Alarms / budget | DONE-UNVERIFIED | Alarm and budget resources are defined; no deployed alarm/notification proof. |
-| P10 | Amit | Live E2E smoke script | DOING | Implemented guarded live smoke script for DoD B1–B5, offline tests and documentation. Dry-run by default; live AWS execution remains unrun until an approved deployment. CI verification pending. |
+| P10 | Amit | Live E2E smoke script | VERIFIED | Guarded live smoke script for DoD B1–B5, offline tests and documentation pass CI run 45342184687. Dry-run by default; actual AWS execution remains a post-deployment gate. |
 | P11 | Amit | Backend integration | VERIFIED | Moto acceptance on CI run 45331272201: one JD + ten resumes -> nine SCORED candidates + one FAILED candidate; candidate and failed-job records validate against frozen schemas. |
 | P12 | Amit | Demo, architecture diagram and cost sheet | TODO | Not evidenced as complete. |
 | A1 | Teammate A | Skills taxonomy | VERIFIED | `backend/parsing/skills_taxonomy.json`; 160 canonical skills, 231 canonical/alias terms, no collisions; taxonomy test passes. |
@@ -72,7 +72,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 
 ## Phase A — Step 8 implementation
 
-**Status: IMPLEMENTED; CI verification pending. Live AWS execution intentionally NOT performed.**
+**Status: VERIFIED for repository implementation and CI (run 45342184687, exact head `89091acab94d8840f1247de3faad48cc1d8d48b6`). Live AWS execution intentionally NOT performed.**
 
 - Replaced the P10 placeholder with a guarded deployment smoke script covering DoD B1–B5.
 - Uses the synthetic golden documents: 4 digital PDFs, 3 DOCX, 2 scanned PDFs and one deliberately corrupt DOCX.
@@ -133,9 +133,9 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## Next sequence
 
-1. Complete Step 6 after Amit confirms one dashboard visual direction; D16 explicitly requires his approval.
+1. Step 6: select and approve one of the three directions in `docs/PHASE_A_STEP6_DESIGN_REVIEW.md`; D16 explicitly requires Amit's approval before P6/P7 design work.
 2. Complete Step 7 recruiter dashboard against the locked OpenAPI and existing backend routes.
-3. Step 8 live smoke automation is implemented; verify it in CI. Actual AWS execution remains gated on deployment approval.
+3. Step 8 smoke automation is implemented and CI-verified; actual AWS execution remains gated on deployment approval.
 4. Complete Steps 9–10, resolve release-audit findings, then review Phase B readiness.
 5. Only after Phase A and explicit approval, perform AWS account preflight and dev deployment.
 4. Only after the full Phase A gate passes, request explicit approval for AWS account preflight and `rs-dev` deployment.
