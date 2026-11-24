@@ -1,0 +1,1 @@
+"""Candidates API Lambda package."""
