@@ -14,7 +14,7 @@ The integrated backend and SAM updates are in [draft PR #6](https://github.com/a
 - **Integration:** local Moto acceptance scenario exercises one JD and ten resumes, yielding nine scored candidates and one permanent parse failure.
 - **Infrastructure:** SAM validation/lint and build pass on the recorded CI run.
 
-CI run `45332343952` passed on the current integration head `f755f86bca29eeafb68083e47451c5943d69ecbc`: `make verify` passed with 138 tests, SAM lint validation passed, and SAM build passed.
+CI run `45332343952` passed on implementation commit `f755f86bca29eeafb68083e47451c5943d69ecbc`: `make verify` passed with 138 tests, SAM lint validation passed, and SAM build passed. Subsequent README/status-only commits are also checked by CI.
 
 **Not yet complete:** recruiter frontend, live AWS deployment, Cognito 401/200 proof, S3-to-SQS live delivery, live Textract/Comprehend/SES tests, production sender verification, operational alarm proof and live E2E smoke. The local integration test is not a substitute for those deployed checks.
 
