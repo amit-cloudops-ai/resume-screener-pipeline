@@ -58,12 +58,15 @@ def _record_failure(failed, jobs, job_id, key, message_id, error):
         "status": "OPEN",
         "created_at": now,
     })
-    jobs.update_item(
-        Key={"job_id": job_id},
-        UpdateExpression="SET #status = :failed",
-        ExpressionAttributeNames={"#status": "status"},
-        ExpressionAttributeValues={":failed": "FAILED"},
-    )
+    # Update an existing job only; UpdateItem on a missing key would create a
+    # malformed partial job record that violates the frozen job schema.
+    if jobs.get_item(Key={"job_id": job_id}, ConsistentRead=True).get("Item"):
+        jobs.update_item(
+            Key={"job_id": job_id},
+            UpdateExpression="SET #status = :failed",
+            ExpressionAttributeNames={"#status": "status"},
+            ExpressionAttributeValues={":failed": "FAILED"},
+        )
 
 
 def _required_years(text):
