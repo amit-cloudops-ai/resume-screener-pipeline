@@ -45,9 +45,9 @@ Common interaction model:
 - Composition: dark navigation rail, high-contrast score visualizations, compact candidate rows and a bright detail panel hierarchy.
 - Best fit: teams who work in the dashboard for long sessions and explicitly prefer dark interfaces. Requires extra contrast and state-color review.
 
-## Recommendation
+## Approved direction
 
-Choose **A — Editorial Hiring Desk**. It gives the product a distinctive visual identity while keeping candidate data, score breakdowns and decision controls readable. It avoids the generic blue SaaS dashboard look and avoids using a dark surface as a substitute for information hierarchy.
+**A — Editorial Hiring Desk** was selected and approved by Amit. It gives the product a distinctive visual identity while keeping candidate data, score breakdowns and decision controls readable. It avoids the generic blue SaaS dashboard look and avoids using a dark surface as a substitute for information hierarchy.
 
 ## Approval record
 
