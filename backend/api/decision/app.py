@@ -154,7 +154,7 @@ def lambda_handler(event, context):
                         },
                     )
                     email_status = "SENT"
-                except ClientError:
+                except Exception:
                     logger.exception("shortlist email failed request_id=%s", request_id)
                     email_status = "FAILED"
             updated = table.update_item(
