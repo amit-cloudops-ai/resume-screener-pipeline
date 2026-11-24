@@ -9,7 +9,10 @@ from typing import Any
 
 import boto3
 
-from scoring import score_candidate
+try:
+    from .scoring import score_candidate
+except ImportError:  # Lambda CodeUri packages this directory as its import root.
+    from scoring import score_candidate
 
 
 _ALLOWED_REASONS = {"CANDIDATE_PARSED", "JD_READY", "RESCORE"}
