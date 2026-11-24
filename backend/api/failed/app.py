@@ -149,10 +149,10 @@ def _retry(failed_table, candidates_table, sqs, failed_id):
         # Restore OPEN so the recruiter can retry after the queue outage is fixed.
         failed_table.update_item(
             Key={"failed_id": failed_id},
-            UpdateExpression="SET #status = :open REMOVE attempts",
-            ConditionExpression="#status = :retried",
+            UpdateExpression="SET #status = :open, attempts = attempts - :one",
+            ConditionExpression="#status = :retried AND attempts >= :one",
             ExpressionAttributeNames={"#status": "status"},
-            ExpressionAttributeValues={":open": "OPEN", ":retried": "RETRIED"},
+            ExpressionAttributeValues={":open": "OPEN", ":retried": "RETRIED", ":one": 1},
         )
         raise
     return _reply(202, updated)
