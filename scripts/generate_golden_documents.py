@@ -102,34 +102,32 @@ def _pdf_document(stream: bytes, *, image_only: bool) -> bytes:
 
 
 def _write_text_pdf(text: str, destination: Path) -> None:
-    def escape(value: str) -> str:
-        value = value.encode("ascii", "replace").decode("ascii")
-        return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-
     commands = ["BT /F1 10 Tf 42 750 Td"]
     for line in text.splitlines():
         commands.extend([f"({_escape_line(line)}) Tj", "0 -20 Td"])
     commands.append("ET")
-    stream = zlib.compress(("\n".join(commands)).encode("ascii"))
-    # Text PDF has a real selectable text layer.
-    pdf = _pdf_document(stream, image_only=False)
-    # Insert the font resource into the page dictionary.
-    pdf = pdf.replace(b"/Resources << >>", b"/Resources << /Font << /F1 5 0 R >> >>")
-    # Add the Helvetica font object and rebuild xref offsets with the helper.
+    stream = ("\\n".join(commands)).encode("ascii")
     objects = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
         b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
         b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-        b"<< /Length " + str(len(stream)).encode("ascii") + b" /Filter /FlateDecode >>\nstream\n" + stream + b"\nendstream",
+        b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\\nstream\\n" + stream + b"\\nendstream",
     ]
-    pdf = bytearray(b"%PDF-1.4\n")
+    pdf = bytearray(b"%PDF-1.4\\n")
     offsets = [0]
     for number, obj in enumerate(objects, start=1):
-        offsets.append(len(pdf)); pdf.extend(f"{number} 0 obj\n".encode("ascii")); pdf.extend(obj+b"\nendobj\n")
-    xref_offset=len(pdf); pdf.extend(f"xref\n0 {len(objects)+1}\n".encode("ascii")); pdf.extend(b"0000000000 65535 f \n")
-    for offset in offsets[1:]: pdf.extend(f"{offset:010d} 00000 n \n".encode("ascii"))
-    pdf.extend(f"trailer\n<< /Size {len(objects)+1} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF\n".encode("ascii"))
+        offsets.append(len(pdf))
+        pdf.extend(f"{number} 0 obj\\n".encode("ascii"))
+        pdf.extend(obj + b"\\nendobj\\n")
+    xref_offset = len(pdf)
+    pdf.extend(f"xref\\n0 {len(objects) + 1}\\n".encode("ascii"))
+    pdf.extend(b"0000000000 65535 f \\n")
+    for offset in offsets[1:]:
+        pdf.extend(f"{offset:010d} 00000 n \\n".encode("ascii"))
+    pdf.extend(
+        f"trailer\\n<< /Size {len(objects) + 1} /Root 1 0 R >>\\nstartxref\\n{xref_offset}\\n%%EOF\\n".encode("ascii")
+    )
     destination.write_bytes(pdf)
 
 
