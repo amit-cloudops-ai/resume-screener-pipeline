@@ -1,0 +1,45 @@
+:root {
+  color: #20231f;
+  background: #f7f7f4;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .6; }
+
+.app-shell { width: min(100% - 2rem, 72rem); margin: 0 auto; padding: 3rem 0; }
+.auth-panel { width: min(100%, 28rem); margin: 8vh auto; padding: 2rem; background: #fff; border: 1px solid #e5e6e0; border-radius: 1rem; }
+.eyebrow { margin: 0 0 .65rem; color: #657064; font-size: .72rem; font-weight: 700; letter-spacing: .12em; }
+h1, h2, h3 { margin: 0; letter-spacing: -.035em; }
+h1 { font-size: clamp(2rem, 5vw, 3.25rem); }
+h2 { font-size: 1.65rem; }
+h3 { font-size: 1.15rem; }
+.muted { color: #687067; }
+.auth-panel > .muted { margin: .75rem 0 1.5rem; }
+form { display: grid; gap: .6rem; }
+label { margin-top: .5rem; font-size: .88rem; font-weight: 650; }
+input { width: 100%; padding: .8rem .9rem; border: 1px solid #cfd3ca; border-radius: .5rem; background: #fff; color: inherit; }
+input:focus-visible, button:focus-visible { outline: 3px solid #a8c7a0; outline-offset: 2px; }
+button { padding: .8rem 1rem; border: 0; border-radius: .5rem; background: #263c2b; color: #fff; font-weight: 650; }
+form button { margin-top: .7rem; }
+button.secondary { background: transparent; color: #263c2b; border: 1px solid #cfd3ca; }
+.notice, .error { padding: .8rem 1rem; border-radius: .5rem; font-size: .9rem; }
+.notice { background: #eef2e9; color: #344631; }
+.error { background: #fff0ed; color: #9c2e20; }
+.workspace-header, .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.workspace-header { margin-bottom: 4rem; }
+.section-heading { margin-bottom: 1.25rem; }
+.empty-state { padding: 2rem; background: #fff; border: 1px solid #e5e6e0; border-radius: .75rem; }
+.empty-state p { margin-bottom: 0; }
+.job-list { list-style: none; padding: 0; margin: 0; }
+.job-list li { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem; background: #fff; border-bottom: 1px solid #e5e6e0; }
+@media (max-width: 560px) {
+  .app-shell { padding: 1.5rem 0; }
+  .auth-panel { margin-top: 4vh; padding: 1.25rem; }
+  .workspace-header { margin-bottom: 2.5rem; align-items: flex-start; }
+}
