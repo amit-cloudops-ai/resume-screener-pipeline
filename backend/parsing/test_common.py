@@ -1,0 +1,91 @@
+"""Unit tests for shared Part A extraction and NLP helpers."""
+import json
+from io import BytesIO
+
+from docx import Document
+
+from backend.parsing.common import (
+    PermanentDocumentError,
+    candidate_id_for,
+    derive_fields,
+    experience_years,
+    parse_s3_notification,
+    split_utf8,
+)
+
+
+def test_s3_notification_decodes_object_key():
+    body = json.dumps({"Records": [{"s3": {"bucket": {"name": "uploads"}, "object": {"key": "resumes%2Fjob%2FJohn+Resume.pdf"}}}]})
+    assert parse_s3_notification(body) == ("uploads", "resumes/job/John Resume.pdf")
+
+
+def test_s3_notification_rejects_invalid_shape():
+    try:
+        parse_s3_notification('{"Records":[]}')
+    except PermanentDocumentError as exc:
+        assert exc.error_type == "CORRUPT_FILE"
+    else:
+        raise AssertionError("expected permanent document error")
+
+
+def test_candidate_id_is_deterministic_and_16_hex():
+    first = candidate_id_for("a1b2c3d4e5f6", "resumes/a1b2c3d4e5f6/a.pdf")
+    assert first == candidate_id_for("a1b2c3d4e5f6", "resumes/a1b2c3d4e5f6/a.pdf")
+    assert len(first) == 16
+    assert all(char in "0123456789abcdef" for char in first)
+
+
+def test_comprehend_chunks_respect_utf8_byte_limit():
+    text = ("Kubernetes 🚀 and cloud engineering. " * 300)
+    chunks = split_utf8(text, 400)
+    assert len(chunks) > 1
+    assert all(len(chunk.encode("utf-8")) <= 400 for chunk in chunks)
+    assert "".join(chunks).replace("\n", "") == text.replace("\n", "")
+
+
+def test_taxonomy_finds_aliases_and_canonical_skills():
+    fields = derive_fields(
+        "Built k8s platforms on AWS, Docker, Terraform and Python.",
+        {"standard": [], "custom": []},
+    )
+    assert fields["skills"] == ["aws", "docker", "kubernetes", "python", "terraform"]
+
+
+def test_entities_derive_name_email_employers_and_titles():
+    fields = derive_fields(
+        "Contact: PRIYA@example.com. Worked from Jan 2020 - Dec 2022.",
+        {
+            "standard": [
+                {"Type": "PERSON", "Text": "Priya Sharma"},
+                {"Type": "ORGANIZATION", "Text": "Acme Systems"},
+            ],
+            "custom": [{"Type": "JOB_TITLE", "Text": "Platform Engineer"}],
+        },
+    )
+    assert fields["name"] == "Priya Sharma"
+    assert fields["email"] == "priya@example.com"
+    assert fields["employers"] == ["Acme Systems"]
+    assert fields["titles"] == ["platform engineer"]
+    assert fields["experience_years"] == 3.0
+
+
+def test_experience_unions_overlapping_periods():
+    assert experience_years("Jan 2020 - Dec 2021\nJan 2021 - Dec 2022") == 3.0
+
+
+def test_experience_unknown_is_null():
+    assert experience_years("Worked at Acme Systems for several years") is None
+
+
+def test_docx_paragraph_and_table_content_is_preserved():
+    from backend.parsing.common import _docx_text
+    document = Document()
+    document.add_paragraph("Platform Engineer")
+    table = document.add_table(rows=1, cols=2)
+    table.cell(0, 0).text = "AWS"
+    table.cell(0, 1).text = "Kubernetes"
+    output = BytesIO()
+    document.save(output)
+    text = _docx_text(output.getvalue())
+    assert "Platform Engineer" in text
+    assert "AWS | Kubernetes" in text
