@@ -13,6 +13,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt -r requirements-golden.txt
       - run: make verify
+      - run: make golden-evaluate
 
   sam-validate:
     runs-on: ubuntu-latest
