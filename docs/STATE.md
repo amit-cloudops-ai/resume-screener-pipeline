@@ -47,6 +47,7 @@ Submission target: 2026-11-25.
 
 ## Verified evidence
 - Repository file contents and open PR/branch state were inspected through GitHub on 2026-11-24.
+- Duplicate draft PR #1 was closed as superseded by the consolidated infrastructure readiness PR #5; no code was merged from PR #1.
 - The P2 SAM template contains five API function definitions whose `Events` blocks were outside `Properties`; corrected on `feat/P2-infrastructure-readiness`.
 - The API Jobs Lambda used DynamoDB Scan in B3 while its P2 IAM policy omitted `dynamodb:Scan`; permission added on `feat/P2-infrastructure-readiness`.
 - Resume parser now has FAILED_TABLE and failed_jobs PutItem access for permanent failures.
