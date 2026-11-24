@@ -1,7 +1,8 @@
-"""End-to-end local integration: resume/JD parsing -> score queue -> scoring."""
+"""Local end-to-end acceptance: one JD and ten resumes, nine scored, one failed."""
 import json
 from decimal import Decimal
 from io import BytesIO
+from pathlib import Path
 from urllib.parse import quote_plus
 
 import boto3
@@ -23,10 +24,10 @@ class FakeComprehend:
         return {"Entities": []}
 
 
-def make_docx():
+def make_docx(index):
     doc = Document()
-    doc.add_paragraph("Asha Candidate")
-    doc.add_paragraph("asha@example.test")
+    doc.add_paragraph(f"Candidate {index}")
+    doc.add_paragraph(f"candidate{index}@example.test")
     doc.add_paragraph("Skills: AWS, Docker")
     doc.add_paragraph("Jan 2020 - Dec 2022")
     out = BytesIO()
@@ -108,55 +109,86 @@ def notification(key):
     }]})
 
 
-def test_resume_and_jd_flow_produces_schema_valid_scored_candidate(env):
+def test_one_jd_ten_resumes_yield_nine_scored_and_one_failed(env):
     jobs, candidates, failed, s3, sqs, queue_url = env
-    resume_key = f"resumes/{JOB}/asha.docx"
     jd_key = f"jd/{JOB}/role.txt"
-    s3.put_object(Bucket=BUCKET, Key=resume_key, Body=make_docx())
     s3.put_object(
         Bucket=BUCKET, Key=jd_key,
         Body=b"DevOps Engineer requires AWS and Docker. Minimum 2 years experience.",
         ContentType="text/plain",
     )
 
-    # S3 -> parse queue -> resume parser
-    parse_resume({"Records": [{
-        "messageId": "resume-event",
-        "body": notification(resume_key),
-    }]}, None)
+    resume_keys = []
+    resume_records = []
+    for index in range(1, 11):
+        key = f"resumes/{JOB}/candidate-{index}.docx"
+        resume_keys.append(key)
+        payload = make_docx(index) if index < 10 else b"not-a-valid-docx"
+        s3.put_object(Bucket=BUCKET, Key=key, Body=payload)
+        resume_records.append({
+            "messageId": f"resume-{index}",
+            "body": notification(key),
+        })
 
-    # S3 -> JD queue -> JD parser; this also emits JD_READY for parsed candidates.
-    parse_jd({"Records": [{
+    # Process the ten resume notifications, then the JD notification.
+    parse_result = parse_resume({"Records": resume_records}, None)
+    assert parse_result == {"batchItemFailures": []}
+    jd_result = parse_jd({"Records": [{
         "messageId": "jd-event",
         "body": notification(jd_key),
     }]}, None)
+    assert jd_result == {"batchItemFailures": []}
 
-    queued = sqs.receive_message(
-        QueueUrl=queue_url, MaxNumberOfMessages=10
-    ).get("Messages", [])
-    assert len(queued) == 2
-    for message in queued:
-        score_batch({"Records": [{"body": message["Body"]}]}, None)
-
-    candidate_id = __import__("hashlib").sha256(
-        f"{JOB}/{resume_key}".encode("utf-8")
-    ).hexdigest()[:16]
-    candidate = candidates.get_item(
-        Key={"job_id": JOB, "candidate_id": candidate_id},
-        ConsistentRead=True,
-    )["Item"]
     job = jobs.get_item(Key={"job_id": JOB}, ConsistentRead=True)["Item"]
-
     assert job["status"] == "JD_PARSED"
     assert job["required_skills"] == ["aws", "docker"]
-    assert candidate["status"] == "SCORED"
-    assert candidate["skills"] == ["aws", "docker"]
-    assert candidate["score"] == Decimal("70.0")
-    assert candidate["above_threshold"] is True
-    assert candidate["score_breakdown"]["skills"]["matched"] == ["aws", "docker"]
-    assert not failed.scan()["Items"]
 
-    schema = json.loads(
-        __import__("pathlib").Path("contracts/candidate.schema.json").read_text()
-    )
-    assert not list(Draft7Validator(schema).iter_errors(_to_native(candidate)))
+    # Drain the score queue in SQS-sized batches. Duplicate CANDIDATE_PARSED and
+    # JD_READY messages are intentional and must remain idempotent.
+    processed_messages = 0
+    while True:
+        batch = sqs.receive_message(
+            QueueUrl=queue_url, MaxNumberOfMessages=10
+        ).get("Messages", [])
+        if not batch:
+            break
+        for offset in range(0, len(batch), 5):
+            group = batch[offset:offset + 5]
+            result = score_batch({
+                "Records": [
+                    {"messageId": message["MessageId"], "body": message["Body"]}
+                    for message in group
+                ]
+            }, None)
+            assert result == {"processed": len(group)}
+            processed_messages += len(group)
+            for message in group:
+                sqs.delete_message(
+                    QueueUrl=queue_url,
+                    ReceiptHandle=message["ReceiptHandle"],
+                )
+
+    assert processed_messages == 18
+    items = candidates.query(
+        KeyConditionExpression=boto3.dynamodb.conditions.Key("job_id").eq(JOB)
+    )["Items"]
+    assert len(items) == 10
+    scored = [item for item in items if item["status"] == "SCORED"]
+    failed_candidates = [item for item in items if item["status"] == "FAILED"]
+    assert len(scored) == 9
+    assert len(failed_candidates) == 1
+    assert all(item["score"] == Decimal("70.0") for item in scored)
+    assert all(item["above_threshold"] is True for item in scored)
+
+    failed_items = failed.scan()["Items"]
+    assert len(failed_items) == 1
+    assert failed_items[0]["stage"] == "PARSE"
+    assert failed_items[0]["error_type"] == "CORRUPT_FILE"
+    assert failed_items[0]["status"] == "OPEN"
+
+    candidate_schema = json.loads(Path("contracts/candidate.schema.json").read_text())
+    failed_schema = json.loads(Path("contracts/failed_job.schema.json").read_text())
+    for item in items:
+        assert not list(Draft7Validator(candidate_schema).iter_errors(_to_native(item)))
+    for item in failed_items:
+        assert not list(Draft7Validator(failed_schema).iter_errors(_to_native(item)))
