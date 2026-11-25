@@ -44,5 +44,5 @@ Add rows for every manual resource created. Record the exact physical resource i
 - Resource Groups & Tag Editor → Tag Editor → all regions/resource types → filter `Project = resume-screener`; confirm zero remaining tagged resources.
 - Search for `rs-` resources in S3, DynamoDB, SQS, Lambda, CloudFront, Cognito and CloudWatch log groups.
 - Inspect manually created S3 buckets separately because not every resource type necessarily supports the same tagging workflow.
-- Check Billing → Cost Explorer grouped by service again after 24–48 hours for residual Comprehend, CloudFront, Lambda or storage charges.
+- Check Billing → Cost Explorer grouped by service again after 24–48 hours for residual CloudFront, Lambda or storage charges.
 - Record the verification date and result in this file before declaring cleanup complete.
