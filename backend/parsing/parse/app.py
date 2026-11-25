@@ -13,7 +13,7 @@ import boto3
 try:
     from ..common import (
         PermanentDocumentError, TransientProcessingError, candidate_id_for,
-        comprehend_entities, derive_fields, extract_document_text,
+        derive_fields, extract_document_text,
         parse_s3_notification, utc_now,
     )
 except ImportError:  # SAM packages backend/parsing as the Lambda import root.
@@ -32,7 +32,6 @@ def _clients():
     return (
         boto3.client("s3", region_name=region),
         boto3.client("textract", region_name=region),
-        boto3.client("comprehend", region_name=region),
         boto3.client("sqs", region_name=region),
         boto3.resource("dynamodb", region_name=region).Table(os.environ["CANDIDATES_TABLE"]),
         boto3.resource("dynamodb", region_name=region).Table(os.environ["FAILED_TABLE"]),
@@ -104,7 +103,7 @@ def _failure(failed_table, candidate_table, job_id, key, message_id, error):
 
 
 def _process(body, message_id, clients, context):
-    s3, textract, comprehend, sqs, candidates, failed = clients
+    s3, textract, sqs, candidates, failed = clients
     bucket, key = parse_s3_notification(body)
     parts = key.split("/", 2)
     if len(parts) != 3 or parts[0] != "resumes" or not parts[1]:
@@ -161,10 +160,8 @@ def _process(body, message_id, clients, context):
         ).get("Item")
 
     text = extract_document_text(bucket, key, s3, textract, job_id, context)
-    entities = comprehend_entities(
-        text, comprehend, os.getenv("CUSTOM_RECOGNIZER_ARN", "DISABLED")
-    )
-    fields = derive_fields(text, entities)
+    fields = derive_fields(text)
+    extraction_audit = {"engine": "deterministic-taxonomy-v1", "fields": fields}
     candidate_fields = dict(fields)
     if candidate_fields["experience_years"] is not None:
         candidate_fields["experience_years"] = Decimal(str(candidate_fields["experience_years"]))
@@ -190,7 +187,7 @@ def _process(body, message_id, clients, context):
     s3.put_object(
         Bucket=bucket,
         Key=item["parsed_s3_key"],
-        Body=json.dumps({"entities": entities, "fields": fields}, ensure_ascii=False).encode("utf-8"),
+        Body=json.dumps(extraction_audit, ensure_ascii=False).encode("utf-8"),
         ContentType="application/json",
     )
     candidates.put_item(Item=item)
