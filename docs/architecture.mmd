@@ -1,0 +1,75 @@
+flowchart TB
+  subgraph Browser["Recruiter browser"]
+    UI["React + Vite recruiter workspace"]
+    AUTH["Amazon Cognito User Pool\nSRP sign-in · ID token"]
+  end
+  subgraph Edge["Web delivery and API edge"]
+    CF["Amazon CloudFront · HTTPS"]
+    WEB["Private S3 frontend bucket · OAC"]
+    APIGW["API Gateway REST · Cognito authorizer"]
+  end
+  subgraph API["Recruiter API Lambdas"]
+    JOBS["Jobs API\ncreate · list · upload URLs"]
+    CAND["Candidates API\nlist · detail"]
+    DEC["Decision API\nshortlist · reject"]
+    EXPORT["Export API\nshortlist CSV"]
+    FAILED["Failed-jobs API\nlist · retry"]
+  end
+  subgraph Data["Data and object storage"]
+    JOBTABLE[("DynamoDB jobs")]
+    CANDTABLE[("DynamoDB candidates")]
+    FAILTABLE[("DynamoDB failed_jobs")]
+    UPLOADS[("Private S3 uploads bucket\nJD · resumes · parsed artifacts")]
+  end
+  subgraph Pipeline["Asynchronous processing"]
+    JDQ[["SQS JD queue"]]
+    PARSEQ[["SQS parse queue"]]
+    SCOREQ[["SQS score queue"]]
+    JDP["JD parse Lambda"]
+    PARSE["Resume parse Lambda"]
+    SCORE["Deterministic score Lambda\n50% skills · 30% title · 20% experience"]
+    TEXTRACT["Amazon Textract\nPDF text detection"]
+    COMPREHEND["Amazon Comprehend\nstandard entities"]
+    TAXONOMY["Skills taxonomy + field derivation"]
+  end
+  subgraph Recovery["Failure recovery and operations"]
+    DLQS[["Parse · JD · Score DLQs"]]
+    DLQ["DLQ consumer Lambda"]
+    CW["CloudWatch logs, metrics and alarms"]
+    SNS["SNS alert topic"]
+    BUDGET["AWS Budget notification"]
+  end
+  SES["Amazon SES\nshortlist email"]
+  UI --> CF --> WEB
+  UI <-->|"sign-in / ID token"| AUTH
+  UI -->|"Authorization: raw Cognito ID token"| APIGW
+  APIGW --> JOBS & CAND & DEC & EXPORT & FAILED
+  JOBS --> JOBTABLE
+  JOBS -->|"presigned PUT URL"| UI
+  UI -->|"direct presigned upload"| UPLOADS
+  UPLOADS -->|"jd/ object-created"| JDQ --> JDP
+  UPLOADS -->|"resumes/ object-created"| PARSEQ --> PARSE
+  JDP -->|"extract JD text"| TEXTRACT
+  PARSE -->|"PDF extraction"| TEXTRACT
+  PARSE --> COMPREHEND --> TAXONOMY
+  JDP --> JOBTABLE
+  JDP -->|"JD_READY score messages"| SCOREQ
+  PARSE --> CANDTABLE
+  PARSE -->|"parsed JSON audit artifact"| UPLOADS
+  PARSE -->|"candidate score message"| SCOREQ
+  SCOREQ --> SCORE
+  SCORE --> JOBTABLE
+  SCORE --> CANDTABLE
+  CAND --> CANDTABLE
+  CAND --> JOBTABLE
+  DEC --> CANDTABLE
+  DEC --> SES
+  EXPORT --> CANDTABLE
+  FAILED --> FAILTABLE
+  FAILED -->|"stage-aware retry"| JDQ & PARSEQ & SCOREQ
+  PARSEQ & JDQ & SCOREQ --> DLQS --> DLQ --> FAILTABLE
+  API --> CW
+  Pipeline --> CW
+  Recovery --> CW
+  CW --> SNS
+  BUDGET -.-> SNS

@@ -22,17 +22,17 @@ DOCX documents are read with python-docx. Paragraphs and table cells both matter
 
 ### Upload size and type
 
-The upload API issues short-lived presigned PUT URLs for PDF and DOCX files. A presigned PUT URL does not, by itself, impose the application's maximum byte size. Therefore the parser must call S3 HeadObject and reject any object larger than 5 MiB before invoking Textract, Comprehend or DOCX parsing. The accepted extensions and MIME types must agree with the upload API and frozen queue contract.
+The upload API issues short-lived presigned PUT URLs for PDF and DOCX files. A presigned PUT URL does not, by itself, impose the application's maximum byte size. Therefore the parser must call S3 HeadObject and reject any object larger than 5 MiB before invoking Textract or DOCX parsing. The accepted extensions and MIME types must agree with the upload API and frozen queue contract.
 
-## 3. Entity and skill extraction
+## 3. Deterministic entity and skill extraction
 
-Amazon Comprehend standard entity detection supplies general entities such as PERSON, ORGANIZATION and DATE. These are signals, not a complete resume schema. The parser must avoid treating every date as employment tenure or every organisation as an employer without contextual checks.
+The parser does not call Amazon managed NLP entity service or any other managed NLP entity service. It derives fields locally in Python so parsing behaviour is reproducible, has no per-request managed NLP entity service cost, and does not depend on a trained endpoint.
 
-A custom Comprehend entity recognizer may identify domain-specific SKILL and JOB_TITLE entities when a trained endpoint is configured. It is optional. The default path must remain functional when custom recognition is disabled.
+Skills are extracted from raw text using the controlled `skills_taxonomy.json`. Canonical names and aliases are matched case-insensitively with explicit token boundaries, then deduplicated and sorted. The taxonomy is versioned and changes should be reviewed against the golden resume set.
 
-The deterministic skills taxonomy is the fallback and normalisation layer. It lowercases terms, strips surrounding punctuation, maps aliases to canonical forms (for example `k8s` to `kubernetes`), deduplicates results and sorts them. Taxonomy matching runs against raw extracted text as well as recognised entities so a missed custom entity does not automatically become a missed skill. The taxonomy is versioned and changes to it should be reviewed against the golden resume set.
+Email extraction uses a conservative regular expression. Titles are detected with a bounded set of role-pattern expressions. Names are accepted only from conservative standalone name-like lines; employers are accepted only from explicit labels such as `Company:` or `Employer:`. Missing or uncertain values remain null or empty rather than being guessed. The parser writes an audit artifact containing the deterministic engine version and extracted fields.
 
-Email extraction uses a conservative regular expression. Candidate names, employers and titles should use entity output plus section/context heuristics; uncertain values should remain null or empty rather than being fabricated.
+This approach deliberately favours precision over recall. It can miss unusual layouts, unconventional job titles, unlabeled employers, names embedded in headers or education details. Those limitations must be measured against representative resumes before production use; they must not be hidden by treating the extractor as equivalent to a trained entity-recognition model.
 
 ## 4. Experience derivation
 
@@ -95,4 +95,4 @@ Unit tests cover deterministic scoring, aliases, seniority penalties, missing va
 
 ## 9. Current verification boundary
 
-Passing unit tests, SAM lint and SAM build proves code-level and template-level checks only. It does not prove Textract job completion notifications, Comprehend quotas/permissions, SES deliverability, Cognito authorisation, S3 notification delivery, live DLQ recovery or production suitability. Those require an approved dev deployment and recorded end-to-end evidence.
+Passing unit tests, SAM lint and SAM build proves code-level and template-level checks only. It does not prove Textract job completion notifications, managed NLP entity service quotas/permissions, SES deliverability, Cognito authorisation, S3 notification delivery, live DLQ recovery or production suitability. Those require an approved dev deployment and recorded end-to-end evidence.

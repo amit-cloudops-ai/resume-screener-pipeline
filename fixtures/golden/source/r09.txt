@@ -1,0 +1,13 @@
+ISABELLA RAO
+isabella.rao@example.com
+PROFESSIONAL SUMMARY
+Senior Software Engineer with practical experience delivering reliable software and production systems.
+PROFESSIONAL EXPERIENCE
+Senior Software Engineer | Orbit Software
+Jan 2018 - Dec 2025
+Selected responsibilities include building, operating, improving and documenting production services.
+TECHNICAL SKILLS
+python; java; postgresql; rest api; docker; aws; redis
+EDUCATION
+Bachelor of Engineering | Example Institute
+All names, contact details, employers and education records in this sample are fictional.

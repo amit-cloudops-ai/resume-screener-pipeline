@@ -1,0 +1,13 @@
+AMARA OKAFOR
+amara.okafor@example.com
+PROFESSIONAL SUMMARY
+Backend Software Engineer with practical experience delivering reliable software and production systems.
+PROFESSIONAL EXPERIENCE
+Backend Software Engineer | Blue Harbor Apps
+Jan 2022 - Dec 2025
+Selected responsibilities include building, operating, improving and documenting production services.
+TECHNICAL SKILLS
+python; fastapi; postgresql; docker; redis; aws; graphql
+EDUCATION
+Bachelor of Engineering | Example Institute
+All names, contact details, employers and education records in this sample are fictional.

@@ -11,11 +11,6 @@ JOB = "a1b2c3d4e5f6"
 BUCKET = "rs-dev-uploads-test"
 
 
-class FakeComprehend:
-    def detect_entities(self, **kwargs):
-        return {"Entities": []}
-
-
 @pytest.fixture
 def resources(monkeypatch):
     monkeypatch.setenv("AWS_REGION", "us-east-1")
@@ -24,7 +19,6 @@ def resources(monkeypatch):
     monkeypatch.setenv("CANDIDATES_TABLE", "rs-dev-candidates")
     monkeypatch.setenv("FAILED_TABLE", "rs-dev-failed-jobs")
     monkeypatch.setenv("SCORE_QUEUE_URL", "placeholder")
-    monkeypatch.setenv("CUSTOM_RECOGNIZER_ARN", "DISABLED")
     with mock_aws():
         ddb = boto3.resource("dynamodb", region_name="us-east-1")
         jobs = ddb.create_table(
@@ -56,14 +50,6 @@ def resources(monkeypatch):
         sqs = boto3.client("sqs", region_name="us-east-1")
         queue_url = sqs.create_queue(QueueName="score")["QueueUrl"]
         monkeypatch.setenv("SCORE_QUEUE_URL", queue_url)
-        original_client = boto3.client
-
-        def client(service, *args, **kwargs):
-            if service == "comprehend":
-                return FakeComprehend()
-            return original_client(service, *args, **kwargs)
-
-        monkeypatch.setattr(boto3, "client", client)
         jobs.put_item(Item={
             "job_id": JOB, "title": "DevOps Engineer", "status": "JD_UPLOADED",
             "threshold": 60, "created_by": "recruiter", "created_at": "2026-11-24T00:00:00Z",

@@ -92,3 +92,47 @@ def test_export_neutralizes_spreadsheet_formula_cells(table):
     }, None)
     rows = list(csv.DictReader(io.StringIO(response["body"])))
     assert rows[0]["name"].startswith("'=")
+
+
+def test_export_paginates_without_partition_key_filter(monkeypatch):
+    monkeypatch.setenv("CANDIDATES_TABLE", "rs-dev-candidates")
+    calls = []
+
+    class FakeTable:
+        def query(self, **kwargs):
+            calls.append(kwargs)
+            if len(calls) == 1:
+                return {
+                    "Items": [{
+                        "job_id": JOB, "candidate_id": "0000000000000001",
+                        "decision": "SHORTLISTED", "score": Decimal("90"), "name": "First",
+                    }],
+                    "LastEvaluatedKey": {"job_id": JOB, "candidate_id": "0000000000000001"},
+                }
+            return {
+                "Items": [{
+                    "job_id": JOB, "candidate_id": "0000000000000002",
+                    "decision": "SHORTLISTED", "score": Decimal("80"), "name": "Second",
+                }]
+            }
+
+    class FakeDynamo:
+        @staticmethod
+        def Table(_name):
+            return FakeTable()
+
+    monkeypatch.setattr(
+        "backend.api.export.app.boto3.resource",
+        lambda *_args, **_kwargs: FakeDynamo(),
+    )
+    response = lambda_handler({
+        "httpMethod": "GET",
+        "resource": "/jobs/{job_id}/shortlist.csv",
+        "pathParameters": {"job_id": JOB},
+    }, None)
+
+    assert response["statusCode"] == 200
+    rows = list(csv.DictReader(io.StringIO(response["body"])))
+    assert [row["name"] for row in rows] == ["First", "Second"]
+    assert len(calls) == 2
+    assert all("FilterExpression" not in call for call in calls)

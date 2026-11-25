@@ -1,58 +1,281 @@
 {
-  "aws": ["amazon web services", "amazon aws"],
-  "azure": ["microsoft azure"],
-  "gcp": ["google cloud platform", "google cloud"],
-  "docker": ["containerization", "containers"],
-  "kubernetes": ["k8s", "kube"],
-  "terraform": ["tf", "infrastructure as code", "iac"],
+  "aws": [
+    "amazon web services",
+    "amazon aws"
+  ],
+  "azure": [
+    "microsoft azure"
+  ],
+  "gcp": [
+    "google cloud platform",
+    "google cloud"
+  ],
+  "docker": [
+    "containerization",
+    "containers"
+  ],
+  "kubernetes": [
+    "k8s",
+    "kube"
+  ],
+  "terraform": [
+    "tf",
+    "infrastructure as code",
+    "iac"
+  ],
   "ansible": [],
   "jenkins": [],
-  "github actions": ["gh actions"],
-  "gitlab ci": ["gitlab pipelines"],
-  "ci/cd": ["continuous integration", "continuous delivery", "continuous deployment"],
+  "github actions": [
+    "gh actions"
+  ],
+  "gitlab ci": [
+    "gitlab pipelines"
+  ],
+  "ci/cd": [
+    "continuous integration",
+    "continuous delivery",
+    "continuous deployment"
+  ],
   "python": [],
   "java": [],
-  "javascript": ["js"],
-  "typescript": ["ts"],
-  "go": ["golang"],
-  "bash": ["shell scripting"],
-  "linux": ["ubuntu", "red hat", "rhel"],
-  "sql": ["structured query language"],
-  "postgresql": ["postgres"],
+  "javascript": [
+    "js"
+  ],
+  "typescript": [
+    "ts"
+  ],
+  "go": [
+    "golang"
+  ],
+  "bash": [
+    "shell scripting"
+  ],
+  "linux": [
+    "ubuntu",
+    "red hat",
+    "rhel"
+  ],
+  "sql": [
+    "structured query language"
+  ],
+  "postgresql": [
+    "postgres"
+  ],
   "mysql": [],
-  "mongodb": ["mongo"],
+  "mongodb": [
+    "mongo"
+  ],
   "redis": [],
-  "dynamodb": ["amazon dynamodb"],
-  "s3": ["amazon s3", "simple storage service"],
-  "ec2": ["amazon ec2", "elastic compute cloud"],
-  "lambda": ["aws lambda", "serverless functions"],
-  "vpc": ["virtual private cloud"],
-  "iam": ["identity and access management"],
-  "cloudformation": ["aws cloudformation"],
-  "cloudwatch": ["amazon cloudwatch"],
-  "sqs": ["amazon sqs", "simple queue service"],
-  "sns": ["amazon sns", "simple notification service"],
-  "api gateway": ["aws api gateway"],
+  "dynamodb": [
+    "amazon dynamodb"
+  ],
+  "s3": [
+    "amazon s3",
+    "simple storage service"
+  ],
+  "ec2": [
+    "amazon ec2",
+    "elastic compute cloud"
+  ],
+  "lambda": [
+    "aws lambda",
+    "serverless functions"
+  ],
+  "vpc": [
+    "virtual private cloud"
+  ],
+  "iam": [
+    "identity and access management"
+  ],
+  "cloudformation": [
+    "aws cloudformation"
+  ],
+  "cloudwatch": [
+    "amazon cloudwatch"
+  ],
+  "sqs": [
+    "amazon sqs",
+    "simple queue service"
+  ],
+  "sns": [
+    "amazon sns",
+    "simple notification service"
+  ],
+  "api gateway": [
+    "aws api gateway"
+  ],
   "nginx": [],
   "prometheus": [],
   "grafana": [],
-  "elk stack": ["elasticsearch", "logstash", "kibana"],
-  "git": ["github", "gitlab", "bitbucket"],
-  "networking": ["tcp/ip", "dns", "http", "https"],
-  "rest api": ["restful api"],
+  "elk stack": [
+    "elasticsearch",
+    "logstash",
+    "kibana"
+  ],
+  "git": [
+    "github",
+    "gitlab",
+    "bitbucket"
+  ],
+  "networking": [
+    "tcp/ip",
+    "dns",
+    "http",
+    "https"
+  ],
+  "rest api": [
+    "restful api"
+  ],
   "fastapi": [],
   "flask": [],
   "react": [],
-  "node.js": ["nodejs"],
+  "node.js": [
+    "nodejs"
+  ],
   "astro": [],
-  "tailwind css": ["tailwind"],
-  "machine learning": ["ml"],
-  "natural language processing": ["nlp"],
-  "amazon textract": ["textract"],
-  "amazon comprehend": ["comprehend"],
-  "agile": ["scrum"],
-  "system design": ["distributed systems"],
-  "security": ["cloud security", "iam policies"],
-  "monitoring": ["observability"],
-  "troubleshooting": ["incident response"]
+  "tailwind css": [
+    "tailwind"
+  ],
+  "machine learning": [
+    "ml"
+  ],
+  "natural language processing": [
+    "nlp"
+  ],
+  "amazon textract": [
+    "textract"
+  ],
+  "amazon comprehend": [
+    "comprehend"
+  ],
+  "agile": [
+    "scrum"
+  ],
+  "system design": [
+    "distributed systems"
+  ],
+  "security": [
+    "cloud security",
+    "iam policies"
+  ],
+  "monitoring": [
+    "observability"
+  ],
+  "troubleshooting": [
+    "incident response"
+  ],
+  "ecs": [],
+  "eks": [],
+  "ecr": [],
+  "fargate": [],
+  "route 53": [],
+  "cloudfront": [],
+  "elastic load balancing": [],
+  "application load balancer": [],
+  "network load balancer": [],
+  "auto scaling": [],
+  "cloudtrail": [],
+  "aws config": [],
+  "guardduty": [],
+  "security hub": [],
+  "kms": [],
+  "secrets manager": [],
+  "systems manager": [],
+  "parameter store": [],
+  "eventbridge": [],
+  "step functions": [],
+  "aws batch": [],
+  "aws glue": [],
+  "athena": [],
+  "redshift": [],
+  "rds": [],
+  "aurora": [],
+  "elasticache": [],
+  "opensearch": [],
+  "kinesis": [],
+  "kinesis firehose": [],
+  "cloud development kit": [],
+  "aws cdk": [],
+  "pulumi": [],
+  "packer": [],
+  "vagrant": [],
+  "helm": [],
+  "kustomize": [],
+  "istio": [],
+  "linkerd": [],
+  "argocd": [],
+  "flux": [],
+  "tekton": [],
+  "circleci": [],
+  "travis ci": [],
+  "azure devops": [],
+  "teamcity": [],
+  "buildkite": [],
+  "spinnaker": [],
+  "argo rollouts": [],
+  "docker compose": [],
+  "containerd": [],
+  "cri-o": [],
+  "podman": [],
+  "buildah": [],
+  "kaniko": [],
+  "skopeo": [],
+  "nexus repository": [],
+  "jfrog artifactory": [],
+  "sonarqube": [],
+  "snyk": [],
+  "trivy": [],
+  "checkov": [],
+  "tfsec": [],
+  "open policy agent": [],
+  "conftest": [],
+  "hashicorp vault": [],
+  "consul": [],
+  "nomad": [],
+  "etcd": [],
+  "envoy": [],
+  "haproxy": [],
+  "traefik": [],
+  "caddy": [],
+  "apache http server": [],
+  "iis": [],
+  "tomcat": [],
+  "gunicorn": [],
+  "uvicorn": [],
+  "celery": [],
+  "rabbitmq": [],
+  "apache kafka": [],
+  "zookeeper": [],
+  "nats": [],
+  "grpc": [],
+  "graphql": [],
+  "oauth 2.0": [],
+  "openid connect": [],
+  "json web token": [],
+  "tls": [],
+  "mutual tls": [],
+  "zero trust": [],
+  "network security": [],
+  "firewalls": [],
+  "apache spark": [
+    "spark"
+  ],
+  "apache airflow": [
+    "airflow"
+  ],
+  "tableau": [],
+  "microsoft excel": [
+    "excel"
+  ],
+  "power bi": [
+    "microsoft power bi"
+  ],
+  "harbor container registry": [
+    "harbor registry"
+  ],
+  "etl": [],
+  "dbt": [],
+  "bigquery": [],
+  "spring boot": [],
+  "microservices": []
 }

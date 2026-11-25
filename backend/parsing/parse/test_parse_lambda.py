@@ -15,22 +15,13 @@ JOB = "a1b2c3d4e5f6"
 BUCKET = "rs-dev-uploads-test"
 
 
-class FakeComprehend:
-    def detect_entities(self, **kwargs):
-        text = kwargs["Text"]
-        entities = []
-        if "Priya Sharma" in text:
-            entities.append({"Type": "PERSON", "Text": "Priya Sharma"})
-        if "Acme Systems" in text:
-            entities.append({"Type": "ORGANIZATION", "Text": "Acme Systems"})
-        return {"Entities": entities}
-
 
 def docx_bytes():
     doc = Document()
     doc.add_paragraph("Priya Sharma")
     doc.add_paragraph("Email: priya@example.test")
-    doc.add_paragraph("Platform Engineer at Acme Systems")
+    doc.add_paragraph("Platform Engineer")
+    doc.add_paragraph("Company: Acme Systems")
     doc.add_paragraph("Skills: AWS, Docker, Kubernetes, Python")
     doc.add_paragraph("Jan 2020 - Dec 2022")
     output = BytesIO()
@@ -45,7 +36,6 @@ def aws(monkeypatch):
     monkeypatch.setenv("CANDIDATES_TABLE", "rs-dev-candidates")
     monkeypatch.setenv("FAILED_TABLE", "rs-dev-failed-jobs")
     monkeypatch.setenv("PARSER_VERSION", "1.0.0")
-    monkeypatch.setenv("CUSTOM_RECOGNIZER_ARN", "DISABLED")
     with mock_aws():
         ddb = boto3.resource("dynamodb", region_name="us-east-1")
         candidates = ddb.create_table(
@@ -71,14 +61,6 @@ def aws(monkeypatch):
         sqs = boto3.client("sqs", region_name="us-east-1")
         queue_url = sqs.create_queue(QueueName="score")["QueueUrl"]
         monkeypatch.setenv("SCORE_QUEUE_URL", queue_url)
-        original_client = boto3.client
-
-        def client(service, *args, **kwargs):
-            if service == "comprehend":
-                return FakeComprehend()
-            return original_client(service, *args, **kwargs)
-
-        monkeypatch.setattr(boto3, "client", client)
         yield candidates, failed, s3, sqs, queue_url
 
 
@@ -149,28 +131,6 @@ def test_oversized_resume_is_recorded_as_permanent_failure(aws):
     assert len(records) == 1
     assert records[0]["error_type"] == "UNSUPPORTED_TYPE"
     assert records[0]["status"] == "OPEN"
-
-
-def test_transient_comprehend_failure_returns_partial_batch_failure(aws, monkeypatch):
-    candidates, _, s3, _, _ = aws
-    key = f"resumes/{JOB}/priya.docx"
-    s3.put_object(Bucket=BUCKET, Key=key, Body=docx_bytes())
-
-    class BrokenComprehend:
-        def detect_entities(self, **kwargs):
-            raise RuntimeError("throttled")
-
-    original_client = boto3.client
-    def client(service, *args, **kwargs):
-        if service == "comprehend":
-            return BrokenComprehend()
-        return original_client(service, *args, **kwargs)
-    monkeypatch.setattr(boto3, "client", client)
-    result = invoke(key, "transient-message")
-    assert result == {"batchItemFailures": [{"itemIdentifier": "transient-message"}]}
-    candidate_id = candidate_id_for(JOB, key)
-    item = candidates.get_item(Key={"job_id": JOB, "candidate_id": candidate_id})["Item"]
-    assert item["status"] == "PARSING"
 
 
 def test_invalid_job_id_is_recorded_as_unknown_without_candidate_row(aws):

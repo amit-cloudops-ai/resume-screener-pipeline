@@ -4,7 +4,7 @@ You (ChatGPT / any AI assistant) are helping a 3-person team build ONE project w
 You have no memory between chats. This repo IS your memory. Do not rely on anything else.
 
 ## 1. The project in 3 lines
-AI Resume Screener on AWS: recruiter uploads a Job Description + resumes (PDF/DOCX) -> Textract/python-docx extract text -> Amazon Comprehend (standard + custom entity recognizer) extracts entities/skills -> scoring engine ranks candidates (skills 50% / title 30% / experience 20%) -> recruiter dashboard (shortlist/reject, SES email, CSV).
+AI Resume Screener on AWS: recruiter uploads a Job Description + resumes (PDF/DOCX) -> Textract/python-docx extract text -> deterministic Python extraction (taxonomy + regex/date patterns) -> scoring engine ranks candidates (skills 50% / title 30% / experience 20%) -> recruiter dashboard (shortlist/reject, SES email, CSV).
 Full brief: docs/00_BRIEF.md. Architecture: docs/01_ARCHITECTURE.md.
 
 ## 2. The finish line (the ONLY definition of "done")
@@ -23,7 +23,7 @@ Deadline: submit Wed 25 Nov 2026. Prod deployed by Mon 23 Nov (buffer Tue 24). F
 - ONE task ID per session. No drive-by improvements, refactors, renames, or "while I'm here" changes.
 - contracts/ is FROZEN. Never edit contracts/*, fixtures/candidates/*, fixtures/jobs/* to make your code pass. If a contract is wrong, STOP and tell the human; the change goes through docs/DECISIONS.md + all three owners.
 - Stay inside your owned folders (see .github/CODEOWNERS and docs/03_WORK_SPLIT.md). Never edit another owner's folder.
-- No new AWS services, no new dependencies, no new architecture. Anything not in docs/01_ARCHITECTURE.md is out of scope.
+- No new AWS services, no new dependencies, no new architecture. Managed NLP entity-recognition services and custom recognizer endpoints are intentionally not used. Anything not in docs/01_ARCHITECTURE.md is out of scope.
 - Every code change ships with a test. `make verify` must pass before you say "done".
 - Never invent AWS resource names, ARNs, env vars, table fields or API routes. Use the ones in contracts/ and docs/01_ARCHITECTURE.md. If missing, ask.
 - Never claim something works unless you ran it or the human pasted the output. Say "not verified" instead.
@@ -56,5 +56,5 @@ Update docs/STATE.md AND docs/RESOURCES.md (if anything was created by hand): ta
 If you are asked to do something outside the current task ID, say so and add it to STATE.md "Parking lot" instead of doing it.
 
 ## 7. Tech stack (locked)
-Python 3.12 Lambdas, AWS SAM (CloudFormation) IaC, DynamoDB (3 tables), S3, SQS (+DLQ), Textract, Comprehend, SES, Cognito, API Gateway REST + Cognito authorizer, CloudFront + S3 static frontend (React + Vite).
+Python 3.12 Lambdas, AWS SAM (CloudFormation) IaC, DynamoDB (3 tables), S3, SQS (+DLQ), Textract, SES, Cognito, API Gateway REST + Cognito authorizer, CloudFront + S3 static frontend (React + Vite).
 Region: us-east-1. Stacks: rs-dev, rs-prod. Resource name prefix: rs-<stage>-.
