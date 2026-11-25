@@ -4,7 +4,7 @@ An AWS-based, event-driven resume screening application. Recruiters create a job
 
 > **Project closeout snapshot — 25 November 2026**
 >
-> This repository records the implementation and live development demonstration completed so far. The project is a **working development prototype with a documented PDF/OCR service-access blocker**. It is not represented as a fully accepted or production-ready hiring system.
+> This repository now contains the integrated team implementation and project closeout. The project is a **working development prototype with a documented PDF/OCR service-access blocker**. Merging the code to GitHub `main` does not mean the AWS backend was promoted or that the application is production-ready.
 
 ## Current status at a glance
 
@@ -26,7 +26,24 @@ An AWS-based, event-driven resume screening application. Recruiters create a job
 
 ![Current development architecture](docs/architecture.svg)
 
-Editable diagram source: [docs/architecture.mmd](docs/architecture.mmd).
+Editable diagram source: [docs/architecture.mmd](docs/architecture.mmd). A high-resolution architecture image is also provided at [docs/architecture/current-deployed-architecture.png](docs/architecture/current-deployed-architecture.png).
+
+## Product screenshots
+
+The following captures document the recruiter-facing development UI as observed on 25 November 2026. Extract the repository asset bundle from `resume-screener-repo-assets.zip` at the repository root to populate these paths.
+
+![Recruiter workspace overview](docs/screenshots/01-dashboard-overview.png)
+
+| Workflow | Screenshot |
+|---|---|
+| Active jobs and role summary | ![Active jobs](docs/screenshots/02-active-jobs-and-role-summary.png) |
+| Candidate review table | ![Candidate review](docs/screenshots/03-candidate-review-table.png) |
+| Create role | ![Create role](docs/screenshots/04-create-role-dialog.png) |
+| Batch resume upload | ![Batch upload](docs/screenshots/06-batch-resume-upload-dialog.png) |
+| Candidate profile | ![Candidate profile](docs/screenshots/07-candidate-profile-panel.png) |
+| Score explanation | ![Score explanation](docs/screenshots/08-score-explanation-panel.png) |
+
+Screenshot evidence and limitations: [docs/screenshots/README.md](docs/screenshots/README.md).
 
 The current parser uses:
 - **DOCX:** `python-docx` paragraph and table extraction, followed by deterministic Python extraction.
@@ -81,6 +98,8 @@ Amazon Comprehend was removed from the integration implementation in favour of d
 | `docs/PROJECT_CLOSEOUT.md` | Mentor-ready project closeout and limitations |
 | `docs/architecture.mmd` | Editable Mermaid architecture source |
 | `docs/architecture.svg` | Architecture diagram included in this README |
+| `docs/architecture/current-deployed-architecture.png` | High-resolution architecture overview |
+| `docs/screenshots/` | Recruiter dashboard and workflow screenshots |
 | `docs/RESOURCES.md` | AWS resource inventory and cleanup guidance |
 
 ## Verification
@@ -109,9 +128,13 @@ The observed development frontend is:
 
 The frontend publish command completed successfully on 25 November 2026. CloudFront invalidation status was verified as `Completed`.
 
-The previously recorded API endpoint is `https://pidp0mxkc6.execute-api.us-east-1.amazonaws.com/v1/`. Treat deployed backend code/version as **not reconciled to the latest integration commit** until the stack/template and Lambda code versions are checked. The live DOCX success and Textract failure above are runtime observations, not proof that every component from the current branch is deployed.
+The previously recorded API endpoint is `https://pidp0mxkc6.execute-api.us-east-1.amazonaws.com/v1/`. Treat deployed backend code/version as **not reconciled to the integrated GitHub `main` commit** until the stack/template and Lambda code versions are checked. The live DOCX success and Textract failure above are runtime observations, not proof that every component from the current branch is deployed.
 
-**Production boundary:** `rs-prod` was not changed by this closeout. No production promotion, production deployment, resource deletion or database/queue cleanup was performed.
+**Repository status:** the integrated application is merged into GitHub `main`. **AWS boundary:** `rs-dev` was not redeployed as part of the GitHub merge and `rs-prod` was not changed. No production promotion, production deployment, resource deletion or database/queue cleanup was performed.
+
+## Team contribution and project context
+
+This was developed as a collaborative team project during the F13 Technologies AWS Cloud internship. The repository preserves the shared implementation across the parsing pipeline, scoring engine, recruiter APIs, infrastructure, frontend and integration work. Individual contributions are visible in Git history and pull requests; the final integrated application is now present on `main`.
 
 ## Security, cost and operational notes
 
