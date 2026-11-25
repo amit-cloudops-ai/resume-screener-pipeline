@@ -2,7 +2,7 @@ STAGE ?= dev
 REGION := us-east-1
 PY ?= python3
 
-# Optional deployment settings. Keep SES and custom NLP disabled until verified/configured.
+# Optional deployment settings. Keep SES disabled until sender verification and production access are confirmed.
 SES_SENDER ?= DISABLED
 ALARM_EMAIL ?=
 MONTHLY_BUDGET_USD ?= 25
