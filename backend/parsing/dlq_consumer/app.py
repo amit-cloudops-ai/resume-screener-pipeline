@@ -21,11 +21,18 @@ except ImportError:
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-_STAGE_BY_QUEUE_SUFFIX = {
-    "-parse-dlq": "PARSE",
-    "-jd-dlq": "JD_PARSE",
-    "-score-dlq": "SCORE",
+_STAGE_BY_QUEUE_NAME = {
+    f"rs-{stage}-parse-dlq": "PARSE"
+    for stage in ("dev", "prod")
 }
+_STAGE_BY_QUEUE_NAME.update({
+    f"rs-{stage}-jd-dlq": "JD_PARSE"
+    for stage in ("dev", "prod")
+})
+_STAGE_BY_QUEUE_NAME.update({
+    f"rs-{stage}-score-dlq": "SCORE"
+    for stage in ("dev", "prod")
+})
 
 
 def _clients():
@@ -47,12 +54,7 @@ def _classify_source(source_arn: str) -> str | None:
     if not source_arn:
         return None
     queue_name = source_arn.rsplit(":", 1)[-1]
-    if not queue_name.startswith(("rs-dev-", "rs-prod-")):
-        return None
-    for suffix, stage in _STAGE_BY_QUEUE_SUFFIX.items():
-        if queue_name.endswith(suffix):
-            return stage
-    return None
+    return _STAGE_BY_QUEUE_NAME.get(queue_name)
 
 
 def _s3_identity(body: str, expected_prefix: str) -> tuple[str, str]:
