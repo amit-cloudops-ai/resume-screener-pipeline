@@ -1,0 +1,49 @@
+{
+  "evidence_class": "SYNTHETIC_MOCK",
+  "warning": "Synthetic fixture only. No managed NLP entity service was invoked.",
+  "source_fixture": {
+    "resume_id": "R09",
+    "file_name": "r09_resume.pdf",
+    "format": "scanned_pdf",
+    "text_source": "fixtures/golden/source/r09.txt",
+    "pdf_extraction_note": "The golden binary is raster-image-only. The excerpt below is the expected text after OCR, not captured OCR output."
+  },
+  "extracted_text_excerpt": "ISABELLA RAO | isabella.rao@example.com | Senior Software Engineer | Orbit Software | Jan 2018 - Dec 2025 | python; java; postgresql; rest api; docker; aws; redis",
+  "textract": {
+    "evidence_class": "SYNTHETIC_EXPECTED_TEXT",
+    "expected_lines": [
+      "ISABELLA RAO",
+      "isabella.rao@example.com",
+      "Senior Software Engineer | Orbit Software",
+      "Jan 2018 - Dec 2025",
+      "python; java; postgresql; rest api; docker; aws; redis"
+    ],
+    "note": "These are expected source lines for illustrating the hand-off to Comprehend. They are not Textract Blocks or a live OCR response."
+  },
+  "parser_output": {
+    "name": "Isabella Rao",
+    "email": "isabella.rao@example.com",
+    "skills": [
+      "python",
+      "java",
+      "postgresql",
+      "rest api",
+      "docker",
+      "aws",
+      "redis"
+    ],
+    "employers": [
+      "Orbit Software"
+    ],
+    "titles": [
+      "senior software engineer"
+    ],
+    "experience_years": 8
+  },
+  "limitations": [
+    "This file is the strongest example of the evidence boundary: image-only input does not mean OCR has been tested.",
+    "No Textract job, managed NLP service request, model confidence or service latency was recorded.",
+    "Live OCR errors must be compared against the hand-labelled expected lines after approved deployment."
+  ],
+  "extraction_engine": "deterministic-taxonomy-regex-date-v1"
+}
