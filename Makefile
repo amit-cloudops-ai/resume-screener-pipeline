@@ -6,11 +6,10 @@ PY ?= python3
 SES_SENDER ?= DISABLED
 ALARM_EMAIL ?=
 MONTHLY_BUDGET_USD ?= 25
-CUSTOM_RECOGNIZER_ARN ?= DISABLED
 PARSER_VERSION ?= 1.0.0
 SCORER_VERSION ?= 1.0.0
 
-COMMON_PARAMS = SesSender=$(SES_SENDER) AlarmEmail=$(ALARM_EMAIL) MonthlyBudgetUsd=$(MONTHLY_BUDGET_USD) CustomRecognizerArn=$(CUSTOM_RECOGNIZER_ARN) ParserVersion=$(PARSER_VERSION) ScorerVersion=$(SCORER_VERSION)
+COMMON_PARAMS = SesSender=$(SES_SENDER) AlarmEmail=$(ALARM_EMAIL) MonthlyBudgetUsd=$(MONTHLY_BUDGET_USD) ParserVersion=$(PARSER_VERSION) ScorerVersion=$(SCORER_VERSION)
 SAM_DEPLOY_BASE = sam deploy --template-file .aws-sam/build/template.yaml --region $(REGION) --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --resolve-s3 --no-fail-on-empty-changeset
 COMMON_TAGS = Project=resume-screener
 
