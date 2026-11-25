@@ -16,7 +16,7 @@ S3 uploads bucket
 Parse Lambda: Textract (PDF) | python-docx (DOCX) -> Comprehend (standard + custom) -> taxonomy normalise
               -> DynamoDB candidates (status PARSED) + S3 parsed/{job_id}/{candidate_id}.json (audit)
               -> SQS score-queue {job_id, candidate_id, reason}
-JdParse Lambda: same extraction -> DynamoDB jobs (required_skills, jd_titles, required_years, status JD_PARSED)
+JdParse Lambda: same deterministic extraction -> DynamoDB jobs (required_skills, jd_titles, required_years, status JD_PARSED)
               -> enqueue score-queue for every existing candidate of that job (reason JD_READY)
 Score Lambda (B): reads job + candidate -> writes score, breakdown, above_threshold, status SCORED
               (job not JD_PARSED yet -> raise -> SQS retry; after 5 receives -> score-dlq -> DlqConsumer)
@@ -34,12 +34,12 @@ Score Lambda (B): reads job + candidate -> writes score, breakdown, above_thresh
 | Cognito | user pool `rs-<stage>-recruiters`, app client `rs-<stage>-web` (no secret), group `recruiters` |
 | API | REST API `rs-<stage>-api`, stage `v1`, Cognito User Pool authorizer on ALL routes |
 | SES | verified sender identity (env `SES_SENDER`) |
-| SSM params | `/rs/<stage>/custom-recognizer-arn` (value `DISABLED` = off; SSM cannot hold an empty string), `/rs/<stage>/threshold-default` (60) |
+| SSM params | `/rs/<stage>/threshold-default` (60) |
 
 ## Lambda env vars (every Lambda gets what it needs from this list; no others)
-`STAGE`, `CORS_ORIGIN` (API responses; CloudFront origin), `JOBS_TABLE`, `CANDIDATES_TABLE`, `FAILED_TABLE`, `UPLOADS_BUCKET`, `SCORE_QUEUE_URL`, `PARSER_VERSION`, `SCORER_VERSION`, `CUSTOM_RECOGNIZER_ARN`, `SES_SENDER`, `LOG_LEVEL`.
+`STAGE`, `CORS_ORIGIN` (API responses; CloudFront origin), `JOBS_TABLE`, `CANDIDATES_TABLE`, `FAILED_TABLE`, `UPLOADS_BUCKET`, `SCORE_QUEUE_URL`, `PARSER_VERSION`, `SCORER_VERSION`, `SES_SENDER`, `LOG_LEVEL`.
 
-`CUSTOM_RECOGNIZER_ARN` rule: the custom recogniser is used ONLY when the value starts with `arn:aws:comprehend:`. Empty or `DISABLED` = skip it (taxonomy fallback only). The SAM stack parameter `CustomRecognizerArn` is the deployment-time source of truth; it is copied to the Lambda environment and mirrored to `/rs/<stage>/custom-recognizer-arn`. To enable/replace the endpoint, redeploy with `CustomRecognizerArn=<endpoint-arn>`; editing SSM alone does not change an already-deployed Lambda environment.
+
 
 ## Known AWS gotchas (Amit: handle these in template.yaml; they cause most "it deployed but nothing happens" bugs)
 1. S3 -> SQS notifications: each queue needs a queue policy allowing `s3.amazonaws.com` (condition on the bucket ARN). Build the bucket name with `!Sub` (not `!Ref` of the bucket) inside the policy and in the notification config, or CloudFormation reports a circular dependency.
