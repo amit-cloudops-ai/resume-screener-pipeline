@@ -13,12 +13,12 @@ from boto3.dynamodb.conditions import Key
 
 try:
     from ..common import (
-        PermanentDocumentError, TransientProcessingError, comprehend_entities,
+        PermanentDocumentError, TransientProcessingError,
         derive_fields, extract_document_text, parse_s3_notification, utc_now,
     )
 except ImportError:
     from common import (
-        PermanentDocumentError, TransientProcessingError, comprehend_entities,
+        PermanentDocumentError, TransientProcessingError,
         derive_fields, extract_document_text, parse_s3_notification, utc_now,
     )
 
@@ -33,7 +33,6 @@ def _clients():
     return (
         boto3.client("s3", region_name=region),
         boto3.client("textract", region_name=region),
-        boto3.client("comprehend", region_name=region),
         boto3.client("sqs", region_name=region),
         ddb.Table(os.environ["JOBS_TABLE"]),
         ddb.Table(os.environ["CANDIDATES_TABLE"]),
@@ -96,7 +95,7 @@ def _send_ready(candidates, sqs, queue_url, job_id):
 
 
 def _process(body, message_id, clients, context):
-    s3, textract, comprehend, sqs, jobs, candidates, failed = clients
+    s3, textract, sqs, jobs, candidates, failed = clients
     bucket, key = parse_s3_notification(body)
     parts = key.split("/", 2)
     if len(parts) != 3 or parts[0] != "jd" or not parts[1]:
@@ -114,10 +113,8 @@ def _process(body, message_id, clients, context):
     text = extract_document_text(
         bucket, key, s3, textract, job_id, context, allow_txt=True
     )
-    entities = comprehend_entities(
-        text, comprehend, os.getenv("CUSTOM_RECOGNIZER_ARN", "DISABLED")
-    )
-    fields = derive_fields(text, entities)
+    fields = derive_fields(text)
+    extraction_audit = {"engine": "deterministic-taxonomy-v1", "fields": fields}
     required_skills = fields["skills"]
     if not required_skills:
         error = PermanentDocumentError(
@@ -133,7 +130,7 @@ def _process(body, message_id, clients, context):
     s3.put_object(
         Bucket=bucket,
         Key=parsed_key,
-        Body=json.dumps({"entities": entities, "fields": fields}, ensure_ascii=False).encode("utf-8"),
+        Body=json.dumps(extraction_audit, ensure_ascii=False).encode("utf-8"),
         ContentType="application/json",
     )
     required_years = _required_years(text)
@@ -173,7 +170,7 @@ def lambda_handler(event, context):
             try:
                 _, key = parse_s3_notification(record["body"])
                 job_id = key.split("/", 2)[1]
-                _record_failure(clients[6], clients[4], job_id, key, message_id, exc)
+                _record_failure(clients[5], clients[3], job_id, key, message_id, exc)
             except Exception:
                 logger.exception("permanent JD failure could not be recorded message_id=%s", message_id)
                 failures.append({"itemIdentifier": message_id})

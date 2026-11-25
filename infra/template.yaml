@@ -13,10 +13,6 @@ Parameters:
   ScorerVersion:
     Type: String
     Default: stub-0.1.0
-  CustomRecognizerArn:
-    Type: String
-    Default: DISABLED
-    Description: Optional Comprehend custom entity recognizer endpoint ARN; DISABLED uses taxonomy fallback.
   SesSender:
     Type: String
     Default: DISABLED
@@ -327,7 +323,6 @@ Resources:
           UPLOADS_BUCKET: !Ref UploadsBucket
           SCORE_QUEUE_URL: !Ref ScoreQueue
           PARSER_VERSION: !Ref ParserVersion
-          CUSTOM_RECOGNIZER_ARN: !Ref CustomRecognizerArn
       Policies:
         - Statement:
             - Effect: Allow
@@ -353,9 +348,6 @@ Resources:
             - Effect: Allow
               Action: [textract:StartDocumentTextDetection, textract:GetDocumentTextDetection]
               Resource: '*'
-            - Effect: Allow
-              Action: [comprehend:DetectEntities, comprehend:BatchDetectEntities]
-              Resource: '*'
       Events:
         ParseQueueEvent:
           Type: SQS
@@ -379,7 +371,6 @@ Resources:
           UPLOADS_BUCKET: !Ref UploadsBucket
           SCORE_QUEUE_URL: !Ref ScoreQueue
           PARSER_VERSION: !Ref ParserVersion
-          CUSTOM_RECOGNIZER_ARN: !Ref CustomRecognizerArn
       Policies:
         - Statement:
             - Effect: Allow
@@ -407,9 +398,6 @@ Resources:
               Resource: !GetAtt FailedJobsTable.Arn
             - Effect: Allow
               Action: [textract:StartDocumentTextDetection, textract:GetDocumentTextDetection]
-              Resource: '*'
-            - Effect: Allow
-              Action: [comprehend:DetectEntities, comprehend:BatchDetectEntities]
               Resource: '*'
       Events:
         JdQueueEvent:
@@ -962,14 +950,6 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
-
-  CustomRecognizerParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub /rs/${Stage}/custom-recognizer-arn
-      Type: String
-      Value: !Ref CustomRecognizerArn
-      Description: Mirrors the CustomRecognizerArn stack parameter; redeploy with an ARN to enable custom entities.
 
   ThresholdDefaultParameter:
     Type: AWS::SSM::Parameter

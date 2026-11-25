@@ -1,6 +1,6 @@
 # AI Resume Screener & Talent Acquisition Pipeline
 
-An AWS-native resume screening workflow. Recruiters create a job, upload a job description and resumes, and receive ranked candidates with explainable skill, title and experience scores. The backend uses Textract, Comprehend, deterministic Python scoring, DynamoDB, S3, SQS, Cognito, API Gateway, CloudFront and SES.
+An AWS-native resume screening workflow. Recruiters create a job, upload a job description and resumes, and receive ranked candidates with explainable skill, title and experience scores. The backend uses Textract, deterministic Python NLP and scoring, DynamoDB, S3, SQS, Cognito, API Gateway, CloudFront and SES.
 
 ## Current status — 24 November 2026
 
@@ -10,7 +10,7 @@ The integrated backend and SAM updates are in [draft PR #6](https://github.com/a
 
 - **B1/B2:** deterministic scoring library, SQS scoring Lambda, DynamoDB Decimal conversion and idempotency.
 - **B3–B9:** jobs/uploads, candidate list/detail, recruiter decisions and SES, CSV export, failed-job listing/retry, NLP explanation and contract tests.
-- **Part A:** PDF Textract extraction, DOCX/TXT parsing, Comprehend standard/custom entity support, taxonomy normalization, field derivation, JD parsing and DLQ persistence.
+- **Part A:** PDF Textract extraction, DOCX/TXT parsing, deterministic taxonomy-based extraction and field derivation, field derivation, JD parsing and DLQ persistence.
 - **Phase A steps 1–3:** backend/SAM audit corrections, 160-skill taxonomy, reproducible 12-resume dataset and deterministic accuracy report are verified.
 - **Step 4:** three reviewed synthetic extraction examples cover digital PDF, two-column DOCX and scanned image-only PDF under `docs/samples/`. They are not live AWS service responses.
 - **Step 5:** React/Vite/TypeScript frontend foundation, Cognito SRP authentication (including first-login temporary-password challenge), raw ID-token API client and local mock mode are implemented and CI-verified.
@@ -20,9 +20,9 @@ The integrated backend and SAM updates are in [draft PR #6](https://github.com/a
 - **Integration:** local Moto acceptance scenario exercises one JD and ten resumes, yielding nine scored candidates and one permanent parse failure.
 - **Infrastructure:** SAM validation/lint and build pass on the recorded CI run.
 
-Latest full Phase A audit CI run [45346661338](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45346661338) passed all three jobs: `make verify` passed with 160 tests, golden evaluation passed, frontend typecheck/build passed, SAM lint validation and build passed, and the guarded frontend deployment script passed `bash -n`. The 12-resume deterministic evaluation measured 100% skill precision/recall, 12/12 email extraction, 12/12 experience within ±1 year and 3/3 expected top-ranked candidates. These are mock-entity/pre-AWS metrics, not live Textract or Comprehend model results.
+Latest full Phase A audit CI run [45346661338](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45346661338) passed all three jobs: `make verify` passed with 160 tests, golden evaluation passed, frontend typecheck/build passed, SAM lint validation and build passed, and the guarded frontend deployment script passed `bash -n`. The 12-resume deterministic evaluation measured 100% skill precision/recall, 12/12 email extraction, 12/12 experience within ±1 year and 3/3 expected top-ranked candidates. These are deterministic synthetic/pre-AWS metrics, not live Textract OCR results.
 
-**Still outstanding before production release:** AWS account preflight and live development acceptance (Cognito 401/200, S3-to-SQS, Textract/Comprehend, SES, alarms and live E2E smoke), production sender verification, candidate/JD retention policy, bias/fairness review, demo video and teammate clean-clone deployment rehearsal. These are Phase B and production-release gates; the Phase A repository audit does not claim they are complete.
+**Still outstanding before production release:** AWS account preflight and live development acceptance (Cognito 401/200, S3-to-SQS, Textract, deterministic NLP, SES, alarms and live E2E smoke), production sender verification, candidate/JD retention policy, bias/fairness review, demo video and teammate clean-clone deployment rehearsal. These are Phase B and production-release gates; the Phase A repository audit does not claim they are complete.
 
 Step 8 smoke automation and its offline tests passed [45342184687](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45342184687) on the Step 8 implementation head. This is offline verification only; the live smoke test was not run.
 
@@ -82,7 +82,7 @@ CI runs repository tests and SAM validation/build. A successful SAM build is not
 
 Recruiter browser → CloudFront/S3 dashboard → Cognito-authenticated API Gateway → API Lambdas → DynamoDB/S3/SES.
 
-JD and resume objects trigger SQS queues. The parsing workers use Textract asynchronous text detection for PDFs and python-docx for DOCX, then Comprehend and deterministic taxonomy normalization. Parsed candidates are written to DynamoDB and an audit artifact in S3. The JD parser extracts required skills, titles and minimum experience. The scoring worker calculates:
+JD and resume objects trigger SQS queues. The parsing workers use Textract asynchronous text detection for PDFs and python-docx for DOCX, then local deterministic taxonomy, regex and date extraction. Parsed candidates are written to DynamoDB and an audit artifact in S3. The JD parser extracts required skills, titles and minimum experience. The scoring worker calculates:
 
 `score = round(100 × (0.50 × skills + 0.30 × title + 0.20 × experience), 1)`
 
@@ -110,6 +110,6 @@ ALLOW_PROD=1 make deploy-frontend STAGE=prod
 
 **Frontend publishing is a separate, explicit step.** SAM creates the private S3 origin and CloudFront distribution but does not upload the React build. After the target stack reaches `CREATE_COMPLETE` or `UPDATE_COMPLETE`, run `make deploy-frontend STAGE=dev` (or `ALLOW_PROD=1 make deploy-frontend STAGE=prod`). The script reads the deployed API/Cognito outputs, builds with mock mode disabled, syncs the dedicated stage frontend bucket and submits a CloudFront invalidation. It refuses production publishing unless `ALLOW_PROD=1` is explicitly set.
 
-The optional Comprehend custom recognizer is disabled by default. To enable it, pass `CUSTOM_RECOGNIZER_ARN=<endpoint-arn>` during deployment. Redeployment is required to update the Lambda environment.
+Managed NLP entity recognition and custom recognizers are not part of this architecture. Field extraction is performed locally by the Python parser.
 
 **Cost and safety:** the AWS Budget is an alert, not a spending cap. Review the CloudFormation change set before execution. Keep [`docs/RESOURCES.md`](docs/RESOURCES.md) current for manually created resources and follow its teardown procedure after the demo.

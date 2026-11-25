@@ -1,54 +1,22 @@
-# Reviewed extraction samples — repository-side fixtures
+# Reviewed deterministic extraction samples
 
-**Evidence class: SYNTHETIC / MOCK. These files are not captured Amazon Comprehend or Textract service responses.**
+**Evidence class: SYNTHETIC / MOCK. These files are not captured AWS service responses.**
 
-These three examples correspond to the golden-set document formats:
-- `comprehend-digital-pdf.json` — R01, selectable-text digital PDF.
-- `comprehend-two-column-docx.json` — R05, two-column DOCX.
-- `comprehend-scanned-pdf.json` — R09, raster-image-only scanned PDF.
+- `deterministic-digital-pdf.json` — R01, selectable-text digital PDF.
+- `deterministic-two-column-docx.json` — R05, two-column DOCX.
+- `deterministic-scanned-pdf.json` — R09, raster-image-only scanned PDF.
 
-The sample entity arrays are deterministic fixtures based on the hand-labelled records in `fixtures/golden/expected.json`. They illustrate the *shape and interpretation* of standard and custom entity output, not model confidence, OCR quality, service latency, or real entity detection.
+Each sample records the expected extracted text, deterministic parser output, source fixture and evidence limitations. The scanned-PDF text is expected text after OCR; it is not a captured Textract response.
 
-## Entity-source contract
+The parser uses Amazon Textract for PDF text extraction, python-docx for DOCX, and local Python taxonomy/regex/date logic for field derivation. No managed NLP entity-recognition service or custom recognizer is part of this pipeline.
 
-| Source | Supported use in this pipeline |
-|---|---|
-| Standard entity detection | `PERSON`, `ORGANIZATION`, `DATE` |
-| Custom entity recognizer | `SKILL`, `JOB_TITLE`, only when a configured endpoint is supplied |
-| Deterministic taxonomy | Canonical skill matching and alias normalisation against extracted text |
-| Parser derivation | Email regex, date-range experience union, sorted/deduplicated skills, employers and titles |
+## Validation boundary
 
-**Do not map standard `TITLE` entities to job titles.** The built-in Comprehend TITLE type represents creative works. The implementation only accepts custom `JOB_TITLE` entities for candidate titles (decision D12).
-
-## File structure
-
-Each JSON file includes:
-- `evidence_class`: always `SYNTHETIC_MOCK` for this repository-side sample set.
-- `source_fixture`: the golden resume ID and format.
-- `extracted_text_excerpt`: a short excerpt from the fictional source resume; for the scanned PDF this is the expected text after OCR, not a captured Textract result.
-- `comprehend.standard` and `comprehend.custom`: illustrative entity records in the same Type/Text/Score family used by the parser.
-- `parser_output`: expected deterministic derived fields, not a live pipeline response.
-
-The parser consumes the provider entity arrays and extracted text; it returns the structure documented in `backend/parsing/common.py`. Confidence values in these examples are illustrative placeholders and must not be compared with production model confidence.
-
-## Replacing these examples with real service evidence
-
-After an explicitly approved development deployment:
-1. Use the same three golden source documents (digital PDF, two-column DOCX, scanned image-only PDF).
-2. Record the source object key, file format, parser version, extraction timestamp and AWS region without including credentials.
-3. Capture Textract LINE output for PDFs and the actual standard/custom Comprehend entity responses returned for each text chunk.
-4. Keep the provider response separate from the parser-derived candidate record.
-5. Redact or replace personal data before committing. The current golden identities are fictional.
-6. Record whether custom recognition was disabled; when disabled, `custom` is expected to be empty.
-7. Re-run the accuracy evaluation and document OCR/entity errors rather than editing expected labels to match model output.
-
-Real service samples must use a separate `evidence_class: AWS_CAPTURED` label and include provenance. Never overwrite these synthetic fixtures with unverified or fabricated responses.
+These samples validate repository-side expected fields against the golden labels. They do not prove OCR quality or live AWS behaviour. After an approved development deployment, capture Textract output with source key, parser version, timestamp and region; keep live provider evidence separate from synthetic fixtures and redact personal data.
 
 ## Review status
 
 - [x] Three resume formats represented.
-- [x] Standard and custom entity sources separated.
-- [x] Custom recognizer optionality documented.
-- [x] Standard TITLE misuse explicitly prohibited.
-- [x] Expected parser output distinguished from provider response.
-- [ ] Actual Textract and Comprehend responses captured — requires approved AWS development deployment.
+- [x] Deterministic extraction engine identified.
+- [x] Synthetic expected output distinguished from live AWS evidence.
+- [ ] Actual Textract output captured — requires approved AWS development deployment.

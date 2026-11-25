@@ -1,0 +1,41 @@
+{
+  "evidence_class": "SYNTHETIC_MOCK",
+  "warning": "Synthetic fixture only. No managed NLP entity service was invoked.",
+  "source_fixture": {
+    "resume_id": "R01",
+    "file_name": "r01_resume.pdf",
+    "format": "digital_pdf",
+    "text_source": "fixtures/golden/source/r01.txt",
+    "pdf_extraction_note": "Expected selectable text from the synthetic source fixture; no live Textract call was made."
+  },
+  "extracted_text_excerpt": "AVA MORGAN | ava.morgan@example.com | Senior DevOps Engineer | Northstar Cloud | Jan 2019 - Jun 2025 | aws; docker; kubernetes; terraform; python; linux; ci/cd; github actions; jenkins",
+  "parser_output": {
+    "name": "Ava Morgan",
+    "email": "ava.morgan@example.com",
+    "skills": [
+      "aws",
+      "ci/cd",
+      "docker",
+      "git",
+      "github actions",
+      "jenkins",
+      "kubernetes",
+      "linux",
+      "python",
+      "terraform"
+    ],
+    "employers": [
+      "Northstar Cloud"
+    ],
+    "titles": [
+      "senior devops engineer"
+    ],
+    "experience_years": 6.5
+  },
+  "limitations": [
+    "No OCR or entity model was invoked.",
+    "Confidence scores are not measured and are represented as null.",
+    "Skills are taxonomy-derived from the synthetic extracted text as well as illustrative model-derived entities."
+  ],
+  "extraction_engine": "deterministic-taxonomy-regex-date-v1"
+}

@@ -13,7 +13,6 @@ from urllib.parse import unquote_plus
 from docx import Document
 
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
-MAX_COMPREHEND_BYTES = 4800
 EMAIL_RE = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.I)
 MONTHS = {
     "jan": 1, "january": 1, "feb": 2, "february": 2, "mar": 3, "march": 3,
@@ -68,13 +67,13 @@ def parse_s3_notification(body: str) -> tuple[str, str]:
     return bucket, unquote_plus(key)
 
 
-def split_utf8(text: str, limit: int = MAX_COMPREHEND_BYTES) -> list[str]:
+def split_utf8(text: str, limit: int = 4800) -> list[str]:
     """Split on UTF-8 codepoint boundaries without changing the source text."""
     chunks, current, used = [], [], 0
     for char in text:
         size = len(char.encode("utf-8"))
         if size > limit:
-            raise ValueError("Comprehend chunk limit is smaller than one UTF-8 codepoint")
+            raise ValueError("Text chunk limit is smaller than one UTF-8 codepoint")
         if used + size > limit:
             chunks.append("".join(current))
             current, used = [], 0
@@ -84,38 +83,6 @@ def split_utf8(text: str, limit: int = MAX_COMPREHEND_BYTES) -> list[str]:
         chunks.append("".join(current))
     return chunks or [""]
 
-
-def split_comprehend_text(text: str, char_limit: int = 4500, byte_limit: int = MAX_COMPREHEND_BYTES) -> list[str]:
-    """Prefer sentence boundaries while respecting Comprehend's UTF-8 byte limit."""
-    if char_limit < 1 or byte_limit < 1:
-        raise ValueError("chunk limits must be positive")
-    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
-    chunks, current = [], ""
-
-    def append_long_sentence(sentence: str) -> None:
-        # A single oversized sentence has no safe sentence boundary; split it
-        # on UTF-8 codepoint boundaries as the deterministic fallback.
-        chunks.extend(split_utf8(sentence, byte_limit))
-
-    for sentence in sentences:
-        if not sentence:
-            continue
-        if len(sentence) > char_limit or len(sentence.encode("utf-8")) > byte_limit:
-            if current:
-                chunks.append(current)
-                current = ""
-            append_long_sentence(sentence)
-            continue
-        candidate = f"{current} {sentence}".strip() if current else sentence
-        if len(candidate) <= char_limit and len(candidate.encode("utf-8")) <= byte_limit:
-            current = candidate
-        else:
-            if current:
-                chunks.append(current)
-            current = sentence
-    if current:
-        chunks.append(current)
-    return chunks or [""]
 
 
 def _docx_text(data: bytes) -> str:
@@ -210,21 +177,6 @@ def extract_document_text(bucket: str, key: str, s3, textract, job_id: str, cont
     return text
 
 
-def comprehend_entities(text: str, comprehend, custom_arn="DISABLED") -> dict:
-    standard, custom = [], []
-    for chunk in split_comprehend_text(text):
-        if not chunk:
-            continue
-        try:
-            standard.extend(comprehend.detect_entities(Text=chunk, LanguageCode="en").get("Entities", []))
-            if isinstance(custom_arn, str) and custom_arn.startswith("arn:aws:comprehend:"):
-                custom.extend(comprehend.detect_entities(
-                    Text=chunk, LanguageCode="en", EndpointArn=custom_arn
-                ).get("Entities", []))
-        except Exception as exc:
-            raise TransientProcessingError("Comprehend entity extraction failed") from exc
-    return {"standard": standard, "custom": custom}
-
 
 def _taxonomy() -> dict:
     path = Path(__file__).with_name("skills_taxonomy.json")
@@ -240,15 +192,17 @@ def _taxonomy() -> dict:
     return aliases
 
 
-def normalise_skills(text: str, entities: dict) -> list[str]:
+def normalise_skills(text: str, entities: dict | None = None) -> list[str]:
+    """Extract canonical skills from the controlled taxonomy, longest aliases first."""
     aliases, found, lowered = _taxonomy(), set(), text.casefold()
-    for entity in entities.get("custom", []):
-        if entity.get("Type", "").upper() == "SKILL":
-            value = str(entity.get("Text", "")).casefold().strip()
-            if value in aliases:
-                found.add(aliases[value])
-    for alias, canonical in aliases.items():
-        if re.search(r"(?<![a-z0-9])" + re.escape(alias) + r"(?![a-z0-9])", lowered):
+    for alias, canonical in sorted(aliases.items(), key=lambda item: (-len(item[0]), item[0])):
+        # Ordinary word aliases may be followed by punctuation (e.g. Python.).
+        # Keep stricter boundaries for symbolic names such as C++, C# and Node.js.
+        if re.fullmatch(r"[a-z0-9 ]+", alias):
+            pattern = r"(?<![a-z0-9])" + re.escape(alias) + r"(?![a-z0-9])"
+        else:
+            pattern = r"(?<![a-z0-9])" + re.escape(alias) + r"(?![a-z0-9])"
+        if re.search(pattern, lowered):
             found.add(canonical)
     return sorted(found)
 
@@ -302,29 +256,33 @@ def experience_years(text: str):
     return round(min(total / 12, 40), 1)
 
 
-def derive_fields(text: str, entities: dict) -> dict:
-    standard, custom = entities.get("standard", []), entities.get("custom", [])
-    people = [e.get("Text", "").strip() for e in standard if e.get("Type") == "PERSON" and e.get("Text")]
-    employers = sorted({e.get("Text", "").strip() for e in standard if e.get("Type") == "ORGANIZATION" and e.get("Text")})
-    # Comprehend standard TITLE labels creative works (books/films), not job
-    # titles. Job titles must come from the optional custom recognizer.
-    titles = sorted({
-        e.get("Text", "").strip().casefold()
-        for e in custom
-        if e.get("Type", "").upper() == "JOB_TITLE" and e.get("Text")
-    })
+JOB_TITLE_RE = re.compile(
+    r"\b(?:senior|sr\.?|junior|jr\.?|lead|principal|staff|associate|mid[- ]level)?\s*"
+    r"(?:devops|platform|cloud|site reliability|sre|software|backend|back-end|"
+    r"frontend|front-end|full[- ]stack|data|ml|machine learning|security|network|"
+    r"systems|infrastructure|qa|test|database|application)\s+"
+    r"(?:engineer|developer|architect|administrator|analyst|scientist|consultant|"
+    r"specialist|manager)\b", re.I
+)
+PERSON_LINE_RE = re.compile(r"(?m)^\s*([A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){1,3})\s*$")
+EMPLOYER_RE = re.compile(r"(?im)^\s*(?:at|company|employer)\s*:?\s*([A-Z][A-Za-z0-9&.,' -]{1,60})\s*$")
+
+
+def derive_fields(text: str, entities: dict | None = None) -> dict:
+    """Deterministic extraction; missing evidence remains null/empty."""
     email = EMAIL_RE.search(text)
-    date_entities = [
-        str(entity.get("Text", "")).strip()
-        for entity in standard
-        if entity.get("Type") == "DATE" and entity.get("Text")
-    ]
-    experience_text = "\n".join([text, *date_entities])
+    titles = sorted({m.group(0).strip().casefold() for m in JOB_TITLE_RE.finditer(text)})
+    people = [m.group(1).strip() for m in PERSON_LINE_RE.finditer(text)]
+    people = [p for p in people if p.casefold() not in {
+        "professional summary", "work experience", "technical skills",
+        "education details", "career objective", "personal information",
+    }]
+    employers = sorted({m.group(1).strip(" .,-") for m in EMPLOYER_RE.finditer(text)})
     return {
         "name": people[0] if people else None,
         "email": email.group(0).casefold() if email else None,
-        "skills": normalise_skills(text, entities),
+        "skills": normalise_skills(text),
         "employers": employers,
         "titles": titles,
-        "experience_years": experience_years(experience_text),
+        "experience_years": experience_years(text),
     }

@@ -35,14 +35,6 @@ def test_candidate_id_is_deterministic_and_16_hex():
     assert all(char in "0123456789abcdef" for char in first)
 
 
-def test_comprehend_chunks_respect_utf8_byte_limit():
-    text = ("Kubernetes 🚀 and cloud engineering. " * 300)
-    chunks = split_utf8(text, 400)
-    assert len(chunks) > 1
-    assert all(len(chunk.encode("utf-8")) <= 400 for chunk in chunks)
-    assert "".join(chunks).replace("\n", "") == text.replace("\n", "")
-
-
 def test_taxonomy_finds_aliases_and_canonical_skills():
     fields = derive_fields(
         "Built k8s platforms on AWS, Docker, Terraform and Python.",
@@ -51,15 +43,12 @@ def test_taxonomy_finds_aliases_and_canonical_skills():
     assert fields["skills"] == ["aws", "docker", "kubernetes", "python", "terraform"]
 
 
-def test_entities_derive_name_email_employers_and_titles():
+def test_deterministic_extractor_derives_name_email_employers_and_titles():
     fields = derive_fields(
-        "Contact: PRIYA@example.com. Worked from Jan 2020 - Dec 2022.",
+        "Priya Sharma\nContact: PRIYA@example.com.\nPlatform Engineer\nCompany: Acme Systems\nJan 2020 - Dec 2022",
         {
-            "standard": [
-                {"Type": "PERSON", "Text": "Priya Sharma"},
-                {"Type": "ORGANIZATION", "Text": "Acme Systems"},
-            ],
-            "custom": [{"Type": "JOB_TITLE", "Text": "Platform Engineer"}],
+            "standard": [],
+            "custom": [],
         },
     )
     assert fields["name"] == "Priya Sharma"
@@ -126,32 +115,6 @@ def test_pdf_textract_async_job_polls_and_reads_all_pages(monkeypatch):
     assert _pdf_text("uploads", "resumes/job/resume.pdf", textract, "job") == "First page\nSecond page"
     assert len(textract.start_args["ClientRequestToken"]) == 64
     assert textract.tokens == [None, None, None, "page-2"]
-
-
-def test_comprehend_entities_chunks_long_text():
-    from backend.parsing.common import comprehend_entities
-
-    class FakeComprehend:
-        def __init__(self):
-            self.lengths = []
-
-        def detect_entities(self, **kwargs):
-            self.lengths.append(len(kwargs["Text"].encode("utf-8")))
-            return {"Entities": []}
-
-    client = FakeComprehend()
-    result = comprehend_entities("AWS and Docker. " * 1000, client)
-    assert result == {"standard": [], "custom": []}
-    assert len(client.lengths) > 1
-    assert all(length <= 4800 for length in client.lengths)
-
-
-def test_standard_comprehend_title_is_ignored_when_custom_recognizer_is_disabled():
-    fields = derive_fields(
-        "Platform Engineer with AWS experience.",
-        {"standard": [{"Type": "TITLE", "Text": "Platform Engineer"}], "custom": []},
-    )
-    assert fields["titles"] == []
 
 
 def test_experience_supports_year_only_ranges():
