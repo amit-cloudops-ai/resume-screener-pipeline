@@ -30,9 +30,9 @@ Editable diagram source: [docs/architecture.mmd](docs/architecture.mmd). A high-
 
 ## Product screenshots
 
-The dashboard screenshots are being added to this repository as versioned evidence. The screenshots must be read alongside the evidence notes in [`docs/screenshots/README.md`](docs/screenshots/README.md); they are dated captures, not a claim of production readiness.
+The dashboard screenshots are committed in [`docs/screenshots/`](docs/screenshots/). Read the evidence notes in [`docs/screenshots/README.md`](docs/screenshots/README.md); these dated captures document the development UI and are not a claim of production readiness.
 
-The editable architecture diagram is already versioned at [`docs/architecture.svg`](docs/architecture.svg), with its source at [`docs/architecture.mmd`](docs/architecture.mmd). The supplied high-resolution raster architecture image will be included alongside those source files once its binary asset is committed.
+The editable architecture diagram is versioned at [`docs/architecture.svg`](docs/architecture.svg), with its source at [`docs/architecture.mmd`](docs/architecture.mmd). The supplied high-resolution raster diagram is committed at [`docs/architecture/current-deployed-architecture.png`](docs/architecture/current-deployed-architecture.png).
 
 ### Dashboard gallery
 
@@ -139,7 +139,7 @@ The previously recorded API endpoint is `https://pidp0mxkc6.execute-api.us-east-
 
 ## Team contribution and project context
 
-This was developed as a collaborative team project during the F13 Technologies AWS Cloud internship. The repository preserves the shared implementation across the parsing pipeline, scoring engine, recruiter APIs, infrastructure, frontend and integration work. The integrated application is present on `main`. **Attribution limitation:** the currently visible merged commit history records the commits under the repository owner's GitHub identity; it does not reliably identify individual teammate contributions. Do not use the GitHub Contributors count as a complete team-contribution record. A named contribution matrix should only be added after confirming each teammate's name and work area.
+This was developed as a collaborative team project during the F13 Technologies AWS Cloud internship. The integrated application is present on `main`. Verified teammate-authored commits were recovered from the historical feature branches: Gopi Krishna (`dggk78`) contributed the A1 skills taxonomy and A2–A10 parsing pipeline; Sushmitha M (`sush-kush`) contributed B1–B8 scoring and recruiter API modules. Amit (`amit-cloudops-ai`) led integration, infrastructure and project closeout. See [`docs/CONTRIBUTIONS.md`](docs/CONTRIBUTIONS.md) for the evidence and module-level detail. The final integration used squash merges, so GitHub's Contributors panel may not reflect the full team roster.
 
 ## Security, cost and operational notes
 
