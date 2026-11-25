@@ -39,7 +39,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | A5 | Teammate A | Candidate/JD field derivation | VERIFIED | Name/email/employer/title/skills/experience derivation and overlap-union tests implemented; custom `JOB_TITLE` only (standard Comprehend `TITLE` ignored); `N+ years` fallback; 40-year implementation cap. Golden deterministic metrics pass. |
 | A6 | Teammate A | Resume parse Lambda | VERIFIED | SQS partial-batch handling, deterministic candidate IDs, permanent failure records, parsed S3 artifact and score-queue producer implemented. |
 | A7 | Teammate A | JD-parse Lambda | VERIFIED | Required skills/title/years, zero-skill failure, job state update and JD_READY fan-out implemented. |
-| A8 | Teammate A | DLQ consumer Lambda | VERIFIED | Stage mapping, source-key resolution, idempotent failed-job persistence implemented. |
+| A8 | Teammate A | DLQ consumer Lambda | DOING | Follow-up correction in `feat/A8-dlq-classification-diagnostics`: exact queue classification, payload diagnostics and regression coverage. Incident record: `docs/INCIDENT_A8_DLQ_CLASSIFICATION.md`. CI and live `rs-dev` redeployment/acceptance pending. |
 | A9 | Teammate A | Custom recognizer model/endpoint | TODO | Optional feature remains disabled; no training dataset or endpoint ARN. |
 | A10 | Teammate A | Three reviewed sample outputs | VERIFIED | Three reviewed synthetic examples committed under `docs/samples/`; automated tests enforce provenance and match parser output to golden labels. Actual Textract/Comprehend captures remain blocked on approved AWS deployment. |
 | B1 | Teammate B | Scoring library + tests | VERIFIED | Deterministic 50/30/20 scorer, edge cases, title seniority, thresholds and schema fields covered. |
@@ -171,3 +171,16 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 ## Phase A — Step 8 boundary reaffirmed
 
 Step 8 smoke automation remains VERIFIED for repository implementation and offline CI only. The live smoke run has not been performed. It creates a job, uploads synthetic documents and leaves test records/objects in the target stage; it must be run only after explicit deployment approval and with a planned cleanup window.
+
+
+## A8 — DLQ classification incident and correction (25 November 2026)
+
+**Status: DOING — code correction committed to `feat/A8-dlq-classification-diagnostics`; CI and live verification pending.** Incident details and evidence boundary: [docs/INCIDENT_A8_DLQ_CLASSIFICATION.md](INCIDENT_A8_DLQ_CLASSIFICATION.md).
+
+- Live `rs-dev` DLQ consumer was confirmed active; all three event-source mappings were enabled for parse, JD and score DLQs.
+- Three failed-job rows were observed: one JD_PARSE row for job `474d8d653e9c` and two UNKNOWN rows.
+- Confirmed code defect: payload parse exceptions and unrecognized source queues were collapsed into UNKNOWN without preserving a diagnostic; source provenance was not logged.
+- Historical cause of the two UNKNOWN records is **not recoverable** because their original SQS bodies/event metadata were not persisted.
+- Correction preserves the frozen failed-job schema, adds exact known-queue classification, validates S3 key shape, records bounded diagnostic messages, and logs message ID/source ARN/reason without payload or PII.
+- Regression tests cover parse/JD/score, source-field casing, malformed S3/score payloads, wrong S3 key prefix, missing/unrecognized source ARN and duplicate delivery.
+- Do not deploy to production. Merge approval, CI, dev deployment, controlled DLQ tests and Barclays JD recovery remain outstanding.
