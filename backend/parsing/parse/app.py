@@ -19,7 +19,7 @@ try:
 except ImportError:  # SAM packages backend/parsing as the Lambda import root.
     from common import (
         PermanentDocumentError, TransientProcessingError, candidate_id_for,
-        comprehend_entities, derive_fields, extract_document_text,
+        derive_fields, extract_document_text,
         parse_s3_notification, utc_now,
     )
 
