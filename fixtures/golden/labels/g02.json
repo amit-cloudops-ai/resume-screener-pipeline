@@ -1,0 +1,25 @@
+{
+  "id": "g02",
+  "file": "g02.docx",
+  "format": "docx_two_column",
+  "name": "Rohan Iyer",
+  "email": "rohan.iyer@example.com",
+  "skills": [
+    "aws",
+    "docker",
+    "ec2",
+    "git",
+    "linux",
+    "python"
+  ],
+  "titles": [
+    "software engineer",
+    "junior software engineer"
+  ],
+  "employers": [
+    "Orbit Labs",
+    "Kestrel Analytics"
+  ],
+  "experience_years": 5.5,
+  "as_of": "2026-11-23"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "g12",
+  "file": "g12.pdf",
+  "format": "scanned_pdf",
+  "name": "Imran Qureshi",
+  "email": "imran.qureshi@example.com",
+  "skills": [
+    "aws",
+    "django",
+    "docker",
+    "git",
+    "postgresql",
+    "python",
+    "rest api"
+  ],
+  "titles": [
+    "backend engineer"
+  ],
+  "employers": [
+    "Northwind Systems"
+  ],
+  "experience_years": 6.6,
+  "as_of": "2026-11-23"
+}

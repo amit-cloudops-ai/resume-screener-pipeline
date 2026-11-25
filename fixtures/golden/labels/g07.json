@@ -1,0 +1,26 @@
+{
+  "id": "g07",
+  "file": "g07.pdf",
+  "format": "scanned_pdf",
+  "name": "Sneha Kulkarni",
+  "email": "sneha.kulkarni@example.com",
+  "skills": [
+    "machine learning",
+    "pandas",
+    "python",
+    "pytorch",
+    "scikit-learn",
+    "sql",
+    "tensorflow"
+  ],
+  "titles": [
+    "machine learning engineer",
+    "junior data scientist"
+  ],
+  "employers": [
+    "Northwind Systems",
+    "Kestrel Analytics"
+  ],
+  "experience_years": 6.8,
+  "as_of": "2026-11-23"
+}

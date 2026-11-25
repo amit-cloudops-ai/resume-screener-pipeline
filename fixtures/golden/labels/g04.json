@@ -1,0 +1,24 @@
+{
+  "id": "g04",
+  "file": "g04.pdf",
+  "format": "digital_pdf",
+  "name": "Kabir Shah",
+  "email": "kabir.shah@example.com",
+  "skills": [
+    "css",
+    "docker",
+    "git",
+    "html",
+    "javascript",
+    "react"
+  ],
+  "titles": [
+    "frontend engineer"
+  ],
+  "employers": [
+    "Bluepeak Technologies",
+    "Orbit Labs"
+  ],
+  "experience_years": 6.5,
+  "as_of": "2026-11-23"
+}

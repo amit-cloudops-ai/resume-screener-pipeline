@@ -1,0 +1,14 @@
+Rohan Iyer
+rohan.iyer@example.com | Pune, India
+SUMMARY
+Focused on clear communication and dependable delivery.
+SKILLS
+Python, Docker, AWS, EC2, Linux, Git
+EXPERIENCE
+Software Developer | Orbit Labs | Jan 2021 - Dec 2024
+• Built internal tools in Python and shipped them in Docker containers
+• Deployed services to AWS EC2 instances running Linux
+Junior Software Engineer | Kestrel Analytics | Jul 2019 - Dec 2020
+• Wrote automated checks and maintained Git workflows
+EDUCATION
+B.Tech Computer Science | State Institute of Technology | 2012 - 2016

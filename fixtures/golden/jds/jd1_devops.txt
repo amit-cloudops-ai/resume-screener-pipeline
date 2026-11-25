@@ -1,0 +1,9 @@
+DevOps Engineer
+
+We are hiring a DevOps Engineer to run our delivery platform.
+
+You will work with AWS, Docker, Kubernetes, Terraform, CI/CD pipelines, Python and Linux.
+
+Requirements
+Minimum 3+ years of experience in DevOps or platform roles.
+Good written communication.

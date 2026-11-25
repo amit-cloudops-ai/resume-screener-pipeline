@@ -1,0 +1,26 @@
+{
+  "id": "g06",
+  "file": "g06.pdf",
+  "format": "digital_pdf",
+  "name": "Arjun Rao",
+  "email": "arjun.rao@example.com",
+  "skills": [
+    "excel",
+    "pandas",
+    "power bi",
+    "python",
+    "sql",
+    "statistics",
+    "tableau"
+  ],
+  "titles": [
+    "data analyst",
+    "junior data analyst"
+  ],
+  "employers": [
+    "Harbor Cloud Services",
+    "Orbit Labs"
+  ],
+  "experience_years": 6.4,
+  "as_of": "2026-11-23"
+}

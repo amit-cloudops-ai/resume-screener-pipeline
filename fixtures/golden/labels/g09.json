@@ -1,0 +1,26 @@
+{
+  "id": "g09",
+  "file": "g09.pdf",
+  "format": "digital_pdf",
+  "name": "Pooja Singh",
+  "email": "pooja.singh@example.com",
+  "skills": [
+    "css",
+    "git",
+    "html",
+    "javascript",
+    "react",
+    "rest api",
+    "typescript"
+  ],
+  "titles": [
+    "senior frontend engineer",
+    "frontend engineer"
+  ],
+  "employers": [
+    "Harbor Cloud Services",
+    "Bluepeak Technologies"
+  ],
+  "experience_years": 10.6,
+  "as_of": "2026-11-23"
+}

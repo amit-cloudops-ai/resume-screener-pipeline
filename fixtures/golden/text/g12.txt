@@ -1,0 +1,13 @@
+Imran Qureshi
+imran.qureshi@example.com | Pune, India
+SUMMARY
+Happy to express concerns early and keep plans on track.
+SKILLS
+Python, Django, Postgres, REST API, AWS, Docker, Git
+EXPERIENCE
+Backend Engineer | Northwind Systems | May 2020 - Present
+• Built APIs with Python and Django
+• Stored data in Postgres and wrote REST API notes
+• Deployed to AWS using Docker
+EDUCATION
+B.Tech Computer Science | State Institute of Technology | 2012 - 2016

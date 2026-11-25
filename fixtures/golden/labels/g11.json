@@ -1,0 +1,22 @@
+{
+  "id": "g11",
+  "file": "g11.pdf",
+  "format": "scanned_pdf",
+  "name": "Tara Bose",
+  "email": "tara.bose@example.com",
+  "skills": [
+    "css",
+    "git",
+    "html",
+    "javascript",
+    "jquery"
+  ],
+  "titles": [
+    "junior frontend engineer"
+  ],
+  "employers": [
+    "Lumen Software"
+  ],
+  "experience_years": 1.9,
+  "as_of": "2026-11-23"
+}

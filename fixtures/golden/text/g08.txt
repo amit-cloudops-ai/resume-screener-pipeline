@@ -1,0 +1,14 @@
+Vikram Das
+vikram.das@example.com | Pune, India
+SUMMARY
+Quick to react to feedback and keen to learn every week.
+SKILLS
+Python, SQL, pandas
+EXPERIENCE
+Junior Data Scientist | Lumen Software | Aug 2024 - Present
+• Cleaned datasets with pandas and Python
+• Wrote SQL for ad hoc questions
+Data Intern | Orbit Labs | Jan 2024 - Jun 2024
+• Helped label training data
+EDUCATION
+Diploma in Computer Applications | City Polytechnic | 2014 - 2017

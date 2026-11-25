@@ -1,0 +1,12 @@
+Tara Bose
+tara.bose@example.com | Pune, India
+SUMMARY
+Enjoys swift delivery of small fixes.
+SKILLS
+HTML, CSS, JavaScript, jQuery, Git
+EXPERIENCE
+Junior Frontend Developer | Lumen Software | Jan 2025 - Present
+• Built landing pages with HTML, CSS and JavaScript
+• Added small features with jQuery
+EDUCATION
+Diploma in Computer Applications | City Polytechnic | 2014 - 2017

@@ -1,0 +1,8 @@
+Frontend Engineer
+
+We are hiring a Frontend Engineer for our web product.
+
+You will write JavaScript, TypeScript, React, HTML and CSS, call REST APIs and use Git daily.
+
+Requirements
+At least 2 years of experience shipping web interfaces.

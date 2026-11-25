@@ -1,0 +1,16 @@
+Asha Verma
+asha.verma@example.com | Pune, India
+SUMMARY
+Focused on clear communication and dependable delivery.
+SKILLS
+AWS, Docker, K8s, Terraform, CI/CD, Python, Linux, Jenkins, Helm, Git
+EXPERIENCE
+Senior DevOps Engineer | Northwind Systems | Mar 2020 - Present
+• Run production Kubernetes clusters on Amazon Web Services for 40 services
+• Cut deployment time by 60% with automated CI/CD pipelines
+• Codified infrastructure with Terraform and Docker images
+DevOps Engineer | Bluepeak Technologies | Jun 2017 - Feb 2020
+• Maintained Linux build servers and release scripts in Python
+• Set up Jenkins jobs for every repository
+EDUCATION
+B.Tech Computer Science | State Institute of Technology | 2012 - 2016

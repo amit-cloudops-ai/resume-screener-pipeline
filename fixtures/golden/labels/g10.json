@@ -1,0 +1,23 @@
+{
+  "id": "g10",
+  "file": "g10.docx",
+  "format": "docx_two_column",
+  "name": "Nikhil Joshi",
+  "email": "nikhil.joshi@example.com",
+  "skills": [
+    "css",
+    "git",
+    "html",
+    "javascript",
+    "react"
+  ],
+  "titles": [
+    "frontend engineer"
+  ],
+  "employers": [
+    "Orbit Labs",
+    "Kestrel Analytics"
+  ],
+  "experience_years": 6.8,
+  "as_of": "2026-11-23"
+}

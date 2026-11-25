@@ -1,0 +1,9 @@
+# Part A development / tests / golden-set generation (the repo's own requirements-dev.txt may already cover most of this)
+boto3
+moto[dynamodb,s3,sqs]>=5
+pytest
+jsonschema
+python-docx
+reportlab
+pillow
+pypdf

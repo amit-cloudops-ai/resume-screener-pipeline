@@ -1,0 +1,29 @@
+{
+  "id": "g01",
+  "file": "g01.pdf",
+  "format": "digital_pdf",
+  "name": "Asha Verma",
+  "email": "asha.verma@example.com",
+  "skills": [
+    "aws",
+    "ci/cd",
+    "docker",
+    "git",
+    "helm",
+    "jenkins",
+    "kubernetes",
+    "linux",
+    "python",
+    "terraform"
+  ],
+  "titles": [
+    "senior devops engineer",
+    "devops engineer"
+  ],
+  "employers": [
+    "Northwind Systems",
+    "Bluepeak Technologies"
+  ],
+  "experience_years": 9.5,
+  "as_of": "2026-11-23"
+}

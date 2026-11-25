@@ -1,0 +1,21 @@
+{
+  "id": "g08",
+  "file": "g08.docx",
+  "format": "docx_two_column",
+  "name": "Vikram Das",
+  "email": "vikram.das@example.com",
+  "skills": [
+    "pandas",
+    "python",
+    "sql"
+  ],
+  "titles": [
+    "junior data scientist"
+  ],
+  "employers": [
+    "Lumen Software",
+    "Orbit Labs"
+  ],
+  "experience_years": 2.8,
+  "as_of": "2026-11-23"
+}

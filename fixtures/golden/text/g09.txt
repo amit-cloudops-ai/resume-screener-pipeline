@@ -1,0 +1,15 @@
+Pooja Singh
+pooja.singh@example.com | Pune, India
+SUMMARY
+Focused on clear communication and dependable delivery.
+SKILLS
+JavaScript, TypeScript, React, HTML, CSS, REST API, Git
+EXPERIENCE
+Senior Frontend Engineer | Harbor Cloud Services | Feb 2019 - Present
+• Lead a React and TypeScript codebase used by 200k people
+• Built accessible pages with HTML and CSS
+• Integrated REST APIs and wrote JavaScript tests
+Frontend Developer | Bluepeak Technologies | May 2016 - Jan 2019
+• Maintained Git repositories and release branches
+EDUCATION
+B.Tech Computer Science | State Institute of Technology | 2012 - 2016

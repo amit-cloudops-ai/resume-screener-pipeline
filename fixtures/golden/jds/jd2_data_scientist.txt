@@ -1,0 +1,8 @@
+Data Scientist
+
+We are hiring a Data Scientist to build models for our customers.
+
+You will use Python, SQL, pandas, machine learning, scikit-learn, TensorFlow and statistics every day.
+
+Requirements
+3+ years of experience building models in production.

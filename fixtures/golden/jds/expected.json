@@ -1,0 +1,102 @@
+{
+  "as_of": "2026-11-23",
+  "note": "Ranking = brief section 7 formula applied to the hand labels; Amit reviews.",
+  "jds": [
+    {
+      "id": "jd1",
+      "file": "jd1_devops.txt",
+      "required_skills": [
+        "aws",
+        "docker",
+        "kubernetes",
+        "terraform",
+        "ci/cd",
+        "python",
+        "linux"
+      ],
+      "jd_titles": [
+        "devops engineer"
+      ],
+      "required_years": 3,
+      "expected_ranking": [
+        "g01",
+        "g03",
+        "g02",
+        "g12",
+        "g04",
+        "g07",
+        "g09",
+        "g10",
+        "g05",
+        "g06",
+        "g08",
+        "g11"
+      ],
+      "expected_top": "g01"
+    },
+    {
+      "id": "jd2",
+      "file": "jd2_data_scientist.txt",
+      "required_skills": [
+        "python",
+        "sql",
+        "pandas",
+        "machine learning",
+        "scikit-learn",
+        "tensorflow",
+        "statistics"
+      ],
+      "jd_titles": [
+        "data scientist"
+      ],
+      "required_years": 3,
+      "expected_ranking": [
+        "g05",
+        "g07",
+        "g08",
+        "g06",
+        "g01",
+        "g02",
+        "g12",
+        "g03",
+        "g04",
+        "g09",
+        "g10",
+        "g11"
+      ],
+      "expected_top": "g05"
+    },
+    {
+      "id": "jd3",
+      "file": "jd3_frontend.txt",
+      "required_skills": [
+        "javascript",
+        "typescript",
+        "react",
+        "html",
+        "css",
+        "rest api",
+        "git"
+      ],
+      "jd_titles": [
+        "frontend engineer"
+      ],
+      "required_years": 2,
+      "expected_ranking": [
+        "g09",
+        "g04",
+        "g10",
+        "g11",
+        "g12",
+        "g01",
+        "g02",
+        "g03",
+        "g07",
+        "g05",
+        "g06",
+        "g08"
+      ],
+      "expected_top": "g09"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+Sneha Kulkarni
+sneha.kulkarni@example.com | Pune, India
+SUMMARY
+Focused on clear communication and dependable delivery.
+SKILLS
+Python, SQL, pandas, scikit-learn, TensorFlow, PyTorch, Machine Learning
+EXPERIENCE
+ML Engineer | Northwind Systems | Oct 2021 - Present
+• Deployed machine learning models built with TensorFlow and PyTorch
+• Prepared training data with Python, pandas and SQL
+Junior Data Scientist | Kestrel Analytics | Feb 2020 - Sep 2021
+• Trained baseline models with scikit-learn
+EDUCATION
+B.Tech Computer Science | State Institute of Technology | 2012 - 2016

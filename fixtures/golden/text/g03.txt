@@ -1,0 +1,15 @@
+Meera Nair
+meera.nair@example.com | Pune, India
+SUMMARY
+Focused on clear communication and dependable delivery.
+SKILLS
+AWS, Kubernetes, Docker, Terraform, CI/CD, Linux
+EXPERIENCE
+Cloud Engineer | Harbor Cloud Services | Feb 2020 - Oct 2026
+• Moved legacy workloads to AWS and automated rollouts with Terraform
+• Operate Kubernetes clusters and Docker based services on Linux hosts
+• Maintain CI/CD pipelines for release teams
+System Administrator | Lumen Software | Aug 2016 - Jan 2020
+• Looked after Linux servers and backups
+EDUCATION
+Diploma in Computer Applications | City Polytechnic | 2014 - 2017

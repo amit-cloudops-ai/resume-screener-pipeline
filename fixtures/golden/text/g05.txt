@@ -1,0 +1,16 @@
+Divya Menon
+divya.menon@example.com | Pune, India
+SUMMARY
+Focused on clear communication and dependable delivery.
+SKILLS
+Python, SQL, pandas, Scikit Learn, TensorFlow, Machine Learning, Statistics
+EXPERIENCE
+Senior Data Scientist | Kestrel Analytics | Apr 2021 - Present
+• Trained churn models with scikit-learn and TensorFlow
+• Ran experiments and statistical analysis for pricing
+• Wrangled data with pandas and SQL
+Data Scientist | Lumen Software | Jan 2018 - Mar 2021
+• Built forecasting notebooks in Python
+• Applied machine learning to demand data
+EDUCATION
+M.Sc Statistics | Coastal University | 2013 - 2015

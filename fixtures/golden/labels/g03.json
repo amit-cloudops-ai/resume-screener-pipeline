@@ -1,0 +1,25 @@
+{
+  "id": "g03",
+  "file": "g03.pdf",
+  "format": "scanned_pdf",
+  "name": "Meera Nair",
+  "email": "meera.nair@example.com",
+  "skills": [
+    "aws",
+    "ci/cd",
+    "docker",
+    "kubernetes",
+    "linux",
+    "terraform"
+  ],
+  "titles": [
+    "cloud engineer",
+    "system administrator"
+  ],
+  "employers": [
+    "Harbor Cloud Services",
+    "Lumen Software"
+  ],
+  "experience_years": 10.2,
+  "as_of": "2026-11-23"
+}

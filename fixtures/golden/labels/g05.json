@@ -1,0 +1,26 @@
+{
+  "id": "g05",
+  "file": "g05.docx",
+  "format": "docx_two_column",
+  "name": "Divya Menon",
+  "email": "divya.menon@example.com",
+  "skills": [
+    "machine learning",
+    "pandas",
+    "python",
+    "scikit-learn",
+    "sql",
+    "statistics",
+    "tensorflow"
+  ],
+  "titles": [
+    "senior data scientist",
+    "data scientist"
+  ],
+  "employers": [
+    "Kestrel Analytics",
+    "Lumen Software"
+  ],
+  "experience_years": 8.9,
+  "as_of": "2026-11-23"
+}

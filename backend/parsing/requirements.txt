@@ -1,0 +1,2 @@
+# Runtime: only what the Lambdas need beyond the Python 3.12 runtime (which already provides boto3).
+python-docx>=1.1
