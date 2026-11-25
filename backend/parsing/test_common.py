@@ -45,7 +45,7 @@ def test_taxonomy_finds_aliases_and_canonical_skills():
 
 def test_entities_derive_name_email_employers_and_titles():
     fields = derive_fields(
-        "Priya Sharma\nContact: PRIYA@example.com.\\nPlatform Engineer\\nCompany: Acme Systems\\nJan 2020 - Dec 2022",
+        "Priya Sharma\nContact: PRIYA@example.com.\nPlatform Engineer\nCompany: Acme Systems\nJan 2020 - Dec 2022",
         {
             "standard": [],
             "custom": [],
