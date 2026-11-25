@@ -1,31 +1,20 @@
-# Contribution and attribution record
+# Team contributions
 
-## Integrated project
+This record is based on commit author metadata recovered from the historical feature branches that fed the integrated application. The final integration was squash-merged, which is why GitHub's default-branch contributor graph does not automatically show every original contributor.
 
-The default branch contains the integrated Resume Screener application, including recruiter frontend, AWS SAM infrastructure, asynchronous parsing and scoring pipeline, recruiter APIs, tests, fixtures and project documentation.
+| Contributor | Verified GitHub identity | Verified contribution areas | Evidence |
+|---|---|---|---|
+| Amit | [`amit-cloudops-ai`](https://github.com/amit-cloudops-ai) | Project integration, AWS SAM infrastructure, release coordination, integration fixes, deterministic NLP replacement, CI and project closeout | `feat/INT-full-pipeline-integration`, `feat/P2-infrastructure-readiness`, `feat/remove-comprehend-local-nlp` and integration PR history |
+| Gopi Krishna | [`dggk78`](https://github.com/dggk78) | A1 skills taxonomy and A2–A10 parsing pipeline, including golden set and tests | Authored commits `feat(parsing): A1 skills taxonomy` and `feat(parsing): A2-A10 pipeline, golden set, tests` on `feat/A1-skills-taxonomy` and `feat/A2-A10-parsing-pipeline` |
+| Sushmitha M | [`sush-kush`](https://github.com/sush-kush) | B1 scoring library; B2 score Lambda; B3 jobs API; B4 candidates API; B5 decision API; B6 shortlist CSV export; B7 failed-jobs API/retry; B8 NLP scoring explanation | Authored commits across `feat/B1-scoring-library` through `feat/B8-nlp-explanation` |
 
-## What GitHub currently records
+## Attribution notes
 
-A review of the current `main` commit history and the merged integration pull requests shows the visible commit author as the repository owner (`amit-cloudops-ai`). The GitHub repository page therefore reports one contributor.
+- Contributor names and module areas above are supported by commit author metadata and commit messages on the historical feature branches.
+- GitHub's Contributors panel may still show only the account that authored the squash merge on `main`. This is a display/history consequence, not a complete team roster.
+- The original feature branches are retained as provenance until branch cleanup is performed. Their code was incorporated into the integrated project; this document does not claim the feature branches themselves were merged with individual commit ancestry preserved.
+- No commit authorship has been rewritten or fabricated.
 
-This is an attribution limitation in the available Git history. It does **not**, by itself, prove that no teammates contributed code or design work. However, the current records inspected do not provide reliable per-person authorship for the integrated changes.
+## Integrated project areas
 
-## Attribution policy
-
-- Do not infer teammate names or assign modules to individuals without confirmation.
-- Do not rewrite commit authorship or manufacture commits to increase the Contributors count.
-- Preserve the merged implementation and PR history.
-- Add a named team contribution matrix only after the team confirms each person's name and specific contribution areas.
-
-## Current technical areas represented in the integrated repository
-
-- Recruiter frontend and dashboard workflows
-- AWS SAM infrastructure and deployment safeguards
-- JD and resume parsing pipeline
-- Deterministic NLP and skill taxonomy
-- Candidate scoring and ranking
-- Recruiter APIs, shortlist decisions and CSV export
-- Failed-job handling, retries and DLQ processing
-- Test fixtures, contract validation, CI and project documentation
-
-These are repository-level component areas, not individual ownership claims.
+The integrated application includes the recruiter frontend, authenticated APIs, job-description parsing, resume ingestion, deterministic extraction, scoring and ranking, candidate decisions, CSV export, failed-job handling, SQS/DLQ processing, AWS SAM infrastructure, test fixtures and CI.
