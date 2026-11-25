@@ -115,7 +115,7 @@ def test_wrong_s3_key_prefix_is_not_misclassified_as_parse_failure(tables):
     assert result == {"batchItemFailures": []}
     item = failed.scan()["Items"][0]
     assert item["stage"] == "UNKNOWN"
-    assert "expected jd/" in item["error_message"]
+    assert "must match jd/" in item["error_message"]
 
 
 def test_malformed_score_payload_is_recorded_with_diagnostic(tables):
