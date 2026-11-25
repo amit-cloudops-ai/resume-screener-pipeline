@@ -4,7 +4,7 @@ from decimal import Decimal
 from docx import Document
 from pathlib import Path
 
-from backend.parsing.common import derive_fields, experience_years, split_comprehend_text
+from backend.parsing.common import derive_fields, experience_years
 from backend.scoring.scoring import score_candidate
 
 
@@ -24,32 +24,20 @@ def test_taxonomy_meets_work_split_minimum_and_has_no_alias_collisions():
             aliases[key] = canonical
 
 
-def test_standard_comprehend_title_is_not_treated_as_a_job_title():
-    fields = derive_fields(
-        "Ada Example\nada@example.com\nWorked at Example Systems",
-        {
-            "standard": [
-                {"Type": "PERSON", "Text": "Ada Example"},
-                {"Type": "ORGANIZATION", "Text": "Example Systems"},
-                {"Type": "TITLE", "Text": "The Art of Cloud Computing"},
-            ],
-            "custom": [],
-        },
-    )
-    assert fields["titles"] == []
+def test_deterministic_extractor_does_not_invent_unlabelled_employers():
+    fields = derive_fields("Ada Example\\nada@example.com\\nThe Art of Cloud Computing")
     assert fields["name"] == "Ada Example"
-    assert fields["employers"] == ["Example Systems"]
+    assert fields["email"] == "ada@example.com"
+    assert fields["employers"] == []
+    assert fields["titles"] == []
 
 
-def test_custom_job_title_is_retained():
+def test_deterministic_extractor_finds_supported_role_and_labelled_employer():
     fields = derive_fields(
-        "Ada Example\nada@example.com",
-        {
-            "standard": [{"Type": "PERSON", "Text": "Ada Example"}],
-            "custom": [{"Type": "JOB_TITLE", "Text": "Senior Cloud Engineer"}],
-        },
+        "Ada Example\\nada@example.com\\nSenior Cloud Engineer\\nCompany: Example Systems"
     )
     assert fields["titles"] == ["senior cloud engineer"]
+    assert fields["employers"] == ["Example Systems"]
 
 
 def test_experience_uses_n_plus_fallback_when_dates_are_absent():
@@ -103,23 +91,6 @@ def test_scoring_still_rejects_boolean_numeric_values():
         assert "experience_years" in str(exc)
     else:
         raise AssertionError("boolean must not be accepted as a numeric experience value")
-
-
-def test_comprehend_chunking_prefers_sentence_boundaries_and_respects_limits():
-    first = "A" * 2000 + "."
-    second = "B" * 2000 + "."
-    third = "C" * 2000 + "."
-    chunks = split_comprehend_text(f"{first} {second} {third}")
-    assert chunks == [first + " " + second, third]
-    assert all(len(chunk) <= 4500 for chunk in chunks)
-    assert all(len(chunk.encode("utf-8")) <= 4800 for chunk in chunks)
-
-
-def test_comprehend_chunking_never_splits_utf8_codepoints():
-    text = ("Résumé ingénieur. " * 400)
-    chunks = split_comprehend_text(text)
-    assert "".join(chunks).replace(" ", "") == text.strip().replace(" ", "")
-    assert all(len(chunk.encode("utf-8")) <= 4800 for chunk in chunks)
 
 
 def _golden_data():
