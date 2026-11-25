@@ -1,0 +1,1205 @@
+{
+  "version": "1.0",
+  "skills": [
+    {
+      "canonical": "aws",
+      "aliases": [
+        "amazon web services"
+      ]
+    },
+    {
+      "canonical": "azure",
+      "aliases": [
+        "microsoft azure"
+      ]
+    },
+    {
+      "canonical": "gcp",
+      "aliases": [
+        "google cloud",
+        "google cloud platform"
+      ]
+    },
+    {
+      "canonical": "ec2",
+      "aliases": [
+        "amazon ec2"
+      ]
+    },
+    {
+      "canonical": "amazon s3",
+      "aliases": [
+        "s3",
+        "aws s3"
+      ]
+    },
+    {
+      "canonical": "aws lambda",
+      "aliases": [
+        "lambda functions"
+      ]
+    },
+    {
+      "canonical": "cloudformation",
+      "aliases": [
+        "aws cloudformation"
+      ]
+    },
+    {
+      "canonical": "cloudwatch",
+      "aliases": [
+        "amazon cloudwatch",
+        "aws cloudwatch"
+      ]
+    },
+    {
+      "canonical": "iam",
+      "aliases": [
+        "aws iam",
+        "identity and access management"
+      ]
+    },
+    {
+      "canonical": "vpc",
+      "aliases": [
+        "amazon vpc",
+        "virtual private cloud"
+      ]
+    },
+    {
+      "canonical": "route 53",
+      "aliases": [
+        "route53",
+        "amazon route 53"
+      ]
+    },
+    {
+      "canonical": "dynamodb",
+      "aliases": [
+        "amazon dynamodb",
+        "aws dynamodb"
+      ]
+    },
+    {
+      "canonical": "rds",
+      "aliases": [
+        "amazon rds",
+        "aws rds"
+      ]
+    },
+    {
+      "canonical": "eks",
+      "aliases": [
+        "amazon eks",
+        "aws eks"
+      ]
+    },
+    {
+      "canonical": "ecs",
+      "aliases": [
+        "amazon ecs",
+        "aws ecs"
+      ]
+    },
+    {
+      "canonical": "amazon sqs",
+      "aliases": [
+        "sqs",
+        "aws sqs"
+      ]
+    },
+    {
+      "canonical": "amazon sns",
+      "aliases": [
+        "sns",
+        "aws sns"
+      ]
+    },
+    {
+      "canonical": "api gateway",
+      "aliases": [
+        "amazon api gateway",
+        "aws api gateway"
+      ]
+    },
+    {
+      "canonical": "cloudfront",
+      "aliases": [
+        "amazon cloudfront",
+        "aws cloudfront"
+      ]
+    },
+    {
+      "canonical": "serverless",
+      "aliases": [
+        "serverless architecture"
+      ]
+    },
+    {
+      "canonical": "aws cdk",
+      "aliases": [
+        "cdk"
+      ]
+    },
+    {
+      "canonical": "cloud computing",
+      "aliases": [
+        "cloud platforms"
+      ]
+    },
+    {
+      "canonical": "docker",
+      "aliases": [
+        "docker containers",
+        "containerization"
+      ]
+    },
+    {
+      "canonical": "kubernetes",
+      "aliases": [
+        "k8s",
+        "kube"
+      ]
+    },
+    {
+      "canonical": "helm",
+      "aliases": [
+        "helm charts"
+      ]
+    },
+    {
+      "canonical": "terraform",
+      "aliases": [
+        "hashicorp terraform"
+      ]
+    },
+    {
+      "canonical": "ansible",
+      "aliases": []
+    },
+    {
+      "canonical": "jenkins",
+      "aliases": []
+    },
+    {
+      "canonical": "ci/cd",
+      "aliases": [
+        "cicd",
+        "ci cd",
+        "continuous integration",
+        "continuous delivery",
+        "continuous deployment",
+        "ci/cd pipelines"
+      ]
+    },
+    {
+      "canonical": "github actions",
+      "aliases": []
+    },
+    {
+      "canonical": "gitlab ci",
+      "aliases": [
+        "gitlab ci/cd"
+      ]
+    },
+    {
+      "canonical": "argo cd",
+      "aliases": [
+        "argocd"
+      ]
+    },
+    {
+      "canonical": "prometheus",
+      "aliases": []
+    },
+    {
+      "canonical": "grafana",
+      "aliases": []
+    },
+    {
+      "canonical": "nginx",
+      "aliases": []
+    },
+    {
+      "canonical": "linux",
+      "aliases": [
+        "gnu/linux"
+      ]
+    },
+    {
+      "canonical": "unix",
+      "aliases": []
+    },
+    {
+      "canonical": "bash",
+      "aliases": [
+        "bash scripting",
+        "shell scripting"
+      ]
+    },
+    {
+      "canonical": "powershell",
+      "aliases": []
+    },
+    {
+      "canonical": "git",
+      "aliases": [
+        "git version control"
+      ]
+    },
+    {
+      "canonical": "github",
+      "aliases": []
+    },
+    {
+      "canonical": "gitlab",
+      "aliases": []
+    },
+    {
+      "canonical": "bitbucket",
+      "aliases": []
+    },
+    {
+      "canonical": "infrastructure as code",
+      "aliases": [
+        "iac"
+      ]
+    },
+    {
+      "canonical": "datadog",
+      "aliases": []
+    },
+    {
+      "canonical": "splunk",
+      "aliases": []
+    },
+    {
+      "canonical": "elk stack",
+      "aliases": [
+        "elk"
+      ]
+    },
+    {
+      "canonical": "elasticsearch",
+      "aliases": [
+        "elastic search"
+      ]
+    },
+    {
+      "canonical": "kafka",
+      "aliases": [
+        "apache kafka"
+      ]
+    },
+    {
+      "canonical": "rabbitmq",
+      "aliases": []
+    },
+    {
+      "canonical": "redis",
+      "aliases": []
+    },
+    {
+      "canonical": "monitoring",
+      "aliases": [
+        "observability"
+      ]
+    },
+    {
+      "canonical": "load balancing",
+      "aliases": [
+        "load balancer",
+        "load balancers"
+      ]
+    },
+    {
+      "canonical": "networking",
+      "aliases": [
+        "computer networking"
+      ]
+    },
+    {
+      "canonical": "tcp/ip",
+      "aliases": [
+        "tcpip"
+      ]
+    },
+    {
+      "canonical": "dns",
+      "aliases": []
+    },
+    {
+      "canonical": "vpn",
+      "aliases": []
+    },
+    {
+      "canonical": "openshift",
+      "aliases": []
+    },
+    {
+      "canonical": "istio",
+      "aliases": []
+    },
+    {
+      "canonical": "python",
+      "aliases": [
+        "python3",
+        "python 3"
+      ]
+    },
+    {
+      "canonical": "java",
+      "aliases": []
+    },
+    {
+      "canonical": "javascript",
+      "aliases": [
+        "js",
+        "ecmascript",
+        "es6"
+      ]
+    },
+    {
+      "canonical": "typescript",
+      "aliases": [
+        "ts"
+      ]
+    },
+    {
+      "canonical": "golang",
+      "aliases": [
+        "go lang"
+      ]
+    },
+    {
+      "canonical": "rust",
+      "aliases": []
+    },
+    {
+      "canonical": "c++",
+      "aliases": [
+        "cpp"
+      ]
+    },
+    {
+      "canonical": "c#",
+      "aliases": [
+        "csharp",
+        "c sharp"
+      ]
+    },
+    {
+      "canonical": "php",
+      "aliases": []
+    },
+    {
+      "canonical": "ruby",
+      "aliases": []
+    },
+    {
+      "canonical": "ruby on rails",
+      "aliases": [
+        "rails"
+      ]
+    },
+    {
+      "canonical": "kotlin",
+      "aliases": []
+    },
+    {
+      "canonical": "swift",
+      "aliases": []
+    },
+    {
+      "canonical": "scala",
+      "aliases": []
+    },
+    {
+      "canonical": "r language",
+      "aliases": [
+        "r programming",
+        "rstats"
+      ]
+    },
+    {
+      "canonical": "sql",
+      "aliases": [
+        "structured query language"
+      ]
+    },
+    {
+      "canonical": "perl",
+      "aliases": []
+    },
+    {
+      "canonical": "matlab",
+      "aliases": []
+    },
+    {
+      "canonical": "react",
+      "aliases": [
+        "reactjs",
+        "react.js"
+      ]
+    },
+    {
+      "canonical": "angular",
+      "aliases": [
+        "angularjs",
+        "angular.js"
+      ]
+    },
+    {
+      "canonical": "vue",
+      "aliases": [
+        "vuejs",
+        "vue.js"
+      ]
+    },
+    {
+      "canonical": "node.js",
+      "aliases": [
+        "nodejs",
+        "node js"
+      ]
+    },
+    {
+      "canonical": "express",
+      "aliases": [
+        "express.js",
+        "expressjs"
+      ]
+    },
+    {
+      "canonical": "next.js",
+      "aliases": [
+        "nextjs"
+      ]
+    },
+    {
+      "canonical": "html",
+      "aliases": [
+        "html5"
+      ]
+    },
+    {
+      "canonical": "css",
+      "aliases": [
+        "css3"
+      ]
+    },
+    {
+      "canonical": "sass",
+      "aliases": [
+        "scss"
+      ]
+    },
+    {
+      "canonical": "tailwind css",
+      "aliases": [
+        "tailwindcss",
+        "tailwind"
+      ]
+    },
+    {
+      "canonical": "redux",
+      "aliases": []
+    },
+    {
+      "canonical": "webpack",
+      "aliases": []
+    },
+    {
+      "canonical": "rest api",
+      "aliases": [
+        "restful api",
+        "rest apis",
+        "restful apis"
+      ]
+    },
+    {
+      "canonical": "graphql",
+      "aliases": []
+    },
+    {
+      "canonical": "django",
+      "aliases": []
+    },
+    {
+      "canonical": "flask",
+      "aliases": []
+    },
+    {
+      "canonical": "fastapi",
+      "aliases": []
+    },
+    {
+      "canonical": "spring boot",
+      "aliases": [
+        "springboot"
+      ]
+    },
+    {
+      "canonical": "spring",
+      "aliases": [
+        "spring framework"
+      ]
+    },
+    {
+      "canonical": ".net",
+      "aliases": [
+        "dotnet",
+        ".net core",
+        "asp.net"
+      ]
+    },
+    {
+      "canonical": "laravel",
+      "aliases": []
+    },
+    {
+      "canonical": "react native",
+      "aliases": []
+    },
+    {
+      "canonical": "flutter",
+      "aliases": []
+    },
+    {
+      "canonical": "android",
+      "aliases": []
+    },
+    {
+      "canonical": "ios",
+      "aliases": []
+    },
+    {
+      "canonical": "jquery",
+      "aliases": []
+    },
+    {
+      "canonical": "bootstrap",
+      "aliases": []
+    },
+    {
+      "canonical": "pandas",
+      "aliases": []
+    },
+    {
+      "canonical": "numpy",
+      "aliases": []
+    },
+    {
+      "canonical": "scikit-learn",
+      "aliases": [
+        "sklearn",
+        "scikit learn"
+      ]
+    },
+    {
+      "canonical": "tensorflow",
+      "aliases": []
+    },
+    {
+      "canonical": "pytorch",
+      "aliases": []
+    },
+    {
+      "canonical": "keras",
+      "aliases": []
+    },
+    {
+      "canonical": "machine learning",
+      "aliases": [
+        "ml"
+      ]
+    },
+    {
+      "canonical": "deep learning",
+      "aliases": []
+    },
+    {
+      "canonical": "nlp",
+      "aliases": [
+        "natural language processing"
+      ]
+    },
+    {
+      "canonical": "computer vision",
+      "aliases": []
+    },
+    {
+      "canonical": "data analysis",
+      "aliases": [
+        "data analytics"
+      ]
+    },
+    {
+      "canonical": "data engineering",
+      "aliases": []
+    },
+    {
+      "canonical": "etl",
+      "aliases": [
+        "etl pipelines"
+      ]
+    },
+    {
+      "canonical": "apache spark",
+      "aliases": [
+        "spark",
+        "pyspark"
+      ]
+    },
+    {
+      "canonical": "hadoop",
+      "aliases": []
+    },
+    {
+      "canonical": "airflow",
+      "aliases": [
+        "apache airflow"
+      ]
+    },
+    {
+      "canonical": "dbt",
+      "aliases": []
+    },
+    {
+      "canonical": "tableau",
+      "aliases": []
+    },
+    {
+      "canonical": "power bi",
+      "aliases": [
+        "powerbi"
+      ]
+    },
+    {
+      "canonical": "excel",
+      "aliases": [
+        "microsoft excel",
+        "ms excel"
+      ]
+    },
+    {
+      "canonical": "snowflake",
+      "aliases": []
+    },
+    {
+      "canonical": "redshift",
+      "aliases": [
+        "amazon redshift"
+      ]
+    },
+    {
+      "canonical": "bigquery",
+      "aliases": [
+        "google bigquery"
+      ]
+    },
+    {
+      "canonical": "databricks",
+      "aliases": []
+    },
+    {
+      "canonical": "mlops",
+      "aliases": []
+    },
+    {
+      "canonical": "jupyter",
+      "aliases": [
+        "jupyter notebook",
+        "jupyter notebooks"
+      ]
+    },
+    {
+      "canonical": "statistics",
+      "aliases": [
+        "statistical analysis"
+      ]
+    },
+    {
+      "canonical": "data visualization",
+      "aliases": [
+        "data visualisation"
+      ]
+    },
+    {
+      "canonical": "hugging face",
+      "aliases": [
+        "huggingface"
+      ]
+    },
+    {
+      "canonical": "opencv",
+      "aliases": []
+    },
+    {
+      "canonical": "postgresql",
+      "aliases": [
+        "postgres"
+      ]
+    },
+    {
+      "canonical": "mysql",
+      "aliases": []
+    },
+    {
+      "canonical": "mongodb",
+      "aliases": [
+        "mongo"
+      ]
+    },
+    {
+      "canonical": "sql server",
+      "aliases": [
+        "mssql",
+        "microsoft sql server"
+      ]
+    },
+    {
+      "canonical": "oracle",
+      "aliases": [
+        "oracle database",
+        "oracle db"
+      ]
+    },
+    {
+      "canonical": "sqlite",
+      "aliases": []
+    },
+    {
+      "canonical": "cassandra",
+      "aliases": [
+        "apache cassandra"
+      ]
+    },
+    {
+      "canonical": "neo4j",
+      "aliases": []
+    },
+    {
+      "canonical": "agile",
+      "aliases": [
+        "agile methodology"
+      ]
+    },
+    {
+      "canonical": "scrum",
+      "aliases": []
+    },
+    {
+      "canonical": "kanban",
+      "aliases": []
+    },
+    {
+      "canonical": "jira",
+      "aliases": []
+    },
+    {
+      "canonical": "confluence",
+      "aliases": []
+    },
+    {
+      "canonical": "tdd",
+      "aliases": [
+        "test driven development"
+      ]
+    },
+    {
+      "canonical": "unit testing",
+      "aliases": [
+        "unit tests"
+      ]
+    },
+    {
+      "canonical": "pytest",
+      "aliases": []
+    },
+    {
+      "canonical": "junit",
+      "aliases": []
+    },
+    {
+      "canonical": "selenium",
+      "aliases": []
+    },
+    {
+      "canonical": "cypress",
+      "aliases": []
+    },
+    {
+      "canonical": "postman",
+      "aliases": []
+    },
+    {
+      "canonical": "microservices",
+      "aliases": [
+        "microservice architecture"
+      ]
+    },
+    {
+      "canonical": "system design",
+      "aliases": [
+        "systems design"
+      ]
+    },
+    {
+      "canonical": "oauth",
+      "aliases": [
+        "oauth2",
+        "oauth 2.0"
+      ]
+    },
+    {
+      "canonical": "jwt",
+      "aliases": [
+        "json web token"
+      ]
+    },
+    {
+      "canonical": "cybersecurity",
+      "aliases": [
+        "information security",
+        "infosec"
+      ]
+    },
+    {
+      "canonical": "owasp",
+      "aliases": []
+    },
+    {
+      "canonical": "penetration testing",
+      "aliases": [
+        "pentesting"
+      ]
+    },
+    {
+      "canonical": "code review",
+      "aliases": [
+        "code reviews"
+      ]
+    },
+    {
+      "canonical": "api design",
+      "aliases": []
+    },
+    {
+      "canonical": "technical documentation",
+      "aliases": []
+    },
+    {
+      "canonical": "object-oriented programming",
+      "aliases": [
+        "oop",
+        "object oriented programming"
+      ]
+    },
+    {
+      "canonical": "design patterns",
+      "aliases": []
+    },
+    {
+      "canonical": "data structures",
+      "aliases": [
+        "data structures and algorithms",
+        "dsa"
+      ]
+    },
+    {
+      "canonical": "algorithms",
+      "aliases": []
+    },
+    {
+      "canonical": "project management",
+      "aliases": []
+    },
+    {
+      "canonical": "product management",
+      "aliases": []
+    },
+    {
+      "canonical": "business analysis",
+      "aliases": []
+    },
+    {
+      "canonical": "stakeholder management",
+      "aliases": []
+    },
+    {
+      "canonical": "salesforce",
+      "aliases": []
+    },
+    {
+      "canonical": "sap",
+      "aliases": []
+    },
+    {
+      "canonical": "ui/ux design",
+      "aliases": [
+        "ux design",
+        "ui design"
+      ]
+    },
+    {
+      "canonical": "figma",
+      "aliases": []
+    },
+    {
+      "canonical": "digital marketing",
+      "aliases": []
+    },
+    {
+      "canonical": "seo",
+      "aliases": []
+    },
+    {
+      "canonical": "customer support",
+      "aliases": []
+    },
+    {
+      "canonical": "technical writing",
+      "aliases": []
+    },
+    {
+      "canonical": "team leadership",
+      "aliases": [
+        "people management"
+      ]
+    },
+    {
+      "canonical": "mentoring",
+      "aliases": []
+    }
+  ],
+  "job_titles": [
+    {
+      "canonical": "devops engineer",
+      "aliases": [
+        "dev ops engineer",
+        "devops eng"
+      ]
+    },
+    {
+      "canonical": "site reliability engineer",
+      "aliases": [
+        "sre"
+      ]
+    },
+    {
+      "canonical": "cloud engineer",
+      "aliases": [
+        "cloud infrastructure engineer"
+      ]
+    },
+    {
+      "canonical": "platform engineer",
+      "aliases": []
+    },
+    {
+      "canonical": "release engineer",
+      "aliases": [
+        "build and release engineer"
+      ]
+    },
+    {
+      "canonical": "software engineer",
+      "aliases": [
+        "software developer",
+        "sde",
+        "swe",
+        "software development engineer",
+        "programmer"
+      ]
+    },
+    {
+      "canonical": "backend engineer",
+      "aliases": [
+        "backend developer",
+        "back-end developer",
+        "back end developer",
+        "server-side developer"
+      ]
+    },
+    {
+      "canonical": "frontend engineer",
+      "aliases": [
+        "frontend developer",
+        "front-end developer",
+        "front end developer",
+        "ui developer"
+      ]
+    },
+    {
+      "canonical": "full stack engineer",
+      "aliases": [
+        "full stack developer",
+        "full-stack developer",
+        "fullstack developer"
+      ]
+    },
+    {
+      "canonical": "android developer",
+      "aliases": [
+        "android engineer"
+      ]
+    },
+    {
+      "canonical": "ios developer",
+      "aliases": [
+        "ios engineer"
+      ]
+    },
+    {
+      "canonical": "data engineer",
+      "aliases": []
+    },
+    {
+      "canonical": "data scientist",
+      "aliases": []
+    },
+    {
+      "canonical": "data analyst",
+      "aliases": []
+    },
+    {
+      "canonical": "machine learning engineer",
+      "aliases": [
+        "ml engineer"
+      ]
+    },
+    {
+      "canonical": "qa engineer",
+      "aliases": [
+        "quality assurance engineer",
+        "test engineer",
+        "sdet",
+        "software tester"
+      ]
+    },
+    {
+      "canonical": "security engineer",
+      "aliases": [
+        "cybersecurity engineer",
+        "information security engineer"
+      ]
+    },
+    {
+      "canonical": "solutions architect",
+      "aliases": [
+        "solution architect"
+      ]
+    },
+    {
+      "canonical": "cloud architect",
+      "aliases": []
+    },
+    {
+      "canonical": "system administrator",
+      "aliases": [
+        "sysadmin",
+        "systems administrator"
+      ]
+    },
+    {
+      "canonical": "network engineer",
+      "aliases": []
+    },
+    {
+      "canonical": "database administrator",
+      "aliases": [
+        "dba"
+      ]
+    },
+    {
+      "canonical": "product manager",
+      "aliases": []
+    },
+    {
+      "canonical": "project manager",
+      "aliases": []
+    },
+    {
+      "canonical": "business analyst",
+      "aliases": []
+    },
+    {
+      "canonical": "ui/ux designer",
+      "aliases": [
+        "ux designer",
+        "ui designer",
+        "product designer"
+      ]
+    },
+    {
+      "canonical": "engineering manager",
+      "aliases": []
+    },
+    {
+      "canonical": "technical writer",
+      "aliases": []
+    },
+    {
+      "canonical": "support engineer",
+      "aliases": [
+        "technical support engineer"
+      ]
+    },
+    {
+      "canonical": "consultant",
+      "aliases": []
+    }
+  ],
+  "seniority_levels": [
+    {
+      "level": 0,
+      "canonical": "intern",
+      "aliases": [
+        "trainee",
+        "internship"
+      ]
+    },
+    {
+      "level": 1,
+      "canonical": "junior",
+      "aliases": [
+        "jr",
+        "entry level",
+        "graduate"
+      ]
+    },
+    {
+      "level": 2,
+      "canonical": "mid",
+      "aliases": [
+        "mid-level",
+        "mid level",
+        "intermediate"
+      ]
+    },
+    {
+      "level": 3,
+      "canonical": "senior",
+      "aliases": [
+        "sr"
+      ]
+    },
+    {
+      "level": 4,
+      "canonical": "lead",
+      "aliases": [
+        "team lead",
+        "tech lead",
+        "staff"
+      ]
+    },
+    {
+      "level": 5,
+      "canonical": "principal",
+      "aliases": [
+        "distinguished"
+      ]
+    }
+  ]
+}
