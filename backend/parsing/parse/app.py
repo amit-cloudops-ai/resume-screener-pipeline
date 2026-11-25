@@ -1,4 +1,4 @@
-"""SQS resume parser: S3 -> Textract/DOCX -> Comprehend -> DynamoDB -> score queue."""
+"""SQS resume parser: S3 -> Textract/DOCX -> deterministic NLP -> DynamoDB -> score queue."""
 from __future__ import annotations
 
 import json
