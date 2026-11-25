@@ -25,7 +25,7 @@ def test_taxonomy_meets_work_split_minimum_and_has_no_alias_collisions():
 
 
 def test_deterministic_extractor_does_not_invent_unlabelled_employers():
-    fields = derive_fields("Ada Example\\nada@example.com\\nThe Art of Cloud Computing")
+    fields = derive_fields("Ada Example\nada@example.com\nThe Art of Cloud Computing")
     assert fields["name"] == "Ada Example"
     assert fields["email"] == "ada@example.com"
     assert fields["employers"] == []
@@ -34,7 +34,7 @@ def test_deterministic_extractor_does_not_invent_unlabelled_employers():
 
 def test_deterministic_extractor_finds_supported_role_and_labelled_employer():
     fields = derive_fields(
-        "Ada Example\\nada@example.com\\nSenior Cloud Engineer\\nCompany: Example Systems"
+        "Ada Example\nada@example.com\nSenior Cloud Engineer\nCompany: Example Systems"
     )
     assert fields["titles"] == ["senior cloud engineer"]
     assert fields["employers"] == ["Example Systems"]
