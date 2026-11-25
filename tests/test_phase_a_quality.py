@@ -219,7 +219,23 @@ def test_golden_job_rankings_match_human_labelled_top_candidate():
 def test_jd_parser_template_declares_every_required_table_environment_variable():
     import yaml
 
-    template = yaml.safe_load((ROOT / "infra" / "template.yaml").read_text(encoding="utf-8"))
+    class CloudFormationLoader(yaml.SafeLoader):
+        pass
+
+    def construct_cloudformation_tag(loader, tag_suffix, node):
+        if tag_suffix == "Ref":
+            return {"Ref": loader.construct_scalar(node)}
+        if isinstance(node, yaml.SequenceNode):
+            return loader.construct_sequence(node)
+        if isinstance(node, yaml.MappingNode):
+            return loader.construct_mapping(node)
+        return loader.construct_scalar(node)
+
+    CloudFormationLoader.add_multi_constructor("!", construct_cloudformation_tag)
+    template = yaml.load(
+        (ROOT / "infra" / "template.yaml").read_text(encoding="utf-8"),
+        Loader=CloudFormationLoader,
+    )
     variables = (
         template["Resources"]["JdParseFunction"]["Properties"]["Environment"]["Variables"]
     )
