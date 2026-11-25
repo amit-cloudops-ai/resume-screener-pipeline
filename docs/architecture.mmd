@@ -1,75 +1,89 @@
 flowchart TB
-  subgraph Browser["Recruiter browser"]
-    UI["React + Vite recruiter workspace"]
-    AUTH["Amazon Cognito User Pool\nSRP sign-in · ID token"]
+  subgraph Recruiter["Recruiter experience"]
+    USER["Recruiter"]
+    UI["React + Vite dashboard"]
+    AUTH["Amazon Cognito\nSRP sign-in · ID token"]
+    USER --> UI
+    UI <-->|"sign-in"| AUTH
   end
-  subgraph Edge["Web delivery and API edge"]
+
+  subgraph Delivery["Web delivery and API"]
     CF["Amazon CloudFront · HTTPS"]
-    WEB["Private S3 frontend bucket · OAC"]
-    APIGW["API Gateway REST · Cognito authorizer"]
+    WEB[("Private S3 frontend bucket")]
+    APIGW["API Gateway REST\nCognito authorizer"]
+    UI --> CF --> WEB
+    UI -->|"ID token"| APIGW
   end
-  subgraph API["Recruiter API Lambdas"]
-    JOBS["Jobs API\ncreate · list · upload URLs"]
-    CAND["Candidates API\nlist · detail"]
-    DEC["Decision API\nshortlist · reject"]
-    EXPORT["Export API\nshortlist CSV"]
-    FAILED["Failed-jobs API\nlist · retry"]
+
+  subgraph APIs["API Lambda handlers"]
+    JOBS["Jobs API"]
+    CAND["Candidates API"]
+    DEC["Decision API"]
+    EXPORT["CSV export API"]
+    FAILED["Failed-jobs API"]
+    APIGW --> JOBS
+    APIGW --> CAND
+    APIGW --> DEC
+    APIGW --> EXPORT
+    APIGW --> FAILED
   end
-  subgraph Data["Data and object storage"]
+
+  subgraph Storage["Data and object storage"]
     JOBTABLE[("DynamoDB jobs")]
     CANDTABLE[("DynamoDB candidates")]
-    FAILTABLE[("DynamoDB failed_jobs")]
-    UPLOADS[("Private S3 uploads bucket\nJD · resumes · parsed artifacts")]
+    FAILTABLE[("DynamoDB failed jobs")]
+    UPLOADS[("Private S3 uploads bucket\nJD · resumes · parsed JSON")]
+    JOBS --> JOBTABLE
+    JOBS -->|"presigned upload"| UPLOADS
+    CAND --> CANDTABLE
+    CAND --> JOBTABLE
+    DEC --> CANDTABLE
+    EXPORT --> CANDTABLE
+    FAILED --> FAILTABLE
   end
-  subgraph Pipeline["Asynchronous processing"]
-    JDQ[["SQS JD queue"]]
-    PARSEQ[["SQS parse queue"]]
-    SCOREQ[["SQS score queue"]]
-    JDP["JD parse Lambda"]
-    PARSE["Resume parse Lambda"]
-    SCORE["Deterministic score Lambda\n50% skills · 30% title · 20% experience"]
-    TEXTRACT["Amazon Textract\nPDF text detection"]
-    COMPREHEND["Amazon Comprehend\nstandard entities"]
-    TAXONOMY["Skills taxonomy + field derivation"]
+
+  subgraph Pipeline["Event-driven processing"]
+    JDOBJ["JD upload"] --> JDQ[["SQS JD queue"]] --> JDP["JD parse Lambda"]
+    RESOBJ["Resume upload"] --> PARSEQ[["SQS parse queue"]] --> PARSE["Resume parse Lambda"]
+    UPLOADS --> JDOBJ
+    UPLOADS --> RESOBJ
+    JDP -->|"DOCX / text extraction\nPDF uses Textract"| NLPJD["Deterministic Python NLP\nskills · title · experience"]
+    PARSE --> DOCX["DOCX: python-docx\nworking in live dev"]
+    PARSE --> PDF["PDF: Amazon Textract\nBLOCKED in live dev"]
+    DOCX --> NLPRES["Deterministic Python NLP\nprofile · skills · experience"]
+    PDF --> NLPRES
+    NLPJD --> JOBTABLE
+    NLPRES --> CANDTABLE
+    NLPRES --> ARTIFACT["Parsed JSON artifact in S3"]
+    NLPRES --> SCOREQ[["SQS score queue"]]
+    JDP --> SCOREQ
+    SCOREQ --> SCORE["Score Lambda\n50% skills · 30% title · 20% experience"]
+    JOBTABLE --> SCORE
+    CANDTABLE --> SCORE
+    SCORE --> CANDTABLE
   end
-  subgraph Recovery["Failure recovery and operations"]
+
+  subgraph Recovery["Recovery and operations"]
     DLQS[["Parse · JD · Score DLQs"]]
     DLQ["DLQ consumer Lambda"]
-    CW["CloudWatch logs, metrics and alarms"]
-    SNS["SNS alert topic"]
-    BUDGET["AWS Budget notification"]
+    DLQ --> FAILTABLE
+    PARSEQ -.-> DLQS
+    SCOREQ -.-> DLQS
+    JDQ -.-> DLQS
+    CW["CloudWatch logs / metrics / alarms"]
+    BUDGET["AWS Budget alert"]
+    SNS["SNS notifications (configured conditionally)"]
+    SES["SES shortlist email\nnot live-verified"]
+    APIs --> CW
+    Pipeline --> CW
+    CW --> SNS
+    BUDGET -.-> SNS
+    DEC -.-> SES
   end
-  SES["Amazon SES\nshortlist email"]
-  UI --> CF --> WEB
-  UI <-->|"sign-in / ID token"| AUTH
-  UI -->|"Authorization: raw Cognito ID token"| APIGW
-  APIGW --> JOBS & CAND & DEC & EXPORT & FAILED
-  JOBS --> JOBTABLE
-  JOBS -->|"presigned PUT URL"| UI
-  UI -->|"direct presigned upload"| UPLOADS
-  UPLOADS -->|"jd/ object-created"| JDQ --> JDP
-  UPLOADS -->|"resumes/ object-created"| PARSEQ --> PARSE
-  JDP -->|"extract JD text"| TEXTRACT
-  PARSE -->|"PDF extraction"| TEXTRACT
-  PARSE --> COMPREHEND --> TAXONOMY
-  JDP --> JOBTABLE
-  JDP -->|"JD_READY score messages"| SCOREQ
-  PARSE --> CANDTABLE
-  PARSE -->|"parsed JSON audit artifact"| UPLOADS
-  PARSE -->|"candidate score message"| SCOREQ
-  SCOREQ --> SCORE
-  SCORE --> JOBTABLE
-  SCORE --> CANDTABLE
-  CAND --> CANDTABLE
-  CAND --> JOBTABLE
-  DEC --> CANDTABLE
-  DEC --> SES
-  EXPORT --> CANDTABLE
-  FAILED --> FAILTABLE
-  FAILED -->|"stage-aware retry"| JDQ & PARSEQ & SCOREQ
-  PARSEQ & JDQ & SCOREQ --> DLQS --> DLQ --> FAILTABLE
-  API --> CW
-  Pipeline --> CW
-  Recovery --> CW
-  CW --> SNS
-  BUDGET -.-> SNS
+
+  classDef live fill:#e8f0e8,stroke:#315b43,color:#183d2a,stroke-width:1.5px
+  classDef blocked fill:#fff0d8,stroke:#b77b22,color:#6b4610,stroke-width:2px
+  classDef unverified fill:#eef0f2,stroke:#77818b,color:#303840
+  class UI,AUTH,CF,WEB,APIGW,JOBS,CAND,DEC,EXPORT,FAILED,JOBTABLE,CANDTABLE,FAILTABLE,UPLOADS,JDQ,PARSEQ,DOCX,NLPJD,NLPRES,SCOREQ,SCORE,DLQ,CW live
+  class PDF blocked
+  class SES,SNS,BUDGET unverified
