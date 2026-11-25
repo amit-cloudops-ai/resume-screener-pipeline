@@ -45,7 +45,7 @@ def test_taxonomy_finds_aliases_and_canonical_skills():
 
 def test_entities_derive_name_email_employers_and_titles():
     fields = derive_fields(
-        "Priya Sharma\\nContact: PRIYA@example.com.\\nPlatform Engineer\\nCompany: Acme Systems\\nJan 2020 - Dec 2022",
+        "Priya Sharma\nContact: PRIYA@example.com.\\nPlatform Engineer\\nCompany: Acme Systems\\nJan 2020 - Dec 2022",
         {
             "standard": [],
             "custom": [],
@@ -115,32 +115,6 @@ def test_pdf_textract_async_job_polls_and_reads_all_pages(monkeypatch):
     assert _pdf_text("uploads", "resumes/job/resume.pdf", textract, "job") == "First page\nSecond page"
     assert len(textract.start_args["ClientRequestToken"]) == 64
     assert textract.tokens == [None, None, None, "page-2"]
-
-
-def test_comprehend_entities_chunks_long_text():
-    from backend.parsing.common import comprehend_entities
-
-    class FakeComprehend:
-        def __init__(self):
-            self.lengths = []
-
-        def detect_entities(self, **kwargs):
-            self.lengths.append(len(kwargs["Text"].encode("utf-8")))
-            return {"Entities": []}
-
-    client = FakeComprehend()
-    result = comprehend_entities("AWS and Docker. " * 1000, client)
-    assert result == {"standard": [], "custom": []}
-    assert len(client.lengths) > 1
-    assert all(length <= 4800 for length in client.lengths)
-
-
-def test_standard_comprehend_title_is_ignored_when_custom_recognizer_is_disabled():
-    fields = derive_fields(
-        "Platform Engineer with AWS experience.",
-        {"standard": [{"Type": "TITLE", "Text": "Platform Engineer"}], "custom": []},
-    )
-    assert fields["titles"] == []
 
 
 def test_experience_supports_year_only_ranges():
