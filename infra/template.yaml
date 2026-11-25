@@ -374,6 +374,7 @@ Resources:
       Environment:
         Variables:
           JOBS_TABLE: !Ref JobsTable
+          CANDIDATES_TABLE: !Ref CandidatesTable
           FAILED_TABLE: !Ref FailedJobsTable
           UPLOADS_BUCKET: !Ref UploadsBucket
           SCORE_QUEUE_URL: !Ref ScoreQueue
