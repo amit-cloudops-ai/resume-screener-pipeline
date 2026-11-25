@@ -1,28 +1,50 @@
-# 01 — Architecture (locked)
+# 01 — Architecture (implemented design and live status)
 
+## Runtime flow
+
+```text
+Recruiter browser
+  ├─ CloudFront HTTPS → private S3 React/Vite frontend
+  └─ Cognito SRP sign-in → raw Cognito ID token
+       └─ API Gateway REST (Cognito authorizer)
+            └─ API Lambdas: jobs · candidates · decisions · export · failed jobs
+                 ├─ DynamoDB: jobs · candidates · failed_jobs
+                 ├─ S3 presigned uploads / parsed JSON artifacts
+                 └─ SES shortlist email (implemented; live delivery not accepted)
+
+S3 JD object → SQS JD queue → JD parse Lambda
+  └─ document text → deterministic Python NLP → DynamoDB job criteria
+       └─ SQS score queue (JD_READY fan-out)
+
+S3 resume object → SQS parse queue → Resume parse Lambda
+  ├─ DOCX → python-docx (live-observed working)
+  └─ PDF → Amazon Textract async text detection (live dev blocked:
+             SubscriptionRequiredException from StartDocumentTextDetection)
+       └─ deterministic Python extraction
+            ├─ DynamoDB candidate
+            ├─ S3 parsed/{job_id}/{candidate_id}.json
+            └─ SQS score queue → Score Lambda
+                 └─ deterministic 50% skills / 30% title / 20% experience score
+
+JD / parse / score queue failures → DLQs → DLQ consumer → failed_jobs table
+CloudWatch logs/metrics and configured alert resources support operations.
 ```
-Recruiter (browser) -> CloudFront -> S3 (React app)
-        |  Cognito login (JWT)
-        v
-API Gateway REST (Cognito authorizer) -> API Lambdas (Part B) -> DynamoDB / S3 presign / SES
 
-S3 uploads bucket
-  jd/{job_id}/{file}        -> S3 event -> SQS jd-queue     -> JdParse Lambda (A)
-  resumes/{job_id}/{file}   -> S3 event -> SQS parse-queue  -> Parse Lambda (A)
-                                                 |  (after 3 failed receives)
-                                                 v
-                                           parse-dlq -> DlqConsumer Lambda (A) -> failed_jobs
+The current parser does **not** use Amazon Comprehend. The integration implementation replaced managed NLP entity extraction with deterministic Python taxonomy, regex and date-range extraction. Amazon Textract remains the PDF extraction dependency in the current code.
 
-Parse Lambda: Textract (PDF) | python-docx (DOCX) -> deterministic Python extraction (taxonomy + regex)
-              -> DynamoDB candidates (status PARSED) + S3 parsed/{job_id}/{candidate_id}.json (audit)
-              -> SQS score-queue {job_id, candidate_id, reason}
-JdParse Lambda: same deterministic extraction -> DynamoDB jobs (required_skills, jd_titles, required_years, status JD_PARSED)
-              -> enqueue score-queue for every existing candidate of that job (reason JD_READY)
-Score Lambda (B): reads job + candidate -> writes score, breakdown, above_threshold, status SCORED
-              (job not JD_PARSED yet -> raise -> SQS retry; after 5 receives -> score-dlq -> DlqConsumer)
-```
+## Live development evidence (25 November 2026)
+
+- Recruiter dashboard loaded through the deployed CloudFront URL.
+- A DevOps Engineer – Barclays (Pune) job reached `JD PARSED`.
+- Three synthetic DOCX resumes were parsed and scored.
+- Six PDF resumes remained in `PARSING`; the parse Lambda logs showed Textract `StartDocumentTextDetection` returning `SubscriptionRequiredException`.
+- The frontend was built, uploaded to the dedicated dev frontend bucket and CloudFront invalidation reached `Completed`.
+- Full live E2E acceptance did not pass. Production was not deployed or promoted.
+
+See [PROJECT_CLOSEOUT.md](PROJECT_CLOSEOUT.md) and [STATE.md](STATE.md) for evidence, identifiers and remaining gates.
 
 ## Resources (names are fixed; `<stage>` = dev|prod)
+
 | Type | Name |
 |---|---|
 | Stack | `rs-<stage>` |
@@ -30,38 +52,33 @@ Score Lambda (B): reads job + candidate -> writes score, breakdown, above_thresh
 | S3 frontend | `rs-<stage>-frontend-${AWS::AccountId}` |
 | DynamoDB | `rs-<stage>-jobs`, `rs-<stage>-candidates`, `rs-<stage>-failed-jobs` |
 | SQS | `rs-<stage>-jd-queue`, `-parse-queue`, `-score-queue`, `-parse-dlq`, `-jd-dlq`, `-score-dlq` |
-| Lambdas | `rs-<stage>-jd-parse`, `-parse`, `-score`, `-dlq-consumer`, `-api-jobs`, `-api-candidates`, `-api-decision`, `-api-export`, `-api-failed` |
-| Cognito | user pool `rs-<stage>-recruiters`, app client `rs-<stage>-web` (no secret), group `recruiters` |
-| API | REST API `rs-<stage>-api`, stage `v1`, Cognito User Pool authorizer on ALL routes |
-| SES | verified sender identity (env `SES_SENDER`) |
-| SSM params | `/rs/<stage>/threshold-default` (60) |
+| Lambdas | JD parse, resume parse, score, DLQ consumer, jobs/candidates/decision/export/failed APIs |
+| Cognito | recruiter user pool and public app client |
+| API | API Gateway REST API, stage `v1`, Cognito authorizer |
+| SES | shortlist notification integration; sender/account verification required |
+| SSM | `/rs/<stage>/threshold-default` |
 
-## Lambda env vars (every Lambda gets what it needs from this list; no others)
-`STAGE`, `CORS_ORIGIN` (API responses; CloudFront origin), `JOBS_TABLE`, `CANDIDATES_TABLE`, `FAILED_TABLE`, `UPLOADS_BUCKET`, `SCORE_QUEUE_URL`, `PARSER_VERSION`, `SCORER_VERSION`, `SES_SENDER`, `LOG_LEVEL`.
+## Queue and failure policy
 
+- Parse/JD queues use long visibility timeouts and bounded receives; score queue has its own retry/DLQ policy.
+- Permanent failures (unsupported, corrupt, empty) are recorded in failed_jobs and acknowledged.
+- Transient service/network failures are retried and eventually sent to a DLQ.
+- Candidate IDs are deterministic from job ID and S3 key, making same-object processing idempotent.
+- Do not purge queues or delete records during incident recovery without an explicit reviewed plan.
 
+## Security and operational controls
 
-## Known AWS gotchas (Amit: handle these in template.yaml; they cause most "it deployed but nothing happens" bugs)
-1. S3 -> SQS notifications: each queue needs a queue policy allowing `s3.amazonaws.com` (condition on the bucket ARN). Build the bucket name with `!Sub` (not `!Ref` of the bucket) inside the policy and in the notification config, or CloudFormation reports a circular dependency.
-2. API Gateway + Cognito: the `Authorization` header carries the raw Cognito **ID token** (no `Bearer ` prefix). Enable CORS (incl. `Authorization` header) and add CORS headers to the gateway 4XX/5XX responses, otherwise a 401 shows up in the browser as a confusing CORS error.
-3. SQS visibility timeout must be >= 6x the consuming Lambda timeout.
-4. Textract async from Lambda needs `textract:StartDocumentTextDetection`, `textract:GetDocumentTextDetection` and `s3:GetObject` on `resumes/*`.
-5. CloudFront + S3 frontend: use Origin Access Control, a custom error response mapping 403/404 to `/index.html`, and add the CloudFront domain to the uploads bucket CORS rules (presigned PUT).
-6. SES sandbox: sender AND recipients must be verified until production access is granted.
-7. CloudFormation cannot delete non-empty S3 buckets; teardown must empty them first (docs/RESOURCES.md).
+- Private S3 buckets with public access blocked; CloudFront OAC for frontend origin.
+- Cognito authorizer protects API methods; recruiter ID token is sent raw in the Authorization header (no Bearer prefix).
+- Lambda IAM roles are scoped to required tables, queues and S3 prefixes.
+- SQS visibility timeout must be at least six times the consuming Lambda timeout.
+- Uploads are limited to PDF/DOCX resumes and bounded to 5 MiB by parser-side object inspection.
+- Resume screening is decision support; a human recruiter must review decisions.
+- AWS Budget is an alert, not a hard spend cap.
+- Resume and parsed artifact lifecycle is configured for 30 days; job/candidate record retention needs a separately approved policy.
 
-## Queue settings
-- parse-queue / jd-queue: visibility timeout 900s, maxReceiveCount 3, Lambda batch size 1, `ReportBatchItemFailures`, parse Lambda reserved concurrency 5 (Textract TPS), Lambda timeout 120s.
-- score-queue: visibility timeout 180s, maxReceiveCount 5, batch size 5.
-- DLQ retention 14 days.
+## Known service dependency and remediation path
 
-## Error policy
-- PERMANENT (unsupported type, corrupt file, empty text): write failed_jobs row (status OPEN), set candidate status FAILED, ACK the message (no retry).
-- TRANSIENT (throttling, timeout, 5xx): raise so SQS retries. After maxReceiveCount message lands in DLQ; DlqConsumer writes failed_jobs row (stage from message source).
-- All writes idempotent: candidate_id = first 16 hex of sha256(job_id + "/" + s3_key). Reprocessing the same object overwrites, never duplicates.
+Textract currently blocks PDF parsing in the observed development account. The returned error is an account/service-access error; the available evidence does not prove that Textract is categorically excluded from AWS Free Tier or establish the exact account eligibility cause.
 
-## Security
-Block public access on both buckets; uploads bucket SSE-S3 + CORS for presigned PUT from the CloudFront domain; CloudFront uses OAC to read the frontend bucket; per-Lambda IAM roles scoped to the exact tables/queues/bucket prefixes; Cognito self-signup disabled (admin creates recruiter users); API Gateway throttling default 50 rps; uploads lifecycle: delete `resumes/` and `parsed/` after 30 days.
-
-## Observability
-CloudWatch log retention 14 days; alarms: each DLQ depth >= 1 -> SNS email; Lambda Errors >= 1 (5 min); API 5XX >= 1; AWS Budget alert on the account.
+If account-independent PDF support is required, implement digital PDF text extraction locally and package a Lambda-compatible OCR engine for image-only scans. This is a proposed follow-up, not an existing feature.
