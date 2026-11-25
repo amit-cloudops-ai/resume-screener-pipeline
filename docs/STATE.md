@@ -1,12 +1,12 @@
 # STATE — live project baseline (evidence-based)
 
-Last updated: 2026-11-24 — Phase A Step 10 audit
+Last updated: 2026-11-25 — A8 DLQ correction verification
 Integration branch: `feat/INT-full-pipeline-integration`
 Integration PR: [#6 — complete backend pipeline](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6) (draft, not merged)
 Phase A working branch: `feat/phase-a-steps-1-3`
 Phase A PR: [#8 — Phase A repository work](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/8) (draft, base `feat/INT-full-pipeline-integration`, not merged)
 Submission target: 2026-11-25
-AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
+AWS status: `rs-dev` stack is `UPDATE_COMPLETE`; the JD parser environment correction is deployed. A8 DLQ consumer correction is not yet deployed. `rs-prod` remains untouched.
 
 ## Status definitions
 - `VERIFIED`: implementation exists on the relevant working branch and the named CI checks passed.
@@ -39,7 +39,7 @@ AWS deployment: NOT PERFORMED; explicit deployment approval remains required.
 | A5 | Teammate A | Candidate/JD field derivation | VERIFIED | Name/email/employer/title/skills/experience derivation and overlap-union tests implemented; custom `JOB_TITLE` only (standard Comprehend `TITLE` ignored); `N+ years` fallback; 40-year implementation cap. Golden deterministic metrics pass. |
 | A6 | Teammate A | Resume parse Lambda | VERIFIED | SQS partial-batch handling, deterministic candidate IDs, permanent failure records, parsed S3 artifact and score-queue producer implemented. |
 | A7 | Teammate A | JD-parse Lambda | VERIFIED | Required skills/title/years, zero-skill failure, job state update and JD_READY fan-out implemented. |
-| A8 | Teammate A | DLQ consumer Lambda | DOING | Follow-up correction in `feat/A8-dlq-classification-diagnostics`: exact queue classification, payload diagnostics and regression coverage. Incident record: `docs/INCIDENT_A8_DLQ_CLASSIFICATION.md`. CI and live `rs-dev` redeployment/acceptance pending. |
+| A8 | Teammate A | DLQ consumer Lambda | VERIFIED (repo/CI) | Correction on `feat/A8-dlq-classification-diagnostics`; local `make verify` passed 167 tests and GitHub Actions CI run #221 passed on `b9be4d9`. Live `rs-dev` deployment, controlled DLQ tests and Barclays JD recovery remain pending. Incident record: `docs/INCIDENT_A8_DLQ_CLASSIFICATION.md`. |
 | A9 | Teammate A | Custom recognizer model/endpoint | TODO | Optional feature remains disabled; no training dataset or endpoint ARN. |
 | A10 | Teammate A | Three reviewed sample outputs | VERIFIED | Three reviewed synthetic examples committed under `docs/samples/`; automated tests enforce provenance and match parser output to golden labels. Actual Textract/Comprehend captures remain blocked on approved AWS deployment. |
 | B1 | Teammate B | Scoring library + tests | VERIFIED | Deterministic 50/30/20 scorer, edge cases, title seniority, thresholds and schema fields covered. |
@@ -119,7 +119,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 4. SES sender verification/production access is not confirmed.
 5. No AWS account inventory has been performed; do not assume there are no existing resources.
 6. No CloudFormation change set has been created or reviewed. Static SAM validation/build does not prove deployment-time resource graph or live IAM behaviour.
-7. No AWS stack is deployed; Cognito, S3 notifications, Textract, Comprehend, SES, alarms and DLQ recovery have not been exercised in AWS.
+7. `rs-dev` is deployed and its stack is `UPDATE_COMPLETE`; the JD parser environment fix is live. The A8 DLQ consumer correction has not yet been deployed. Cognito/API acceptance, S3 notifications, Textract/Comprehend processing, SES, alarms and end-to-end DLQ recovery still require explicit dev validation.
 
 ## Deployment facts
 
@@ -130,7 +130,8 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 - Cognito pool/client IDs: NOT RECORDED.
 - SES sender: NOT VERIFIED.
 - Custom recognizer ARN: disabled by default; live state NOT VERIFIED.
-- AWS deployment: NOT PERFORMED.
+- `rs-dev`: deployed; latest known stack status `UPDATE_COMPLETE`. A8 DLQ consumer fix not yet deployed.
+- `rs-prod`: not deployed / untouched.
 
 ## Next sequence
 
@@ -139,7 +140,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 3. Step 8: **VERIFIED for repository implementation and offline CI** — live execution remains a post-deployment acceptance gate.
 4. Step 9: **IMPLEMENTED** — architecture source, rendered SVG, cost worksheet and evidence note committed.
 5. Step 10: VERIFIED — full repository release-readiness audit completed; findings fixed and documented in docs/PHASE_A_STEP10_FINAL_AUDIT.md.
-6. Phase B is now authorised to begin with read-only AWS account preflight. Run `bash scripts/aws_preflight.sh` from the repository root in the configured WSL/AWS CLI environment; review caller identity, existing resources, budgets and Cost Explorer output. Check Billing → Credits manually because credits are not fully represented by this CLI inventory. No change set or resource creation is part of preflight. After the report is reviewed, prepare a development-only CloudFormation change set for explicit review before execution; publish the frontend with `make deploy-frontend STAGE=dev` only after the stack is approved and deployed.
+6. Phase B read-only preflight and initial `rs-dev` deployment have been performed. Continue with the A8-specific dev deployment only after reviewing the merged artifact and preparing a change set; execute only with explicit deployment approval. Do not touch `rs-prod`.
 7. Validate live AWS integrations, resolve development findings, define data-retention policy, verify alarms/SES and complete the live smoke run.
 8. Complete teammate clean-clone rehearsal and demo evidence; deploy rs-prod only after separate explicit production approval and successful development acceptance.
 
@@ -175,7 +176,7 @@ Step 8 smoke automation remains VERIFIED for repository implementation and offli
 
 ## A8 — DLQ classification incident and correction (25 November 2026)
 
-**Status: DOING — code correction committed to `feat/A8-dlq-classification-diagnostics`; CI and live verification pending.** Incident details and evidence boundary: [docs/INCIDENT_A8_DLQ_CLASSIFICATION.md](INCIDENT_A8_DLQ_CLASSIFICATION.md).
+**Status: VERIFIED for repository implementation and CI — code correction committed to `feat/A8-dlq-classification-diagnostics`; local `make verify` passed 167 tests and GitHub Actions CI run #221 passed on commit `b9be4d9`. Live `rs-dev` deployment and acceptance remain pending.** Incident details and evidence boundary: [docs/INCIDENT_A8_DLQ_CLASSIFICATION.md](INCIDENT_A8_DLQ_CLASSIFICATION.md).
 
 - Live `rs-dev` DLQ consumer was confirmed active; all three event-source mappings were enabled for parse, JD and score DLQs.
 - Three failed-job rows were observed: one JD_PARSE row for job `474d8d653e9c` and two UNKNOWN rows.
@@ -183,4 +184,4 @@ Step 8 smoke automation remains VERIFIED for repository implementation and offli
 - Historical cause of the two UNKNOWN records is **not recoverable** because their original SQS bodies/event metadata were not persisted.
 - Correction preserves the frozen failed-job schema, adds exact known-queue classification, validates S3 key shape, records bounded diagnostic messages, and logs message ID/source ARN/reason without payload or PII.
 - Regression tests cover parse/JD/score, source-field casing, malformed S3/score payloads, wrong S3 key prefix, missing/unrecognized source ARN and duplicate delivery.
-- Do not deploy to production. Merge approval, CI, dev deployment, controlled DLQ tests and Barclays JD recovery remain outstanding.
+- Do not deploy to production. Human approval to merge has been received; merge is being performed separately. Dev deployment, controlled DLQ tests and Barclays JD recovery remain outstanding.
