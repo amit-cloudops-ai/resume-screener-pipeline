@@ -35,13 +35,13 @@ AWS status: `rs-dev` stack is `UPDATE_COMPLETE`; the JD parser environment corre
 | A1 | Teammate A | Skills taxonomy | VERIFIED | `backend/parsing/skills_taxonomy.json`; 160 canonical skills, 231 canonical/alias terms, no collisions; taxonomy test passes. |
 | A2 | Teammate A | Golden set (12 resumes) | VERIFIED | 12 synthetic resumes committed as source text and reproducibly materialized as 4 digital PDFs, 4 two-column DOCX and 4 raster-only scanned PDFs; 3 labelled JDs and `expected.json`; CI validates generated files. |
 | A3 | Teammate A | PDF/DOCX/TXT extraction | VERIFIED | Textract async polling/pagination and DOCX paragraphs/tables implemented; mocked/unit tests pass. Golden generator validates digital PDF, image-only scanned PDF and two-column DOCX. TXT is enabled for JD only; live Textract remains unverified. |
-| A4 | Amit | Deterministic local NLP extraction | DOING | Comprehend client, IAM permissions and recognizer configuration are being removed. Taxonomy/regex extraction is implemented; regression coverage, extraction-quality review and live rs-dev acceptance remain. |
-| A5 | Teammate A | Candidate/JD field derivation | VERIFIED | Name/email/employer/title/skills/experience derivation and overlap-union tests implemented; custom `JOB_TITLE` only (standard Comprehend `TITLE` ignored); `N+ years` fallback; 40-year implementation cap. Golden deterministic metrics pass. |
+| A4 | Amit | Deterministic local NLP extraction | DOING | Deterministic taxonomy/regex/date extraction is implemented; repository regression tests and golden evaluation pass. Live rs-dev acceptance remains. |
+| A5 | Teammate A | Candidate/JD field derivation | VERIFIED | Name/email/employer/title/skills/experience derivation and overlap-union tests implemented; bounded deterministic job-title patterns; `N+ years` fallback; 40-year implementation cap. Golden deterministic metrics pass. |
 | A6 | Teammate A | Resume parse Lambda | VERIFIED | SQS partial-batch handling, deterministic candidate IDs, permanent failure records, parsed S3 artifact and score-queue producer implemented. |
 | A7 | Teammate A | JD-parse Lambda | VERIFIED | Required skills/title/years, zero-skill failure, job state update and JD_READY fan-out implemented. |
 | A8 | Teammate A | DLQ consumer Lambda | VERIFIED (repo/CI) | Correction on `feat/A8-dlq-classification-diagnostics`; local `make verify` passed 167 tests and GitHub Actions CI run #221 passed on `b9be4d9`. Merged by PR #15 as `d1f4fe5`; live `rs-dev` deployment, controlled DLQ tests and Barclays JD recovery remain pending. Incident record: `docs/INCIDENT_A8_DLQ_CLASSIFICATION.md`. |
-| A9 | Teammate A | Custom recognizer model/endpoint | TODO | Optional feature remains disabled; no training dataset or endpoint ARN. |
-| A10 | Teammate A | Three reviewed sample outputs | VERIFIED | Three reviewed synthetic examples committed under `docs/samples/`; automated tests enforce provenance and match parser output to golden labels. Actual Textract/Comprehend captures remain blocked on approved AWS deployment. |
+| A9 | Teammate A | Custom recognizer model/endpoint | TODO | Retired by the deterministic NLP architecture; no model or endpoint is required. |
+| A10 | Teammate A | Three reviewed sample outputs | VERIFIED | Three reviewed synthetic examples committed under `docs/samples/`; automated tests enforce provenance and match parser output to golden labels. Actual Textract captures remain blocked on approved AWS deployment. |
 | B1 | Teammate B | Scoring library + tests | VERIFIED | Deterministic 50/30/20 scorer, edge cases, title seniority, thresholds and schema fields covered. |
 | B2 | Teammate B | Score Lambda | VERIFIED | SQS/DynamoDB handler accepts DynamoDB `Decimal` numeric values, duplicate idempotency and RESCORE behaviour covered. |
 | B3 | Teammate B | Jobs API + uploads | VERIFIED | Create/list/get, JD text/file, presigned resume URLs, validation, Cognito subject and CORS covered. Parser checks actual object size because presigned PUT itself does not impose a size range. |
@@ -56,7 +56,7 @@ AWS status: `rs-dev` stack is `UPDATE_COMPLETE`; the JD parser environment corre
 
 **Status: VERIFIED on `feat/phase-a-steps-1-3`.** This work was repository-only. No AWS account inventory, AWS console/API operation, CloudFormation change set, deployment or resource creation was performed.
 
-- Step 1 — backend and SAM static audit completed. Corrected the standard Comprehend TITLE misuse, DynamoDB Decimal scoring validation, experience fallback/cap, sentence-boundary chunking and stale infrastructure status documentation. Audit record: `docs/PHASE_A_AUDIT.md`.
+- Step 1 — backend and SAM static audit completed. Corrected the legacy managed-entity TITLE misuse, DynamoDB Decimal scoring validation, experience fallback/cap, sentence-boundary chunking and stale infrastructure status documentation. Audit record: `docs/PHASE_A_AUDIT.md`.
 - Step 2 — 12-resume synthetic golden dataset completed: 4 digital PDF, 4 two-column DOCX, 4 raster-only scanned PDF; 3 labelled JDs; expected field labels and expected top candidate. Binary documents are reproducibly generated by `make golden-generate` from committed source text. CI validated all formats.
 - Step 3 — deterministic accuracy evaluation completed. Report: `docs/PHASE_A_ACCURACY.md`. Skill precision 100% (77 TP, 0 FP), recall 100% (77 TP, 0 FN), email 12/12, experience within ±1 year 12/12, top-1 ranking 3/3.
 
@@ -66,7 +66,7 @@ AWS status: `rs-dev` stack is `UPDATE_COMPLETE`; the JD parser environment corre
 
 **Status: IMPLEMENTED; CI verification passed on commit `f749e5db0e622f33803f233aa9f6c3507627480a` (run 45339630424). The sample-provenance regression test and all repository checks passed on final Step 4–5 head `2ef935be4d26334764a99e7ca1f797bef89c9bd6` (CI run 45339829162).** No AWS access, deployment, stack operation or live service invocation was performed.
 
-- Step 4 — three reviewed synthetic examples are committed in `docs/samples/`: digital PDF (R01), two-column DOCX (R05), and image-only scanned PDF (R09). Each separates standard entities, optional custom entities, expected extracted text and parser-derived output. All carry `SYNTHETIC_MOCK` / `SYNTHETIC_EXPECTED_TEXT` labels. No Comprehend confidence scores or Textract Blocks are fabricated. Actual `AWS_CAPTURED` evidence remains a post-approval dev-deployment gate.
+- Step 4 — three reviewed synthetic examples are committed in `docs/samples/`: digital PDF (R01), two-column DOCX (R05), and image-only scanned PDF (R09). Each separates standard entities, optional custom entities, expected extracted text and parser-derived output. All carry `SYNTHETIC_MOCK` / `SYNTHETIC_EXPECTED_TEXT` labels. No model confidence scores or Textract Blocks are fabricated. Actual `AWS_CAPTURED` evidence remains a post-approval dev-deployment gate.
 - Step 5 — frontend technical foundation is committed under `frontend/`: React 19, Vite, TypeScript, Cognito User Pool SRP sign-in module, session ID-token retrieval, API client sending the raw ID token (no Bearer prefix), runtime environment configuration and local mock mode. The shell is intentionally neutral; D16 requires visual direction approval before the dashboard design begins.
 - No API/OpenAPI/JSON/SQS contracts or SAM resources were changed.
 - Frontend typecheck and Vite production build passed GitHub Actions. Frontend has not been proven against a deployed Cognito pool or live API; mock mode is not authentication evidence.
@@ -109,17 +109,17 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 - Parser uses Textract ClientRequestToken to reuse the same asynchronous job across retries and polls within Lambda execution limits.
 - Upload object size is checked with S3 HeadObject before extraction; files larger than 5 MiB are rejected.
 - Retry API supports PARSE, JD_PARSE and SCORE. Unsupported/unknown stages are returned as not automatically retryable.
-- The optional custom Comprehend recognizer remains disabled unless a deployment supplies its endpoint ARN.
+- The managed NLP recognizer endpoints are not used by this architecture.
 
 ## Remaining release blockers
 
 1. Phase A code and static infrastructure checks are green on the Phase A working branch. Keep PR #8 draft and unmerged until reviewed; the integration PR #6 remains its base workstream.
 2. Step 7 recruiter frontend is VERIFIED by CI run 45344597945. Step 8 offline smoke automation is VERIFIED; live AWS smoke remains a post-deployment acceptance gate.
-3. Golden-set deterministic accuracy is benchmarked and passed. Actual AWS-generated Comprehend samples and live OCR/model accuracy remain outstanding.
+3. Golden-set deterministic accuracy is benchmarked and passed. Actual AWS-captured Textract samples and live OCR accuracy remain outstanding.
 4. SES sender verification/production access is not confirmed.
 5. No AWS account inventory has been performed; do not assume there are no existing resources.
 6. No CloudFormation change set has been created or reviewed. Static SAM validation/build does not prove deployment-time resource graph or live IAM behaviour.
-7. `rs-dev` is deployed and its stack is `UPDATE_COMPLETE`; the JD parser environment fix is live. The A8 DLQ consumer correction has not yet been deployed. Cognito/API acceptance, S3 notifications, Textract/Comprehend processing, SES, alarms and end-to-end DLQ recovery still require explicit dev validation.
+7. `rs-dev` is deployed and its stack is `UPDATE_COMPLETE`; the JD parser environment fix is live. The A8 DLQ consumer correction has not yet been deployed. Cognito/API acceptance, S3 notifications, Textract processing, SES, alarms and end-to-end DLQ recovery still require explicit dev validation.
 
 ## Deployment facts
 
@@ -129,7 +129,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 - API URLs / CloudFront URLs: NOT RECORDED.
 - Cognito pool/client IDs: NOT RECORDED.
 - SES sender: NOT VERIFIED.
-- Custom recognizer ARN: disabled by default; live state NOT VERIFIED.
+- Managed NLP recognizer: not used; no endpoint configuration is required.
 - `rs-dev`: deployed; latest known stack status `UPDATE_COMPLETE`. A8 DLQ consumer fix not yet deployed.
 - `rs-prod`: not deployed / untouched.
 
@@ -167,7 +167,7 @@ No live AWS evidence is claimed. Step 8's live acceptance run remains a later de
 
 ## Phase A — Step 9 architecture and cost
 
-**Status: IMPLEMENTED — repository documentation committed.** Artefacts: docs/architecture.mmd (editable source), docs/architecture.svg (rendered vector diagram), docs/COST.md (workload model and cost worksheet), and docs/PHASE_A_STEP9_ARCHITECTURE_AND_COST.md (completion/evidence note). The cost worksheet models OCR + standard Comprehend processing for 100, 500 and 2,000 resumes/month and separately highlights the cost of an always-on custom Comprehend endpoint. It does not claim an account-specific monthly bill. Re-price with AWS Pricing Calculator during Phase B preflight.
+**Status: IMPLEMENTED — repository documentation committed.** Artefacts: docs/architecture.mmd (editable source), docs/architecture.svg (rendered vector diagram), docs/COST.md (workload model and cost worksheet), and docs/PHASE_A_STEP9_ARCHITECTURE_AND_COST.md (completion/evidence note). The cost worksheet models OCR + deterministic local NLP processing for 100, 500 and 2,000 resumes/month and separately highlights the cost of an managed NLP endpoint. It does not claim an account-specific monthly bill. Re-price with AWS Pricing Calculator during Phase B preflight.
 
 ## Phase A — Step 8 boundary reaffirmed
 
