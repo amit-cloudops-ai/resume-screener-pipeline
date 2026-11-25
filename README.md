@@ -119,7 +119,7 @@ The previously recorded API endpoint is `https://pidp0mxkc6.execute-api.us-east-
 
 ## Team contribution and project context
 
-This was developed as a collaborative team project during the F13 Technologies AWS Cloud internship. The repository preserves the shared implementation across the parsing pipeline, scoring engine, recruiter APIs, infrastructure, frontend and integration work. Individual contributions are visible in Git history and pull requests; the final integrated application is now present on `main`.
+This was developed as a collaborative team project during the F13 Technologies AWS Cloud internship. The repository preserves the shared implementation across the parsing pipeline, scoring engine, recruiter APIs, infrastructure, frontend and integration work. The integrated application is present on `main`. **Attribution limitation:** the currently visible merged commit history records the commits under the repository owner's GitHub identity; it does not reliably identify individual teammate contributions. Do not use the GitHub Contributors count as a complete team-contribution record. A named contribution matrix should only be added after confirming each teammate's name and work area.
 
 ## Security, cost and operational notes
 
