@@ -2,7 +2,7 @@
 
 **Date:** 25 November 2026  
 **Repository:** [amit-cloudops-ai/resume-screener-pipeline](https://github.com/amit-cloudops-ai/resume-screener-pipeline)  
-**Closeout source:** integration commit `d409eed9abf7ccf25424ede85259e07fc59caf42`  
+**Integrated source:** PR #6 merged to `main` as `edf3b25a57c12b7427a628c6f797b3f4ca230463`  
 **Environment:** AWS `rs-dev`, `us-east-1`  
 **Purpose:** provide a mentor-ready, accurate record of the implemented application and its current live limitations.
 
@@ -99,13 +99,13 @@ Known development references:
 - API: `https://pidp0mxkc6.execute-api.us-east-1.amazonaws.com/v1/`
 - Cognito pool: `us-east-1_ItQy4aUwI`
 
-The last previously confirmed CloudFormation stack status was `UPDATE_COMPLETE` at 2026-11-25 03:10:15 UTC, before the later frontend publish. The frontend publish did not deploy the backend. The exact Lambda/template version currently live has not been reconciled to integration commit `d409eed9`; do not claim that the complete integration branch was deployed.
+The last previously confirmed CloudFormation stack status was `UPDATE_COMPLETE` at 2026-11-25 03:10:15 UTC, before the later frontend publish. The frontend publish did not deploy the backend. The exact Lambda/template version currently live has not been reconciled to main-branch merge commit `edf3b25a`; do not claim that the complete integration branch was deployed.
 
 **No production deployment or promotion was performed as part of this closeout.** `rs-prod` remains separate and untouched. This work does not authorize stack changes, queue purges, data deletion or production deployment.
 
 ## CI and repository verification
 
-Historical checks on the repository working branches:
+Repository checks before integration merge:
 - Integration commit `d409eed9abf7ccf25424ede85259e07fc59caf42`: CI run `45558256875` passed `sam-validate`, `frontend-build` and `verify`.
 - Phase A audit CI run `45346661338`: three jobs passed; 160 tests, golden evaluation, frontend typecheck/build, SAM lint/build and deployment-script syntax validation.
 - Synthetic deterministic NLP evaluation: skill precision/recall 100% (77 TP, 0 FP/FN), email 12/12, experience within ±1 year 12/12, top-1 ranking 3/3.
@@ -130,4 +130,4 @@ These are repository/CI/local integration results. They are not a substitute for
 
 ## Mentor-facing status
 
-The project demonstrates a deployed AWS recruiter workflow with working authentication, job-description parsing, DOCX resume processing and candidate scoring. The event-driven infrastructure, APIs, deterministic extraction, scoring and recovery paths are implemented and have repository-level CI/local test evidence. The remaining live blocker is PDF/OCR processing: the current Textract API call is rejected by the development account with `SubscriptionRequiredException`. The project is being presented as a working partial prototype with this limitation explicitly documented, not as a fully completed production system.
+The project is merged into GitHub `main` and demonstrates a deployed AWS recruiter workflow with working authentication, job-description parsing, DOCX resume processing and candidate scoring. The event-driven infrastructure, APIs, deterministic extraction, scoring and recovery paths are implemented and have repository-level CI/local test evidence. The remaining live blocker is PDF/OCR processing: the current Textract API call is rejected by the development account with `SubscriptionRequiredException`. The project is being presented as a working partial prototype with this limitation explicitly documented, not as a fully completed production system.
