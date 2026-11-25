@@ -26,7 +26,7 @@ Against fixtures/golden (12 hand-labelled resumes, 3 types):
 
 ## D. Dashboard
 - [x] D1. Job list, create job, upload JD + resumes with progress.
-- [x] D2. Candidate table sorted by score with Comprehend skill tags and a score breakdown view.
+- [x] D2. Candidate table sorted by score with taxonomy-derived skill tags and a score breakdown view.
 - [x] D3. One-click Shortlist (with interview details form) and Reject; decision persisted with who/when.
 - [x] D4. Shortlist sends SES email; email_status updated (SENT / FAILED / NO_EMAIL).
 - [x] D5. Download shortlist CSV.
@@ -35,7 +35,7 @@ Against fixtures/golden (12 hand-labelled resumes, 3 types):
 ## E. Reliability and ops
 - [ ] E1. DLQ alarms and Lambda error alarms exist and have been test-fired once.
 - [ ] E2. Logs contain no resume text or PII (spot-checked).
-- [ ] E3. Budget alert configured; Comprehend custom endpoint (if created) has a documented delete step.
+- [ ] E3. Budget alert configured; Any optional external NLP endpoint (if independently provisioned) has a documented delete step.
 
 ## F. Deliverables
 - [ ] F1. Demo video (<= 8 min) showing the full flow on prod.
