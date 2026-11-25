@@ -54,11 +54,6 @@ run_read_only "Cognito user pools" cognito-idp list-user-pools --max-results 60 
 run_read_only "CloudFront distributions (review for project-owned origins)" cloudfront list-distributions \
   --query "DistributionList.Items[].[Id,DomainName,Status,Comment]" --output table
 
-run_read_only "Comprehend custom entity recognizers" comprehend list-entity-recognizers \
-  --query "EntityRecognizerPropertiesList[].[EntityRecognizerName,Status,RecognizerArn]" --output table
-
-run_read_only "Comprehend custom recognizer endpoints" comprehend list-entity-recognizer-endpoints \
-  --query "EntityRecognizerEndpointPropertiesList[].[EndpointName,Status,CurrentInferenceUnits,EndpointArn]" --output table
 
 run_read_only "SES identities" ses list-identities --output table
 
