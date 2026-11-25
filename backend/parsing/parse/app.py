@@ -216,7 +216,7 @@ def lambda_handler(event, context):
             try:
                 bucket, key = parse_s3_notification(record["body"])
                 job_id = key.split("/", 2)[1]
-                _failure(clients[5], clients[4], job_id, key, message_id, exc)
+                _failure(clients[4], clients[3], job_id, key, message_id, exc)
             except Exception:
                 logger.exception("permanent resume failure could not be recorded message_id=%s", message_id)
                 failures.append({"itemIdentifier": message_id})
