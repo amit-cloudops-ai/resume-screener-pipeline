@@ -23,9 +23,6 @@ The rows below are known manual-resource categories from the project plan. Their
 
 | Resource | Region | Owner/task | Cost risk | Existence | Delete how |
 |---|---|---|---|---|---|
-| Comprehend custom recogniser model | us-east-1 | Teammate A / A9 | Low | NOT VERIFIED | Comprehend → Custom entity recognition → select model → Delete |
-| Comprehend real-time endpoint | us-east-1 | Teammate A / A9 | **HIGH (hourly)** | NOT VERIFIED | Comprehend → Endpoints → Delete endpoint |
-| Comprehend training data S3 bucket/prefix | us-east-1 | Teammate A / A9 | Low | NOT VERIFIED | S3 → empty bucket/prefix, then delete bucket |
 | SES verified sender and demo-recipient identities | us-east-1 | Amit / P5 | No direct identity charge | NOT VERIFIED | SES → Verified identities → select identity → Delete |
 | AWS Budget and email notifications | Global | Amit / P9 | No direct budget charge | NOT VERIFIED | Billing → Budgets → select budget → Delete |
 | Cognito recruiter users created outside the stack | us-east-1 | Amit / P3 | No direct user charge at expected scale | NOT VERIFIED | Delete users from the user pool; deleting the pool removes its users |
@@ -35,8 +32,8 @@ Add rows for every manual resource created. Record the exact physical resource i
 ## 3. Teardown order (only after submission is accepted)
 
 1. Confirm the exact resources to remove from sections 1 and 2. Do not assume both stacks or all manual resources exist.
-2. If a Comprehend endpoint exists, delete the **endpoint first** to stop hourly charges; then delete its recogniser model if no longer needed.
-3. Empty uploads and frontend S3 buckets for each deployed stage, and empty any Comprehend training bucket. CloudFormation cannot delete non-empty S3 buckets.
+2. Empty uploads and frontend S3 buckets for each deployed stage.
+3. CloudFormation cannot delete non-empty S3 buckets; confirm each bucket's retention/backup policy before emptying it.
 4. Delete deployed application stacks in reverse environment order: `rs-prod`, then `rs-dev`. Wait for `DELETE_COMPLETE`. If deletion fails, inspect CloudFormation Events and resolve the named resource.
 5. Delete confirmed manual SES identities, budgets and other resources that remain.
 6. Check for SAM artifact buckets created by `--resolve-s3` (often associated with `aws-sam-cli-managed-default`); empty and remove only if confirmed and no longer needed.
@@ -46,6 +43,6 @@ Add rows for every manual resource created. Record the exact physical resource i
 
 - Resource Groups & Tag Editor → Tag Editor → all regions/resource types → filter `Project = resume-screener`; confirm zero remaining tagged resources.
 - Search for `rs-` resources in S3, DynamoDB, SQS, Lambda, CloudFront, Cognito and CloudWatch log groups.
-- Inspect Comprehend endpoints/models and manually created S3 buckets separately because not every resource type necessarily supports the same tagging workflow.
+- Inspect manually created S3 buckets separately because not every resource type necessarily supports the same tagging workflow.
 - Check Billing → Cost Explorer grouped by service again after 24–48 hours for residual Comprehend, CloudFront, Lambda or storage charges.
 - Record the verification date and result in this file before declaring cleanup complete.
