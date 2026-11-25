@@ -1,72 +1,91 @@
 # AI Resume Screener & Talent Acquisition Pipeline
 
-An AWS-native resume screening workflow. Recruiters create a job, upload a job description and resumes, and receive ranked candidates with explainable skill, title and experience scores. The backend uses Textract, deterministic Python NLP and scoring, DynamoDB, S3, SQS, Cognito, API Gateway, CloudFront and SES.
+An AWS-based, event-driven resume screening application. Recruiters create a job, submit a job description, upload resumes, and review extracted candidate profiles and explainable match scores.
 
-## Current status — 24 November 2026
+> **Project closeout snapshot — 25 November 2026**
+>
+> This repository records the implementation and live development demonstration completed so far. The project is a **working development prototype with a documented PDF/OCR service-access blocker**. It is not represented as a fully accepted or production-ready hiring system.
 
-**Phase A repository work (Steps 1–10) is complete on the working branch. The final audit and Phase B entry conditions are documented in `docs/PHASE_A_STEP10_FINAL_AUDIT.md`. The branch remains separate from main; no AWS account access, stack operation or deployment has been performed.**
+## Current status at a glance
 
-The integrated backend and SAM updates are in [draft PR #6](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6). The branch is separate from `main`; no code has been merged and no AWS resources have been deployed by this work.
-
-- **B1/B2:** deterministic scoring library, SQS scoring Lambda, DynamoDB Decimal conversion and idempotency.
-- **B3–B9:** jobs/uploads, candidate list/detail, recruiter decisions and SES, CSV export, failed-job listing/retry, NLP explanation and contract tests.
-- **Part A:** PDF Textract extraction, DOCX/TXT parsing, deterministic taxonomy-based extraction and field derivation, field derivation, JD parsing and DLQ persistence.
-- **Phase A steps 1–3:** backend/SAM audit corrections, 160-skill taxonomy, reproducible 12-resume dataset and deterministic accuracy report are verified.
-- **Step 4:** three reviewed synthetic extraction examples cover digital PDF, two-column DOCX and scanned image-only PDF under `docs/samples/`. They are not live AWS service responses.
-- **Step 5:** React/Vite/TypeScript frontend foundation, Cognito SRP authentication (including first-login temporary-password challenge), raw ID-token API client and local mock mode are implemented and CI-verified.
-- **Step 6:** Amit approved A — Editorial Hiring Desk on 24 November 2026. D16 is updated in docs/DECISIONS.md and the approval record is in docs/PHASE_A_STEP6_DESIGN_REVIEW.md.
-- **Step 7:** Editorial recruiter workspace implemented against existing API routes: jobs/JD creation, batch resume uploads with per-file progress, candidate search/ranking/filtering, score breakdown, shortlist/reject, CSV export and failed-job retry. GitHub Actions run 45344840009 passed the complete 3-job matrix, including frontend typecheck/build and SAM lint/build.
-- **Step 9:** docs/architecture.mmd, docs/architecture.svg, docs/COST.md and docs/PHASE_A_STEP9_ARCHITECTURE_AND_COST.md committed. Cost scenarios are explicitly partial processing estimates, not a full account bill.
-- **Integration:** local Moto acceptance scenario exercises one JD and ten resumes, yielding nine scored candidates and one permanent parse failure.
-- **Infrastructure:** SAM validation/lint and build pass on the recorded CI run.
-
-Latest full Phase A audit CI run [45346661338](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45346661338) passed all three jobs: `make verify` passed with 160 tests, golden evaluation passed, frontend typecheck/build passed, SAM lint validation and build passed, and the guarded frontend deployment script passed `bash -n`. The 12-resume deterministic evaluation measured 100% skill precision/recall, 12/12 email extraction, 12/12 experience within ±1 year and 3/3 expected top-ranked candidates. These are deterministic synthetic/pre-AWS metrics, not live Textract OCR results.
-
-**Still outstanding before production release:** AWS account preflight and live development acceptance (Cognito 401/200, S3-to-SQS, Textract, deterministic NLP, SES, alarms and live E2E smoke), production sender verification, candidate/JD retention policy, bias/fairness review, demo video and teammate clean-clone deployment rehearsal. These are Phase B and production-release gates; the Phase A repository audit does not claim they are complete.
-
-Step 8 smoke automation and its offline tests passed [45342184687](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45342184687) on the Step 8 implementation head. This is offline verification only; the live smoke test was not run.
-
-The Step 4–5 head [45339829162](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45339829162) also passed the complete CI matrix: backend verification and golden evaluation, frontend typecheck/build, SAM lint and SAM build.
-
-See [`docs/STATE.md`](docs/STATE.md) for the evidence-based status and remaining release gates.
-
-## Start here
-
-| Role | Read |
+| Area | Evidence-based status |
 |---|---|
-| Teammates | [`docs/TEAMMATE_QUICKSTART.md`](docs/TEAMMATE_QUICKSTART.md) |
-| Engineering setup | [`docs/SETUP_CHECKLIST.md`](docs/SETUP_CHECKLIST.md) |
-| AI coding assistant | [`AGENTS.md`](AGENTS.md), then [`docs/prompts/SESSION_STARTER.md`](docs/prompts/SESSION_STARTER.md) |
-| Infrastructure | [`infra/README.md`](infra/README.md) |
+| Recruiter sign-in and dashboard | Observed working in the deployed development frontend |
+| Job creation and JD parsing | Observed working; Barclays DevOps Engineer (Pune) job displayed as `JD PARSED` |
+| Resume upload | Nine valid synthetic resumes uploaded to the dev job |
+| DOCX extraction and candidate scoring | Three DOCX candidates extracted and scored in the live dev environment |
+| PDF extraction / scanned PDF OCR | Blocked: live Textract call returns `SubscriptionRequiredException` |
+| Candidate scoring | Three live scores observed; deterministic scoring implementation and unit tests exist |
+| Frontend publishing | Build/typecheck passed, S3 sync succeeded, CloudFront invalidation reached `Completed` |
+| Full live E2E acceptance | Not passed; six PDF candidates remained in `PARSING` during the observed run |
+| Production | Not deployed or promoted by this closeout |
+
+**Observed live test:** 9 valid synthetic resumes uploaded to job `474d8d653e9c`; 3 DOCX candidates reached `SCORED`; 6 PDF candidates remained `PARSING`. Parse-queue metrics showed 6 messages not visible and 0 visible. Parse Lambda logs showed Textract `StartDocumentTextDetection` failing with `SubscriptionRequiredException`. Score queue was empty at the time of inspection.
+
+## Architecture
+
+![Current development architecture](docs/architecture.svg)
+
+Editable diagram source: [docs/architecture.mmd](docs/architecture.mmd).
+
+The current parser uses:
+- **DOCX:** `python-docx` paragraph and table extraction, followed by deterministic Python extraction.
+- **PDF:** Amazon Textract asynchronous text detection, followed by deterministic Python extraction. This path is currently blocked in the development account by the service-access error documented below.
+- **NLP / field derivation:** deterministic Python taxonomy, regex and date-range logic. Amazon Comprehend was removed from the integration implementation; it is not a runtime dependency in the current integration code.
+
+## Implemented application capabilities
+
+- Recruiter authentication with Amazon Cognito SRP flow.
+- React, Vite and TypeScript recruiter workspace delivered through CloudFront and a private S3 frontend origin.
+- Job creation, JD upload/text input, job listing and job details.
+- Presigned S3 resume uploads with file validation and per-file progress.
+- S3 event notifications and SQS-driven asynchronous JD/resume processing.
+- DOCX extraction using `python-docx`.
+- Deterministic skill taxonomy, email/name/title/employer derivation and experience-range extraction.
+- Candidate persistence and parsed JSON artifacts in S3.
+- Deterministic explainable scoring: 50% skills, 30% title and 20% experience.
+- Candidate listing/detail, search/filtering, shortlist/reject workflow and shortlist CSV export.
+- Failed-job records, retry API and SQS dead-letter queue consumer.
+- CloudWatch logs/metrics and infrastructure definitions for alarms and AWS Budget notifications.
+- CI verification, SAM template validation/build, synthetic fixtures and golden evaluation.
+
+See [docs/PROJECT_CLOSEOUT.md](docs/PROJECT_CLOSEOUT.md) for the detailed implementation inventory, live evidence, known limitations and next steps.
+
+## AWS service-access limitation
+
+The live development parser invoked:
+
+```text
+textract.start_document_text_detection(...)
+SubscriptionRequiredException:
+The AWS Access Key Id needs a subscription for the service
+```
+
+This is an account/service-access failure returned by the Textract API. The available evidence does **not** establish that Textract is categorically unavailable on AWS Free Tier, nor does it identify the precise account eligibility or enrollment cause. The repository therefore records the observed error without making a blanket Free Tier claim.
+
+Amazon Comprehend was removed from the integration implementation in favour of deterministic Python extraction. Textract remains in the current PDF parsing path. A future cost-conscious improvement is to extract text locally from digital PDFs and use a separately packaged local OCR engine for scanned PDFs, eliminating the Textract runtime dependency. That alternative has **not** been implemented or deployed in this snapshot.
 
 ## Repository map
 
 | Path | Purpose |
 |---|---|
-| `docs/00_BRIEF.md` | Product scope and deliverables |
-| `docs/01_ARCHITECTURE.md` | Locked architecture and event flow |
-| `docs/02_DEFINITION_OF_DONE.md` | Acceptance criteria |
-| `docs/03_WORK_SPLIT.md` | Ownership boundaries |
-| `docs/04_SCORING_LOGIC.md` | Scoring specification |
-| `docs/08_NLP_AND_SCORING.md` | Extraction and ranking explanation |
-| `docs/STATE.md` | Current implementation and verification status |
-| `docs/PHASE_A_AUDIT.md` | Repository-only audit and Phase A steps 1–3 evidence |
-| `docs/PHASE_A_ACCURACY.md` | Golden dataset metrics and evaluation limitations |
-| `docs/PHASE_A_STEP10_FINAL_AUDIT.md` | Final repository audit, findings, Phase B entry checklist and release boundary |
-| `contracts/` | Frozen OpenAPI, JSON schemas and SQS contracts |
-| `fixtures/` | Sample job, candidate and failure records |
-| `backend/parsing/` | Shared extraction, taxonomy, resume/JD/DLQ Lambdas |
-| `backend/scoring/` | Deterministic scorer and SQS scoring Lambda |
-| `backend/api/` | Recruiter API Lambdas |
-| `backend/integration/` | Local end-to-end integration acceptance |
-| `infra/` | AWS SAM template and deployment configuration |
-| `scripts/deploy_frontend.sh` | Guarded stage-specific React build, private S3 publish and CloudFront invalidation |
-| `frontend/` | React/Vite recruiter frontend with Editorial Hiring Desk dashboard, Cognito SRP and API workflows |
-| `tests/` | Contract and repository-level tests |
+| `backend/parsing/` | Resume/JD parsing, deterministic NLP, taxonomy and DLQ consumer |
+| `backend/scoring/` | Deterministic scoring library and SQS scoring Lambda |
+| `backend/api/` | Jobs, candidates, decisions, export and failed-job APIs |
+| `infra/template.yaml` | AWS SAM infrastructure |
+| `frontend/` | React/Vite recruiter application |
+| `contracts/` | OpenAPI, JSON and SQS contracts |
+| `fixtures/` | Synthetic job, resume, candidate and failure fixtures |
+| `tests/e2e/` | Guarded live smoke test and offline checks |
+| `docs/STATE.md` | Current evidence-based status |
+| `docs/PROJECT_CLOSEOUT.md` | Mentor-ready project closeout and limitations |
+| `docs/architecture.mmd` | Editable Mermaid architecture source |
+| `docs/architecture.svg` | Architecture diagram included in this README |
+| `docs/RESOURCES.md` | AWS resource inventory and cleanup guidance |
 
-## Verification commands
+## Verification
 
-Run from the repository root with Python 3.12, AWS SAM CLI and cfn-lint installed. The golden document generator uses the existing development dependencies:
+Repository CI and local tests are distinct from live AWS acceptance. Historical CI evidence is recorded in [docs/STATE.md](docs/STATE.md) and [docs/PROJECT_CLOSEOUT.md](docs/PROJECT_CLOSEOUT.md). The repository includes:
 
 ```bash
 pip install -r requirements-dev.txt
@@ -76,40 +95,33 @@ make sam-validate
 make sam-build
 ```
 
-CI runs repository tests and SAM validation/build. A successful SAM build is not a live CloudFormation deployment or runtime proof.
+A successful unit test, Moto integration test or SAM build does not prove that the deployed AWS account can access every managed service.
 
-## Architecture at a glance
+## Development deployment
 
-Recruiter browser → CloudFront/S3 dashboard → Cognito-authenticated API Gateway → API Lambdas → DynamoDB/S3/SES.
+The observed development frontend is:
 
-JD and resume objects trigger SQS queues. The parsing workers use Textract asynchronous text detection for PDFs and python-docx for DOCX, then local deterministic taxonomy, regex and date extraction. Parsed candidates are written to DynamoDB and an audit artifact in S3. The JD parser extracts required skills, titles and minimum experience. The scoring worker calculates:
+- URL: https://d2sdkmafcw9mpe.cloudfront.net
+- CloudFront distribution: `E3NI28CL1V2SX4`
+- Frontend bucket: `rs-dev-frontend-924422830139`
+- Region: `us-east-1`
+- Stack: `rs-dev`
 
-`score = round(100 × (0.50 × skills + 0.30 × title + 0.20 × experience), 1)`
+The frontend publish command completed successfully on 25 November 2026. CloudFront invalidation status was verified as `Completed`.
 
-Failures are recorded in the failed-jobs table; exhausted transient messages are captured by DLQ consumers. Recruiters can inspect and retry supported failure stages.
+The previously recorded API endpoint is `https://pidp0mxkc6.execute-api.us-east-1.amazonaws.com/v1/`. Treat deployed backend code/version as **not reconciled to the latest integration commit** until the stack/template and Lambda code versions are checked. The live DOCX success and Textract failure above are runtime observations, not proof that every component from the current branch is deployed.
 
-The authoritative resource names, SQS body formats, failure policy and security constraints are in [`docs/01_ARCHITECTURE.md`](docs/01_ARCHITECTURE.md) and [`contracts/`](contracts/).
+**Production boundary:** `rs-prod` was not changed by this closeout. No production promotion, production deployment, resource deletion or database/queue cleanup was performed.
 
-## AWS deployment controls
+## Security, cost and operational notes
 
-Region: `us-east-1`. Stack names: `rs-dev` and `rs-prod`.
+- Do not commit AWS credentials, Cognito tokens, real resumes or candidate personal data.
+- The test resumes used for the live demonstration are fictional synthetic records.
+- The AWS Budget is an alert threshold, not a hard spending cap.
+- Review actual account usage and current AWS pricing before enabling managed services or increasing test volume.
+- Resume screening is decision support. Human review and a fairness/bias assessment are required before operational hiring use.
+- Confirm retention/deletion requirements for candidate records and JD artifacts before production use.
 
-Development deployment (only after repository review and explicit approval):
+## Project status
 
-```bash
-make deploy-dev ALARM_EMAIL=you@example.com
-make deploy-frontend STAGE=dev
-```
-
-Production deployment requires a verified SES sender and an alarm email:
-
-```bash
-make deploy-prod ALARM_EMAIL=you@example.com SES_SENDER=verified-sender@example.com
-ALLOW_PROD=1 make deploy-frontend STAGE=prod
-```
-
-**Frontend publishing is a separate, explicit step.** SAM creates the private S3 origin and CloudFront distribution but does not upload the React build. After the target stack reaches `CREATE_COMPLETE` or `UPDATE_COMPLETE`, run `make deploy-frontend STAGE=dev` (or `ALLOW_PROD=1 make deploy-frontend STAGE=prod`). The script reads the deployed API/Cognito outputs, builds with mock mode disabled, syncs the dedicated stage frontend bucket and submits a CloudFront invalidation. It refuses production publishing unless `ALLOW_PROD=1` is explicitly set.
-
-Managed NLP entity recognition and custom recognizers are not part of this architecture. Field extraction is performed locally by the Python parser.
-
-**Cost and safety:** the AWS Budget is an alert, not a spending cap. Review the CloudFormation change set before execution. Keep [`docs/RESOURCES.md`](docs/RESOURCES.md) current for manually created resources and follow its teardown procedure after the demo.
+**Suitable for an interim mentor demonstration and repository review.** The deployed dev application demonstrates recruiter access, JD parsing, DOCX resume processing and candidate scoring. PDF/OCR processing is blocked by the recorded Textract service-access error; complete live E2E acceptance and production readiness remain open.
