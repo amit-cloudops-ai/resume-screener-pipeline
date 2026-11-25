@@ -1,9 +1,9 @@
 # Project state — closeout snapshot
 
 **Last updated:** 25 November 2026  
-**Closeout branch:** `docs/project-closeout-2026-11-25`  
-**Integration source commit:** `d409eed9abf7ccf25424ede85259e07fc59caf42` on `feat/INT-full-pipeline-integration`  
-**Integration PR:** [#6](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6) — open, draft, unmerged at time of closeout  
+**Canonical branch:** `main`  
+**Integrated application:** merged to `main` via PR #6 (squash merge `edf3b25a57c12b7427a628c6f797b3f4ca230463`)  
+**Integration PR:** [#6](https://github.com/amit-cloudops-ai/resume-screener-pipeline/pull/6) — merged to `main` on 25 November 2026  
 **AWS region:** `us-east-1`  
 **Production:** `rs-prod` not modified by this closeout
 
@@ -29,7 +29,7 @@
 | PDF parsing / OCR | BLOCKED-LIVE | Textract `StartDocumentTextDetection` returned `SubscriptionRequiredException` |
 | Remaining six PDF messages | BLOCKED-LIVE | Dashboard showed 6 `PARSING`; parse queue: 0 visible, 6 not visible; score queue: 0 |
 | Full live E2E acceptance | NOT-VERIFIED | The 9-valid + corrupt-file acceptance scenario did not complete successfully |
-| Latest integration backend deployment | NOT-VERIFIED | Frontend was published from the release worktree; the live backend version was not proven to match integration commit `d409eed9` |
+| Integrated backend deployment | NOT-VERIFIED | Frontend was published from the release worktree; the live backend version was not proven to match main-branch merge commit `edf3b25a` |
 | Production stack | NOT-DEPLOYED | No production deployment or promotion performed in this closeout |
 
 ### Textract incident evidence
@@ -93,7 +93,7 @@ The following are historical repository/CI checks on the working integration/Pha
 3. **Candidate extraction quality:** observed Karan Mehta profile displayed 6.9 years although the synthetic resume states 6 years; employer extraction displayed “Not extracted”. These require regression tests and parser correction.
 4. **Candidate drawer score markup:** the frontend rendered literal `<small>/100</small>` inside the score string. This is a confirmed JSX rendering defect in the integration source.
 5. **No automatic candidate polling:** the frontend refreshes on load/manual refresh and does not poll while candidates remain in parsing. Dashboard state can appear stale; this does not resolve backend failures.
-6. **Live backend version not reconciled:** do not assume the latest integration code/template is deployed just because the frontend was built from the release worktree.
+6. **Live backend version not reconciled:** do not assume the integrated main-branch code/template is deployed just because the frontend was built from the release worktree.
 7. **Live E2E incomplete:** no all-file-type acceptance, duplicate upload acceptance, corrupt-file/DLQ recovery acceptance or complete B1–B5 sign-off.
 8. **Production gates remain:** SES sender/account verification, alarms/notifications, retention policy, security review, fairness/bias assessment, clean-clone deployment rehearsal and controlled production approval.
 
