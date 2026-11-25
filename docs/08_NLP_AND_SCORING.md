@@ -22,11 +22,11 @@ DOCX documents are read with python-docx. Paragraphs and table cells both matter
 
 ### Upload size and type
 
-The upload API issues short-lived presigned PUT URLs for PDF and DOCX files. A presigned PUT URL does not, by itself, impose the application's maximum byte size. Therefore the parser must call S3 HeadObject and reject any object larger than 5 MiB before invoking Textract, Comprehend or DOCX parsing. The accepted extensions and MIME types must agree with the upload API and frozen queue contract.
+The upload API issues short-lived presigned PUT URLs for PDF and DOCX files. A presigned PUT URL does not, by itself, impose the application's maximum byte size. Therefore the parser must call S3 HeadObject and reject any object larger than 5 MiB before invoking Textract or DOCX parsing. The accepted extensions and MIME types must agree with the upload API and frozen queue contract.
 
 ## 3. Deterministic entity and skill extraction
 
-The parser does not call Amazon Comprehend or any other managed NLP entity service. It derives fields locally in Python so parsing behaviour is reproducible, has no per-request Comprehend cost, and does not depend on a trained endpoint.
+The parser does not call Amazon managed NLP entity service or any other managed NLP entity service. It derives fields locally in Python so parsing behaviour is reproducible, has no per-request managed NLP entity service cost, and does not depend on a trained endpoint.
 
 Skills are extracted from raw text using the controlled `skills_taxonomy.json`. Canonical names and aliases are matched case-insensitively with explicit token boundaries, then deduplicated and sorted. The taxonomy is versioned and changes should be reviewed against the golden resume set.
 
@@ -95,4 +95,4 @@ Unit tests cover deterministic scoring, aliases, seniority penalties, missing va
 
 ## 9. Current verification boundary
 
-Passing unit tests, SAM lint and SAM build proves code-level and template-level checks only. It does not prove Textract job completion notifications, Comprehend quotas/permissions, SES deliverability, Cognito authorisation, S3 notification delivery, live DLQ recovery or production suitability. Those require an approved dev deployment and recorded end-to-end evidence.
+Passing unit tests, SAM lint and SAM build proves code-level and template-level checks only. It does not prove Textract job completion notifications, managed NLP entity service quotas/permissions, SES deliverability, Cognito authorisation, S3 notification delivery, live DLQ recovery or production suitability. Those require an approved dev deployment and recorded end-to-end evidence.
