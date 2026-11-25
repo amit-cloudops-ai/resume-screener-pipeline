@@ -4,9 +4,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SAMPLES = {
-    "R01": "comprehend-digital-pdf.json",
-    "R05": "comprehend-two-column-docx.json",
-    "R09": "comprehend-scanned-pdf.json",
+    "R01": "deterministic-digital-pdf.json",
+    "R05": "deterministic-two-column-docx.json",
+    "R09": "deterministic-scanned-pdf.json",
 }
 
 
@@ -23,12 +23,11 @@ def test_reviewed_samples_are_explicitly_synthetic_and_match_golden_labels():
             key: by_id[resume_id][key]
             for key in ("name", "email", "skills", "employers", "titles", "experience_years")
         }
-        assert all(entity.get("Score") is None for group in sample["comprehend"].values() for entity in group)
-        assert all(entity["Type"] in {"PERSON", "ORGANIZATION", "DATE"} for entity in sample["comprehend"]["standard"])
-        assert all(entity["Type"] in {"SKILL", "JOB_TITLE"} for entity in sample["comprehend"]["custom"])
+        assert sample["extraction_engine"] == "deterministic-taxonomy-regex-date-v1"
+        assert "comprehend" not in sample
 
 
 def test_scanned_sample_does_not_claim_live_textract_output():
-    sample = json.loads((ROOT / "docs/samples/comprehend-scanned-pdf.json").read_text(encoding="utf-8"))
+    sample = json.loads((ROOT / "docs/samples/deterministic-scanned-pdf.json").read_text(encoding="utf-8"))
     assert sample["textract"]["evidence_class"] == "SYNTHETIC_EXPECTED_TEXT"
     assert "not Textract Blocks" in sample["textract"]["note"]
