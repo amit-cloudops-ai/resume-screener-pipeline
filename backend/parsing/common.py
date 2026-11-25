@@ -196,7 +196,12 @@ def normalise_skills(text: str, entities: dict | None = None) -> list[str]:
     """Extract canonical skills from the controlled taxonomy, longest aliases first."""
     aliases, found, lowered = _taxonomy(), set(), text.casefold()
     for alias, canonical in sorted(aliases.items(), key=lambda item: (-len(item[0]), item[0])):
-        pattern = r"(?<![a-z0-9+#.])" + re.escape(alias) + r"(?![a-z0-9+#.])"
+        # Ordinary word aliases may be followed by punctuation (e.g. Python.).
+        # Keep stricter boundaries for symbolic names such as C++, C# and Node.js.
+        if re.fullmatch(r"[a-z0-9 ]+", alias):
+            pattern = r"(?<![a-z0-9])" + re.escape(alias) + r"(?![a-z0-9])"
+        else:
+            pattern = r"(?<![a-z0-9])" + re.escape(alias) + r"(?![a-z0-9])"
         if re.search(pattern, lowered):
             found.add(canonical)
     return sorted(found)
