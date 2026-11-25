@@ -26,5 +26,5 @@ Every number can be reproduced from the stored candidate + job rows and the brea
 
 ## Enhancement ideas (for the written deliverable)
 1. Custom entity recogniser trained on real, annotated resumes (more skills, JOB_TITLE, certifications) with a continuous feedback loop from recruiter shortlist/reject.
-2. Sentiment / key-phrase analysis on cover letters (Comprehend DetectSentiment/DetectKeyPhrases) as a soft signal; plus semantic skill matching with embeddings (e.g. "container orchestration" ~ Kubernetes).
+2. Sentiment / key-phrase analysis on cover letters (external sentiment/key-phrase services) as a soft signal; plus semantic skill matching with embeddings (e.g. "container orchestration" ~ Kubernetes).
 3. Bias auditing: strip PERSON/gender/age/photo signals before scoring, log score distributions per group, and add recruiter-facing "why this score" explanations.
