@@ -34,6 +34,26 @@ The dashboard screenshots are being added to this repository as versioned eviden
 
 The editable architecture diagram is already versioned at [`docs/architecture.svg`](docs/architecture.svg), with its source at [`docs/architecture.mmd`](docs/architecture.mmd). The supplied high-resolution raster architecture image will be included alongside those source files once its binary asset is committed.
 
+### Dashboard gallery
+
+> Dated development captures from 25 November 2026. These are evidence of the observed development UI, not a production-readiness claim.
+
+![Recruiter workspace overview](docs/screenshots/01-dashboard-overview.png)
+
+| Workflow | Screenshot |
+|---|---|
+| Active roles and selected-job summary | ![Active roles](docs/screenshots/02-active-jobs-and-role-summary.png) |
+| Candidate review table | ![Candidate review](docs/screenshots/03-candidate-review-table.png) |
+| Create-role dialog | ![Create role](docs/screenshots/04-create-role-dialog.png) |
+| Create-role dialog detail | ![Create role detail](docs/screenshots/05-create-role-dialog-detail.png) |
+| Batch resume upload | ![Resume upload](docs/screenshots/06-batch-resume-upload-dialog.png) |
+| Candidate profile | ![Candidate profile](docs/screenshots/07-candidate-profile-panel.png) |
+| Score explanation and recruiter decisions | ![Score explanation](docs/screenshots/08-score-explanation-panel.png) |
+
+### Architecture image
+
+![Resume Screener deployed development architecture](docs/architecture/current-deployed-architecture.png)
+
 ## Implemented application capabilities
 
 - Recruiter authentication with Amazon Cognito SRP flow.
