@@ -28,9 +28,11 @@ An AWS-based, event-driven resume screening application. Recruiters create a job
 
 Editable diagram source: [docs/architecture.mmd](docs/architecture.mmd). A high-resolution architecture image is also provided at [docs/architecture/current-deployed-architecture.png](docs/architecture/current-deployed-architecture.png).
 
-## Product screenshots and high-resolution architecture image
+## Product screenshots
 
-A repository-ready asset bundle has been prepared separately as `resume-screener-repo-assets.zip`. Extract it at the repository root to add the eight dated dashboard captures under `docs/screenshots/` and the supplied high-resolution architecture image under `docs/architecture/current-deployed-architecture.png`. The bundle includes an image index, evidence notes and README insertion guidance. Until that ZIP is extracted and committed, those raster assets are not yet part of the Git history; the editable SVG architecture diagram above is already in the repository.
+The dashboard screenshots are being added to this repository as versioned evidence. The screenshots must be read alongside the evidence notes in [`docs/screenshots/README.md`](docs/screenshots/README.md); they are dated captures, not a claim of production readiness.
+
+The editable architecture diagram is already versioned at [`docs/architecture.svg`](docs/architecture.svg), with its source at [`docs/architecture.mmd`](docs/architecture.mmd). The supplied high-resolution raster architecture image will be included alongside those source files once its binary asset is committed.
 
 ## Implemented application capabilities
 
