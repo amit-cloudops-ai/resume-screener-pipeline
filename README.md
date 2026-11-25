@@ -2,6 +2,21 @@
 
 An AWS-based, event-driven resume screening application. Recruiters create a job, submit a job description, upload resumes, and review extracted candidate profiles and explainable match scores.
 
+<p align="center">
+  <img src="docs/architecture/current-deployed-architecture.png" alt="Resume Screener current development architecture" width="100%">
+</p>
+
+**A collaborative team project**
+
+| Team member | GitHub | Verified contribution |
+|---|---|---|
+| **Amit** | [`amit-cloudops-ai`](https://github.com/amit-cloudops-ai) | Project integration, AWS SAM infrastructure, release coordination, integration fixes and project closeout |
+| **Gopi Krishna** | [`dggk78`](https://github.com/dggk78) | A1 skills taxonomy; A2–A10 parsing pipeline, golden dataset and tests |
+| **Sushmitha M** | [`sush-kush`](https://github.com/sush-kush) | B1–B8 scoring engine, score Lambda, recruiter APIs, CSV export, failed-job handling and NLP scoring explanation |
+
+**Contribution evidence:** [Verified commit-by-commit attribution](docs/CONTRIBUTIONS.md). The final integration used squash merges; the original teammate-authored commit links are preserved in this record.
+
+
 > **Project closeout snapshot — 25 November 2026**
 >
 > This repository now contains the integrated team implementation and project closeout. The project is a **working development prototype with a documented PDF/OCR service-access blocker**. Merging the code to GitHub `main` does not mean the AWS backend was promoted or that the application is production-ready.
@@ -22,17 +37,11 @@ An AWS-based, event-driven resume screening application. Recruiters create a job
 
 **Observed live test:** 9 valid synthetic resumes uploaded to job `474d8d653e9c`; 3 DOCX candidates reached `SCORED`; 6 PDF candidates remained `PARSING`. Parse-queue metrics showed 6 messages not visible and 0 visible. Parse Lambda logs showed Textract `StartDocumentTextDetection` failing with `SubscriptionRequiredException`. Score queue was empty at the time of inspection.
 
-## Architecture
-
-![Current development architecture](docs/architecture.svg)
-
-Editable diagram source: [docs/architecture.mmd](docs/architecture.mmd). A high-resolution architecture image is also provided at [docs/architecture/current-deployed-architecture.png](docs/architecture/current-deployed-architecture.png).
-
 ## Product screenshots
 
 The dashboard screenshots are committed in [`docs/screenshots/`](docs/screenshots/). Read the evidence notes in [`docs/screenshots/README.md`](docs/screenshots/README.md); these dated captures document the development UI and are not a claim of production readiness.
 
-The editable architecture diagram is versioned at [`docs/architecture.svg`](docs/architecture.svg), with its source at [`docs/architecture.mmd`](docs/architecture.mmd). The supplied high-resolution raster diagram is committed at [`docs/architecture/current-deployed-architecture.png`](docs/architecture/current-deployed-architecture.png).
+The editable architecture diagram is versioned at [`docs/architecture.svg`](docs/architecture.svg), with its source at [`docs/architecture.mmd`](docs/architecture.mmd). The high-resolution architecture image is displayed at the top of this README.
 
 ### Dashboard gallery
 
@@ -49,10 +58,6 @@ The editable architecture diagram is versioned at [`docs/architecture.svg`](docs
 | Batch resume upload | ![Resume upload](docs/screenshots/06-batch-resume-upload-dialog.png) |
 | Candidate profile | ![Candidate profile](docs/screenshots/07-candidate-profile-panel.png) |
 | Score explanation and recruiter decisions | ![Score explanation](docs/screenshots/08-score-explanation-panel.png) |
-
-### Architecture image
-
-![Resume Screener deployed development architecture](docs/architecture/current-deployed-architecture.png)
 
 ## Implemented application capabilities
 
