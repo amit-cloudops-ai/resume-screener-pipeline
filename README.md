@@ -28,9 +28,31 @@ An AWS-based, event-driven resume screening application. Recruiters create a job
 
 Editable diagram source: [docs/architecture.mmd](docs/architecture.mmd). A high-resolution architecture image is also provided at [docs/architecture/current-deployed-architecture.png](docs/architecture/current-deployed-architecture.png).
 
-## Product screenshots and high-resolution architecture image
+## Product screenshots
 
-A repository-ready asset bundle has been prepared separately as `resume-screener-repo-assets.zip`. Extract it at the repository root to add the eight dated dashboard captures under `docs/screenshots/` and the supplied high-resolution architecture image under `docs/architecture/current-deployed-architecture.png`. The bundle includes an image index, evidence notes and README insertion guidance. Until that ZIP is extracted and committed, those raster assets are not yet part of the Git history; the editable SVG architecture diagram above is already in the repository.
+The dashboard screenshots are being added to this repository as versioned evidence. The screenshots must be read alongside the evidence notes in [`docs/screenshots/README.md`](docs/screenshots/README.md); they are dated captures, not a claim of production readiness.
+
+The editable architecture diagram is already versioned at [`docs/architecture.svg`](docs/architecture.svg), with its source at [`docs/architecture.mmd`](docs/architecture.mmd). The supplied high-resolution raster architecture image will be included alongside those source files once its binary asset is committed.
+
+### Dashboard gallery
+
+> Dated development captures from 25 November 2026. These are evidence of the observed development UI, not a production-readiness claim.
+
+![Recruiter workspace overview](docs/screenshots/01-dashboard-overview.png)
+
+| Workflow | Screenshot |
+|---|---|
+| Active roles and selected-job summary | ![Active roles](docs/screenshots/02-active-jobs-and-role-summary.png) |
+| Candidate review table | ![Candidate review](docs/screenshots/03-candidate-review-table.png) |
+| Create-role dialog | ![Create role](docs/screenshots/04-create-role-dialog.png) |
+| Create-role dialog detail | ![Create role detail](docs/screenshots/05-create-role-dialog-detail.png) |
+| Batch resume upload | ![Resume upload](docs/screenshots/06-batch-resume-upload-dialog.png) |
+| Candidate profile | ![Candidate profile](docs/screenshots/07-candidate-profile-panel.png) |
+| Score explanation and recruiter decisions | ![Score explanation](docs/screenshots/08-score-explanation-panel.png) |
+
+### Architecture image
+
+![Resume Screener deployed development architecture](docs/architecture/current-deployed-architecture.png)
 
 ## Implemented application capabilities
 
@@ -117,7 +139,7 @@ The previously recorded API endpoint is `https://pidp0mxkc6.execute-api.us-east-
 
 ## Team contribution and project context
 
-This was developed as a collaborative team project during the F13 Technologies AWS Cloud internship. The repository preserves the shared implementation across the parsing pipeline, scoring engine, recruiter APIs, infrastructure, frontend and integration work. Individual contributions are visible in Git history and pull requests; the final integrated application is now present on `main`.
+This was developed as a collaborative team project during the F13 Technologies AWS Cloud internship. The repository preserves the shared implementation across the parsing pipeline, scoring engine, recruiter APIs, infrastructure, frontend and integration work. The integrated application is present on `main`. **Attribution limitation:** the currently visible merged commit history records the commits under the repository owner's GitHub identity; it does not reliably identify individual teammate contributions. Do not use the GitHub Contributors count as a complete team-contribution record. A named contribution matrix should only be added after confirming each teammate's name and work area.
 
 ## Security, cost and operational notes
 
