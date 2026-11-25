@@ -13,7 +13,7 @@ S3 uploads bucket
                                                  v
                                            parse-dlq -> DlqConsumer Lambda (A) -> failed_jobs
 
-Parse Lambda: Textract (PDF) | python-docx (DOCX) -> Comprehend (standard + custom) -> taxonomy normalise
+Parse Lambda: Textract (PDF) | python-docx (DOCX) -> deterministic Python extraction (taxonomy + regex)
               -> DynamoDB candidates (status PARSED) + S3 parsed/{job_id}/{candidate_id}.json (audit)
               -> SQS score-queue {job_id, candidate_id, reason}
 JdParse Lambda: same deterministic extraction -> DynamoDB jobs (required_skills, jd_titles, required_years, status JD_PARSED)
