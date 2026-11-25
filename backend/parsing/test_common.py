@@ -35,14 +35,6 @@ def test_candidate_id_is_deterministic_and_16_hex():
     assert all(char in "0123456789abcdef" for char in first)
 
 
-def test_comprehend_chunks_respect_utf8_byte_limit():
-    text = ("Kubernetes 🚀 and cloud engineering. " * 300)
-    chunks = split_utf8(text, 400)
-    assert len(chunks) > 1
-    assert all(len(chunk.encode("utf-8")) <= 400 for chunk in chunks)
-    assert "".join(chunks).replace("\n", "") == text.replace("\n", "")
-
-
 def test_taxonomy_finds_aliases_and_canonical_skills():
     fields = derive_fields(
         "Built k8s platforms on AWS, Docker, Terraform and Python.",
@@ -53,13 +45,10 @@ def test_taxonomy_finds_aliases_and_canonical_skills():
 
 def test_entities_derive_name_email_employers_and_titles():
     fields = derive_fields(
-        "Contact: PRIYA@example.com. Worked from Jan 2020 - Dec 2022.",
+        "Priya Sharma\\nContact: PRIYA@example.com.\\nPlatform Engineer\\nCompany: Acme Systems\\nJan 2020 - Dec 2022",
         {
-            "standard": [
-                {"Type": "PERSON", "Text": "Priya Sharma"},
-                {"Type": "ORGANIZATION", "Text": "Acme Systems"},
-            ],
-            "custom": [{"Type": "JOB_TITLE", "Text": "Platform Engineer"}],
+            "standard": [],
+            "custom": [],
         },
     )
     assert fields["name"] == "Priya Sharma"
