@@ -399,8 +399,6 @@ Resources:
             - Effect: Allow
               Action: [textract:StartDocumentTextDetection, textract:GetDocumentTextDetection]
               Resource: '*'
-            - Effect: Allow
-              Resource: '*'
       Events:
         JdQueueEvent:
           Type: SQS
