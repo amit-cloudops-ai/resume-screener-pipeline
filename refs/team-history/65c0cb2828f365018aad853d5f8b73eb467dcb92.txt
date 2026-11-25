@@ -1,0 +1,6 @@
+Original teammate-authored commit preserved in main ancestry.
+
+Commit: 65c0cb2828f365018aad853d5f8b73eb467dcb92
+Author: Sushmitha M <sushkush2005@gmail.com>
+GitHub: sush-kush
+Subject: feat(B2): add score Lambda handler
