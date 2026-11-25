@@ -214,3 +214,16 @@ def test_golden_job_rankings_match_human_labelled_top_candidate():
             scored.append((result["score"], row["id"]))
         scored.sort(key=lambda item: (-item[0], item[1]))
         assert scored[0][1] == job["expected_top_candidate"], (job["id"], scored)
+
+
+def test_jd_parser_template_declares_every_required_table_environment_variable():
+    import yaml
+
+    template = yaml.safe_load((ROOT / "infra" / "template.yaml").read_text(encoding="utf-8"))
+    variables = (
+        template["Resources"]["JdParseFunction"]["Properties"]["Environment"]["Variables"]
+    )
+    # jd_parse.app._clients() opens these tables during cold-start initialization.
+    assert variables["JOBS_TABLE"] == {"Ref": "JobsTable"}
+    assert variables["CANDIDATES_TABLE"] == {"Ref": "CandidatesTable"}
+    assert variables["FAILED_TABLE"] == {"Ref": "FailedJobsTable"}
