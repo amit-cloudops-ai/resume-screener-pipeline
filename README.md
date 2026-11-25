@@ -1,6 +1,6 @@
 # AI Resume Screener & Talent Acquisition Pipeline
 
-An AWS-native resume screening workflow. Recruiters create a job, upload a job description and resumes, and receive ranked candidates with explainable skill, title and experience scores. The backend uses Textract, Comprehend, deterministic Python scoring, DynamoDB, S3, SQS, Cognito, API Gateway, CloudFront and SES.
+An AWS-native resume screening workflow. Recruiters create a job, upload a job description and resumes, and receive ranked candidates with explainable skill, title and experience scores. The backend uses Textract, deterministic Python NLP and scoring, DynamoDB, S3, SQS, Cognito, API Gateway, CloudFront and SES.
 
 ## Current status — 24 November 2026
 
@@ -10,7 +10,7 @@ The integrated backend and SAM updates are in [draft PR #6](https://github.com/a
 
 - **B1/B2:** deterministic scoring library, SQS scoring Lambda, DynamoDB Decimal conversion and idempotency.
 - **B3–B9:** jobs/uploads, candidate list/detail, recruiter decisions and SES, CSV export, failed-job listing/retry, NLP explanation and contract tests.
-- **Part A:** PDF Textract extraction, DOCX/TXT parsing, Comprehend standard/custom entity support, taxonomy normalization, field derivation, JD parsing and DLQ persistence.
+- **Part A:** PDF Textract extraction, DOCX/TXT parsing, deterministic taxonomy-based extraction and field derivation, field derivation, JD parsing and DLQ persistence.
 - **Phase A steps 1–3:** backend/SAM audit corrections, 160-skill taxonomy, reproducible 12-resume dataset and deterministic accuracy report are verified.
 - **Step 4:** three reviewed synthetic extraction examples cover digital PDF, two-column DOCX and scanned image-only PDF under `docs/samples/`. They are not live AWS service responses.
 - **Step 5:** React/Vite/TypeScript frontend foundation, Cognito SRP authentication (including first-login temporary-password challenge), raw ID-token API client and local mock mode are implemented and CI-verified.
@@ -22,7 +22,7 @@ The integrated backend and SAM updates are in [draft PR #6](https://github.com/a
 
 Latest full Phase A audit CI run [45346661338](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45346661338) passed all three jobs: `make verify` passed with 160 tests, golden evaluation passed, frontend typecheck/build passed, SAM lint validation and build passed, and the guarded frontend deployment script passed `bash -n`. The 12-resume deterministic evaluation measured 100% skill precision/recall, 12/12 email extraction, 12/12 experience within ±1 year and 3/3 expected top-ranked candidates. These are mock-entity/pre-AWS metrics, not live Textract or Comprehend model results.
 
-**Still outstanding before production release:** AWS account preflight and live development acceptance (Cognito 401/200, S3-to-SQS, Textract/Comprehend, SES, alarms and live E2E smoke), production sender verification, candidate/JD retention policy, bias/fairness review, demo video and teammate clean-clone deployment rehearsal. These are Phase B and production-release gates; the Phase A repository audit does not claim they are complete.
+**Still outstanding before production release:** AWS account preflight and live development acceptance (Cognito 401/200, S3-to-SQS, Textract, deterministic NLP, SES, alarms and live E2E smoke), production sender verification, candidate/JD retention policy, bias/fairness review, demo video and teammate clean-clone deployment rehearsal. These are Phase B and production-release gates; the Phase A repository audit does not claim they are complete.
 
 Step 8 smoke automation and its offline tests passed [45342184687](https://github.com/amit-cloudops-ai/resume-screener-pipeline/actions/runs/45342184687) on the Step 8 implementation head. This is offline verification only; the live smoke test was not run.
 
