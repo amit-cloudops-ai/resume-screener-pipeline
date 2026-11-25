@@ -1,21 +1,90 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="980" viewBox="0 0 1500 980" role="img" aria-labelledby="title desc">
-<title id="title">Resume Screening Pipeline architecture</title><desc id="desc">Recruiter browser, Cognito authentication, CloudFront frontend, Cognito-protected API, asynchronous S3 and SQS processing, Textract, Comprehend, DynamoDB, SES and DLQ operations.</desc>
-<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6" fill="none" stroke="#657365" stroke-width="1.3"/></marker><style>text{font-family:Arial,sans-serif;fill:#20251f}.h{font-size:21px;font-weight:700}.s{font-size:13px;fill:#647064}.l{font-size:14px;font-weight:700}.sm{font-size:11px;fill:#5f695d}.g{fill:#fbfaf6;stroke:#d9ded3;stroke-width:1.5}.n{fill:#fffefa;stroke:#cbd4c7;stroke-width:1.5}.green{fill:#e9f0e8;stroke:#315b43}.amber{fill:#f5f0e4;stroke:#b39a67}.blue{fill:#edf2f5;stroke:#8298a8}.rose{fill:#f8ece8;stroke:#bd8b80}.e{fill:none;stroke:#718071;stroke-width:1.8;marker-end:url(#a)}.dash{stroke-dasharray:6 5}</style></defs>
-<rect width="1500" height="980" fill="#f6f5f0"/>
-<text x="48" y="48" font-size="11" font-weight="700" letter-spacing="3" fill="#6e7d6a">SYSTEM DESIGN / 01</text><text x="48" y="85" font-size="32" font-family="Georgia,serif">Resume Screening Pipeline</text><text x="48" y="111" class="s">AWS-native, event-driven recruitment workflow · us-east-1 · stacks rs-dev / rs-prod</text>
-<rect class="g" x="40" y="145" width="230" height="165" rx="14"/><text class="h" x="60" y="177">Recruiter</text><rect class="n green" x="60" y="195" width="190" height="43" rx="8"/><text class="l" x="155" y="222" text-anchor="middle">React + Vite UI</text><rect class="n green" x="60" y="252" width="190" height="40" rx="8"/><text class="l" x="155" y="277" text-anchor="middle">Cognito SRP · ID token</text>
-<rect class="g" x="310" y="145" width="285" height="165" rx="14"/><text class="h" x="330" y="177">Web + API edge</text><rect class="n amber" x="330" y="195" width="110" height="43" rx="8"/><text class="l" x="385" y="222" text-anchor="middle">CloudFront</text><rect class="n amber" x="455" y="195" width="120" height="43" rx="8"/><text class="l" x="515" y="222" text-anchor="middle">Private S3</text><rect class="n amber" x="330" y="252" width="245" height="40" rx="8"/><text class="l" x="452" y="277" text-anchor="middle">API Gateway · Cognito auth</text><path class="e" d="M270 216 H330"/><path class="e" d="M440 216 H455"/><path class="e" d="M270 272 H330"/>
-<rect class="g" x="635" y="145" width="350" height="165" rx="14"/><text class="h" x="655" y="177">Recruiter API Lambdas</text><rect class="n" x="655" y="195" width="145" height="40" rx="8"/><text class="l" x="727" y="220" text-anchor="middle">Jobs · uploads</text><rect class="n" x="820" y="195" width="145" height="40" rx="8"/><text class="l" x="892" y="220" text-anchor="middle">Candidates</text><rect class="n" x="655" y="252" width="145" height="40" rx="8"/><text class="l" x="727" y="277" text-anchor="middle">Decision · SES</text><rect class="n" x="820" y="252" width="145" height="40" rx="8"/><text class="l" x="892" y="277" text-anchor="middle">CSV · failures</text><path class="e" d="M595 272 H635"/>
-<rect class="g" x="1025" y="145" width="435" height="165" rx="14"/><text class="h" x="1045" y="177">Persistent data</text><rect class="n blue" x="1045" y="195" width="115" height="43" rx="8"/><text class="l" x="1102" y="222" text-anchor="middle">Jobs table</text><rect class="n blue" x="1175" y="195" width="130" height="43" rx="8"/><text class="l" x="1240" y="222" text-anchor="middle">Candidates</text><rect class="n blue" x="1320" y="195" width="120" height="43" rx="8"/><text class="l" x="1380" y="222" text-anchor="middle">Failed jobs</text><rect class="n blue" x="1045" y="252" width="395" height="40" rx="8"/><text class="l" x="1242" y="277" text-anchor="middle">Private S3 · JD · resumes · parsed JSON</text><path class="e" d="M985 216 H1025"/><path class="e" d="M985 272 H1025"/>
-<rect class="g" x="40" y="355" width="940" height="355" rx="14"/><text class="h" x="65" y="391">Asynchronous processing plane</text><text class="s" x="65" y="414">S3 object-created notifications route work into standard SQS queues</text>
-<rect class="n amber" x="70" y="445" width="155" height="57" rx="8"/><text class="l" x="147" y="470" text-anchor="middle">SQS JD queue</text><text class="sm" x="147" y="488" text-anchor="middle">jd/ prefix</text><rect class="n amber" x="70" y="545" width="155" height="57" rx="8"/><text class="l" x="147" y="570" text-anchor="middle">SQS parse queue</text><text class="sm" x="147" y="588" text-anchor="middle">resumes/ prefix</text>
-<rect class="n" x="275" y="445" width="175" height="57" rx="8"/><text class="l" x="362" y="470" text-anchor="middle">JD parse Lambda</text><text class="sm" x="362" y="488" text-anchor="middle">skills · titles · years</text><rect class="n" x="275" y="545" width="175" height="57" rx="8"/><text class="l" x="362" y="570" text-anchor="middle">Resume parse Lambda</text><text class="sm" x="362" y="588" text-anchor="middle">extract · normalise</text>
-<rect class="n blue" x="500" y="445" width="175" height="57" rx="8"/><text class="l" x="587" y="470" text-anchor="middle">Textract</text><text class="sm" x="587" y="488" text-anchor="middle">PDF async text detection</text><rect class="n blue" x="500" y="545" width="175" height="57" rx="8"/><text class="l" x="587" y="570" text-anchor="middle">Comprehend</text><text class="sm" x="587" y="588" text-anchor="middle">standard entity detection</text>
-<rect class="n green" x="725" y="490" width="220" height="75" rx="8"/><text class="l" x="835" y="518" text-anchor="middle">Score Lambda</text><text class="sm" x="835" y="538" text-anchor="middle">50% skills · 30% title</text><text class="sm" x="835" y="553" text-anchor="middle">20% experience</text>
-<path class="e" d="M225 473 H275"/><path class="e" d="M225 573 H275"/><path class="e" d="M450 473 H500"/><path class="e" d="M450 573 H500"/><path class="e" d="M675 573 H700 V527 H725"/><path class="e" d="M675 473 H700 V527 H725"/>
-<text class="sm" x="70" y="645">DOCX → python-docx · taxonomy fallback remains active when custom recogniser is disabled</text><text class="sm" x="70" y="670">Parsed candidate + audit JSON → DynamoDB / S3 · JD_READY + candidate events → score queue</text>
-<rect class="g" x="1025" y="355" width="435" height="355" rx="14"/><text class="h" x="1045" y="391">Reliability + operations</text>
-<rect class="n rose" x="1045" y="435" width="180" height="56" rx="8"/><text class="l" x="1135" y="460" text-anchor="middle">Per-stage DLQs</text><text class="sm" x="1135" y="478" text-anchor="middle">parse · JD · score</text><rect class="n rose" x="1250" y="435" width="190" height="56" rx="8"/><text class="l" x="1345" y="460" text-anchor="middle">DLQ consumer</text><text class="sm" x="1345" y="478" text-anchor="middle">persist failed_jobs</text>
-<rect class="n" x="1045" y="530" width="180" height="56" rx="8"/><text class="l" x="1135" y="555" text-anchor="middle">CloudWatch</text><text class="sm" x="1135" y="573" text-anchor="middle">logs · metrics · alarms</text><rect class="n" x="1250" y="530" width="190" height="56" rx="8"/><text class="l" x="1345" y="555" text-anchor="middle">SNS notifications</text><text class="sm" x="1345" y="573" text-anchor="middle">DLQ / Lambda / API</text><rect class="n amber" x="1045" y="625" width="395" height="45" rx="8"/><text class="l" x="1242" y="653" text-anchor="middle">AWS Budget alert · USD 25 default threshold</text><path class="e" d="M1225 463 H1250"/><path class="e" d="M1225 558 H1250"/><path class="e" d="M1242 625 V586"/>
-<rect x="40" y="750" width="1420" height="190" rx="14" fill="#eeeee7" stroke="#d9ded3"/><text class="h" x="65" y="790">Trust boundaries and operating rules</text><text class="l" x="65" y="830">Identity</text><text class="sm" x="65" y="852">Recruiter-only Cognito SRP; raw ID token in Authorization header; every API route protected.</text><text class="l" x="65" y="890">Data</text><text class="sm" x="65" y="912">Private S3 buckets, SSE-S3, DynamoDB encryption, least-privilege Lambda roles, 30-day resume/parsed lifecycle.</text><text class="l" x="780" y="830">Resilience</text><text class="sm" x="780" y="852">SQS retries + per-stage DLQs; idempotent candidate IDs; permanent vs transient failure policy.</text><text class="l" x="780" y="890">Cost guardrails</text><text class="sm" x="780" y="912">Custom Comprehend endpoint disabled by default; budget alerts notify but do not cap spend.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title desc">
+<title id="title">Resume Screener Pipeline — current development architecture</title>
+<desc id="desc">Current rs-dev architecture showing recruiter frontend, Cognito, API Gateway, Lambda APIs, S3, DynamoDB, SQS, deterministic Python extraction, DOCX path working, PDF Textract path blocked by SubscriptionRequiredException, scoring and DLQ recovery.</desc>
+<defs>
+ <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6" fill="none" stroke="#627265" stroke-width="1.4"/></marker>
+ <style>
+ text{font-family:Arial,sans-serif;fill:#202820}.eyebrow{font-size:13px;font-weight:700;letter-spacing:3px;fill:#68786a}.title{font-family:Georgia,serif;font-size:36px}.sub{font-size:16px;fill:#637063}.head{font-size:19px;font-weight:700;fill:#234d36}.label{font-size:15px;font-weight:700}.small{font-size:13px;fill:#59665b}.tiny{font-size:12px;fill:#59665b}.panel{fill:#fbfaf6;stroke:#d8ded4;stroke-width:1.6}.node{fill:#fffefa;stroke:#bfcdbf;stroke-width:1.5}.green{fill:#eaf2e9;stroke:#477454;stroke-width:1.7}.amber{fill:#fff2d9;stroke:#c08a34;stroke-width:2}.gray{fill:#eef0ed;stroke:#aab3a8}.line{fill:none;stroke:#657568;stroke-width:2;marker-end:url(#arrow)}.dash{stroke-dasharray:7 6}
+ </style>
+</defs>
+<rect width="1600" height="1120" fill="#f5f4ee"/>
+<text x="44" y="42" class="eyebrow">SYSTEM DESIGN / LIVE DEVELOPMENT SNAPSHOT · 25 NOV 2026</text>
+<text x="44" y="88" class="title">Resume Screener Pipeline</text>
+<text x="44" y="119" class="sub">AWS event-driven recruiter workflow · Environment rs-dev · Region us-east-1</text>
+<rect x="1290" y="48" width="265" height="48" rx="12" class="green"/><text x="1422" y="78" text-anchor="middle" class="label">DEV ONLY · NOT PRODUCTION</text>
+
+<!-- Top row -->
+<rect x="35" y="155" width="265" height="190" rx="16" class="panel"/>
+<text x="58" y="190" class="head">Recruiter</text>
+<rect x="58" y="211" width="218" height="48" rx="9" class="green"/><text x="167" y="241" text-anchor="middle" class="label">React + Vite dashboard</text>
+<rect x="58" y="276" width="218" height="48" rx="9" class="node"/><text x="167" y="306" text-anchor="middle" class="label">Cognito SRP sign-in</text>
+
+<rect x="340" y="155" width="300" height="190" rx="16" class="panel"/>
+<text x="363" y="190" class="head">Web delivery</text>
+<rect x="363" y="211" width="120" height="48" rx="9" class="green"/><text x="423" y="241" text-anchor="middle" class="label">CloudFront</text>
+<rect x="500" y="211" width="116" height="48" rx="9" class="green"/><text x="558" y="241" text-anchor="middle" class="label">Private S3</text>
+<rect x="363" y="276" width="253" height="48" rx="9" class="node"/><text x="489" y="306" text-anchor="middle" class="label">API Gateway · Cognito auth</text>
+
+<rect x="680" y="155" width="430" height="190" rx="16" class="panel"/>
+<text x="703" y="190" class="head">Recruiter API Lambda handlers</text>
+<rect x="703" y="211" width="180" height="43" rx="8" class="node"/><text x="793" y="238" text-anchor="middle" class="label">Jobs · uploads</text>
+<rect x="900" y="211" width="185" height="43" rx="8" class="node"/><text x="992" y="238" text-anchor="middle" class="label">Candidates</text>
+<rect x="703" y="270" width="180" height="43" rx="8" class="node"/><text x="793" y="297" text-anchor="middle" class="label">Decisions · SES</text>
+<rect x="900" y="270" width="185" height="43" rx="8" class="node"/><text x="992" y="297" text-anchor="middle" class="label">CSV · failed jobs</text>
+
+<rect x="1150" y="155" width="415" height="190" rx="16" class="panel"/>
+<text x="1173" y="190" class="head">Persistent data</text>
+<rect x="1173" y="211" width="174" height="48" rx="8" class="green"/><text x="1260" y="241" text-anchor="middle" class="label">DynamoDB jobs</text>
+<rect x="1360" y="211" width="180" height="48" rx="8" class="green"/><text x="1450" y="241" text-anchor="middle" class="label">Candidates</text>
+<rect x="1173" y="276" width="174" height="48" rx="8" class="green"/><text x="1260" y="306" text-anchor="middle" class="label">Failed jobs</text>
+<rect x="1360" y="276" width="180" height="48" rx="8" class="node"/><text x="1450" y="306" text-anchor="middle" class="label">S3 uploads/artifacts</text>
+
+<path class="line" d="M300 235 H340"/><path class="line" d="M640 235 H680"/><path class="line" d="M1110 235 H1150"/>
+
+<!-- Pipeline panel -->
+<rect x="35" y="385" width="1530" height="545" rx="18" class="panel"/>
+<text x="60" y="425" class="head">Event-driven processing pipeline</text>
+<text x="60" y="451" class="small">S3 object-created events → SQS queues → Lambda workers → DynamoDB records and scoring</text>
+
+<!-- JD row -->
+<rect x="65" y="485" width="170" height="74" rx="10" class="node"/><text x="150" y="514" text-anchor="middle" class="label">Job description</text><text x="150" y="537" text-anchor="middle" class="small">PDF / DOCX / TXT</text>
+<rect x="270" y="485" width="155" height="74" rx="10" class="green"/><text x="347" y="514" text-anchor="middle" class="label">SQS JD queue</text><text x="347" y="537" text-anchor="middle" class="small">async event</text>
+<rect x="460" y="485" width="180" height="74" rx="10" class="green"/><text x="550" y="514" text-anchor="middle" class="label">JD parse Lambda</text><text x="550" y="537" text-anchor="middle" class="small">extract requirements</text>
+<rect x="680" y="485" width="250" height="74" rx="10" class="green"/><text x="805" y="514" text-anchor="middle" class="label">Deterministic Python NLP</text><text x="805" y="537" text-anchor="middle" class="small">skills · titles · experience</text>
+<rect x="970" y="485" width="195" height="74" rx="10" class="green"/><text x="1067" y="514" text-anchor="middle" class="label">DynamoDB jobs</text><text x="1067" y="537" text-anchor="middle" class="small">parsed JD criteria</text>
+<path class="line" d="M235 522 H270"/><path class="line" d="M425 522 H460"/><path class="line" d="M640 522 H680"/><path class="line" d="M930 522 H970"/>
+
+<!-- Resume row -->
+<rect x="65" y="625" width="170" height="74" rx="10" class="node"/><text x="150" y="654" text-anchor="middle" class="label">Resume upload</text><text x="150" y="677" text-anchor="middle" class="small">PDF / DOCX</text>
+<rect x="270" y="625" width="155" height="74" rx="10" class="green"/><text x="347" y="654" text-anchor="middle" class="label">SQS parse queue</text><text x="347" y="677" text-anchor="middle" class="small">async event</text>
+<rect x="460" y="625" width="180" height="74" rx="10" class="green"/><text x="550" y="654" text-anchor="middle" class="label">Resume parse Lambda</text><text x="550" y="677" text-anchor="middle" class="small">document extraction</text>
+<path class="line" d="M235 662 H270"/><path class="line" d="M425 662 H460"/>
+
+<rect x="680" y="600" width="250" height="70" rx="10" class="green"/><text x="805" y="628" text-anchor="middle" class="label">DOCX · python-docx</text><text x="805" y="650" text-anchor="middle" class="small">LIVE-OBSERVED WORKING</text>
+<rect x="680" y="690" width="250" height="105" rx="10" class="amber"/><text x="805" y="718" text-anchor="middle" class="label">PDF · Amazon Textract</text><text x="805" y="741" text-anchor="middle" class="small">StartDocumentTextDetection</text><text x="805" y="763" text-anchor="middle" class="small" font-weight="700">BLOCKED: SubscriptionRequiredException</text>
+<path class="line" d="M640 662 H660 V635 H680"/><path class="line dash" d="M660 662 V742 H680"/>
+
+<rect x="970" y="625" width="195" height="74" rx="10" class="green"/><text x="1067" y="654" text-anchor="middle" class="label">Candidate extraction</text><text x="1067" y="677" text-anchor="middle" class="small">taxonomy · regex · dates</text>
+<rect x="1200" y="625" width="155" height="74" rx="10" class="green"/><text x="1277" y="654" text-anchor="middle" class="label">SQS score queue</text><text x="1277" y="677" text-anchor="middle" class="small">candidate IDs</text>
+<rect x="1390" y="625" width="145" height="74" rx="10" class="green"/><text x="1462" y="654" text-anchor="middle" class="label">Score Lambda</text><text x="1462" y="677" text-anchor="middle" class="small">50 / 30 / 20</text>
+<path class="line" d="M930 635 H970"/><path class="line" d="M1165 662 H1200"/><path class="line" d="M1355 662 H1390"/>
+
+<rect x="970" y="735" width="195" height="65" rx="10" class="node"/><text x="1067" y="761" text-anchor="middle" class="label">Parsed JSON in S3</text><text x="1067" y="783" text-anchor="middle" class="small">audit artifact</text>
+<path class="line" d="M1067 699 V735"/>
+<text x="1200" y="765" class="small">Score writes candidate</text><text x="1200" y="785" class="small">result to DynamoDB</text>
+
+<!-- Recovery -->
+<rect x="65" y="835" width="255" height="65" rx="10" class="gray"/><text x="192" y="861" text-anchor="middle" class="label">SQS dead-letter queues</text><text x="192" y="883" text-anchor="middle" class="small">parse · JD · score</text>
+<rect x="360" y="835" width="250" height="65" rx="10" class="node"/><text x="485" y="861" text-anchor="middle" class="label">DLQ consumer Lambda</text><text x="485" y="883" text-anchor="middle" class="small">persist failure details</text>
+<rect x="650" y="835" width="240" height="65" rx="10" class="green"/><text x="770" y="861" text-anchor="middle" class="label">DynamoDB failed jobs</text><text x="770" y="883" text-anchor="middle" class="small">OPEN / retry history</text>
+<path class="line dash" d="M550 699 V815 H192 V835"/><path class="line" d="M320 867 H360"/><path class="line" d="M610 867 H650"/>
+
+<!-- Status footer -->
+<rect x="35" y="960" width="1530" height="125" rx="16" class="panel"/>
+<rect x="55" y="980" width="455" height="85" rx="11" class="green"/>
+<text x="78" y="1012" class="label">LIVE-OBSERVED</text><text x="78" y="1037" class="small">Recruiter UI · JD parsed · DOCX path · 3 scores</text>
+<rect x="535" y="980" width="495" height="85" rx="11" class="amber"/>
+<text x="558" y="1012" class="label">BLOCKED IN CURRENT DEV ACCOUNT</text><text x="558" y="1037" class="small">PDF/Textract call returns SubscriptionRequiredException</text>
+<rect x="1055" y="980" width="490" height="85" rx="11" class="gray"/>
+<text x="1078" y="1012" class="label">NOT ACCEPTED / NOT PRODUCTION</text><text x="1078" y="1037" class="small">Full live E2E, PDF/OCR and production readiness remain open</text>
 </svg>
