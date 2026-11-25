@@ -371,7 +371,6 @@ Resources:
           UPLOADS_BUCKET: !Ref UploadsBucket
           SCORE_QUEUE_URL: !Ref ScoreQueue
           PARSER_VERSION: !Ref ParserVersion
-          CUSTOM_RECOGNIZER_ARN: !Ref CustomRecognizerArn
       Policies:
         - Statement:
             - Effect: Allow
@@ -401,7 +400,6 @@ Resources:
               Action: [textract:StartDocumentTextDetection, textract:GetDocumentTextDetection]
               Resource: '*'
             - Effect: Allow
-              Action: [comprehend:DetectEntities, comprehend:BatchDetectEntities]
               Resource: '*'
       Events:
         JdQueueEvent:
