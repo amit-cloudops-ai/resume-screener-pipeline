@@ -73,7 +73,7 @@ def split_utf8(text: str, limit: int = 4800) -> list[str]:
     for char in text:
         size = len(char.encode("utf-8"))
         if size > limit:
-            raise ValueError("Comprehend chunk limit is smaller than one UTF-8 codepoint")
+            raise ValueError("Text chunk limit is smaller than one UTF-8 codepoint")
         if used + size > limit:
             chunks.append("".join(current))
             current, used = [], 0
