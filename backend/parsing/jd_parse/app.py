@@ -170,7 +170,7 @@ def lambda_handler(event, context):
             try:
                 _, key = parse_s3_notification(record["body"])
                 job_id = key.split("/", 2)[1]
-                _record_failure(clients[6], clients[4], job_id, key, message_id, exc)
+                _record_failure(clients[5], clients[3], job_id, key, message_id, exc)
             except Exception:
                 logger.exception("permanent JD failure could not be recorded message_id=%s", message_id)
                 failures.append({"itemIdentifier": message_id})
