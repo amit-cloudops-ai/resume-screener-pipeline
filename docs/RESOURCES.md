@@ -1,48 +1,57 @@
 # RESOURCES — AWS inventory, ownership and teardown
 
-## Inventory status — 24 November 2026
+**Last updated:** 25 November 2026  
+**Region:** us-east-1  
+**Inventory quality:** partial, based on stack outputs/resource names and live application evidence shared during development. This is not a complete fresh account-wide inventory.
 
-**The AWS account has not been inventoried in this work session.** No stack IDs, API URLs, CloudFront URLs, Cognito IDs or manual-resource ARNs have been recorded in `docs/STATE.md`. Therefore, the planned resources below must not be interpreted as proof that they exist or do not exist.
+## 1. Observed development resources
 
-Before the first deployment, inspect the AWS account in `us-east-1` and record any pre-existing `rs-` resources. After deployment, record every stack ID and output URL in `docs/STATE.md`. Any resource created outside `infra/template.yaml` must be recorded in section 2 immediately.
-
-Tag supported resources with `Project=resume-screener` and `Stage=dev|prod`. CloudFormation stack tags are propagated only to resource types that support tagging; retain resource names, ARNs and region for services without resource-level tags.
-
-## 1. Stack-owned resources (intended inventory; existence not verified)
-
-| Stack | Expected ownership | Existence |
+| Resource | Observed identifier/value | Evidence / qualification |
 |---|---|---|
-| `rs-dev` | S3 x2, DynamoDB x3, SQS x6, Lambda functions, Cognito pool/client/group, API Gateway, CloudFront, alarms, SNS, log groups and IAM roles | NOT VERIFIED |
-| `rs-prod` | Same resource families as dev, isolated by stage | NOT VERIFIED |
+| CloudFormation stack | `rs-dev` | Last previously confirmed `UPDATE_COMPLETE` at 2026-11-25 03:10:15 UTC; later frontend publish did not update the stack |
+| Frontend S3 bucket | `rs-dev-frontend-924422830139` | Frontend assets synced successfully |
+| Uploads S3 bucket | `rs-dev-uploads-924422830139` | Used by the development upload flow |
+| CloudFront distribution | `E3NI28CL1V2SX4` | Invalidation status verified `Completed` |
+| CloudFront URL | https://d2sdkmafcw9mpe.cloudfront.net | Recruiter UI observed |
+| API Gateway ID | `pidp0mxkc6` | API endpoint below |
+| API URL | https://pidp0mxkc6.execute-api.us-east-1.amazonaws.com/v1/ | Previously recorded stack output |
+| Cognito user pool | `us-east-1_ItQy4aUwI` | Recruiter sign-in observed |
+| DynamoDB tables | `rs-dev-jobs`, `rs-dev-candidates`, `rs-dev-failed-jobs` | Previously recorded live inventory |
+| SQS queues | `rs-dev-jd-queue`, `rs-dev-score-queue`, `rs-dev-parse-queue` | Queue attributes inspected during resume test |
+| Lambda log groups | `/aws/lambda/rs-dev-parse`, `/aws/lambda/rs-dev-score` | Logs inspected during resume test |
+| Test job | `474d8d653e9c` | DevOps Engineer – Barclays (Pune); keep test data until retention/cleanup is deliberately reviewed |
 
-Stack IDs / URLs: fill in `docs/STATE.md` → "Deployed environment facts" only after successful deployment.
+This table is not proof that every listed resource is still present or that the full stack is at the latest integration commit. Re-run read-only AWS inventory commands before any future deployment or teardown.
 
-## 2. Manual resources (planned or created outside the stack)
+## 2. Production boundary
 
-The rows below are known manual-resource categories from the project plan. Their existence is currently **NOT VERIFIED**. Change the status to `CREATED` only after confirming the resource in AWS and recording its ARN/name. Do not delete a resource based only on its presence in this planning table.
+- `rs-prod` was not changed by the 25 November closeout.
+- No production stack deployment, promotion, resource deletion or cleanup was performed.
+- Do not infer that a production stack exists merely because the template supports a `prod` stage.
+- Verify production resource existence and state separately before any operation.
 
-| Resource | Region | Owner/task | Cost risk | Existence | Delete how |
-|---|---|---|---|---|---|
-| SES verified sender and demo-recipient identities | us-east-1 | Amit / P5 | No direct identity charge | NOT VERIFIED | SES → Verified identities → select identity → Delete |
-| AWS Budget and email notifications | Global | Amit / P9 | No direct budget charge | NOT VERIFIED | Billing → Budgets → select budget → Delete |
-| Cognito recruiter users created outside the stack | us-east-1 | Amit / P3 | No direct user charge at expected scale | NOT VERIFIED | Delete users from the user pool; deleting the pool removes its users |
+## 3. Manual resources and account-level items
 
-Add rows for every manual resource created. Record the exact physical resource identifier, region, creation date, owner/task and deletion status. Never store secrets or credentials here.
+The existence of SES identities, SNS subscriptions, AWS Budgets, SAM artifact buckets, IAM users/roles created outside CloudFormation and other manual resources has not been comprehensively re-inventoried in this closeout. Verify each exact resource identifier before changing or deleting it.
 
-## 3. Teardown order (only after submission is accepted)
+| Resource category | Status |
+|---|---|
+| SES sender identity / production sending approval | Not verified for live mail |
+| AWS Budget and notification subscription | Template/configuration exists; live subscription not re-verified in this closeout |
+| SAM-managed artifact bucket | Not freshly inventoried |
+| Additional manual AWS resources | Not freshly inventoried |
 
-1. Confirm the exact resources to remove from sections 1 and 2. Do not assume both stacks or all manual resources exist.
-2. Empty uploads and frontend S3 buckets for each deployed stage.
-3. CloudFormation cannot delete non-empty S3 buckets; confirm each bucket's retention/backup policy before emptying it.
-4. Delete deployed application stacks in reverse environment order: `rs-prod`, then `rs-dev`. Wait for `DELETE_COMPLETE`. If deletion fails, inspect CloudFormation Events and resolve the named resource.
-5. Delete confirmed manual SES identities, budgets and other resources that remain.
-6. Check for SAM artifact buckets created by `--resolve-s3` (often associated with `aws-sam-cli-managed-default`); empty and remove only if confirmed and no longer needed.
-7. Verify the account inventory and billing after cleanup.
+Never store access keys, secret values, Cognito tokens or candidate PII in this file.
 
-## 4. Verification (proof of cleanup)
+## 4. Teardown — do not execute without a separate approval
 
-- Resource Groups & Tag Editor → Tag Editor → all regions/resource types → filter `Project = resume-screener`; confirm zero remaining tagged resources.
-- Search for `rs-` resources in S3, DynamoDB, SQS, Lambda, CloudFront, Cognito and CloudWatch log groups.
-- Inspect manually created S3 buckets separately because not every resource type necessarily supports the same tagging workflow.
-- Check Billing → Cost Explorer grouped by service again after 24–48 hours for residual CloudFront, Lambda or storage charges.
-- Record the verification date and result in this file before declaring cleanup complete.
+1. Confirm exact stack-owned and manual resources from a fresh AWS inventory.
+2. Confirm retention and backup requirements for uploaded resumes, parsed artifacts, jobs and candidates.
+3. Empty an S3 bucket only after its contents and retention obligations have been reviewed.
+4. Delete only the explicitly approved stack/environment; do not assume both `rs-dev` and `rs-prod` should be removed.
+5. Confirm CloudFormation reaches `DELETE_COMPLETE`; inspect events for failures.
+6. Recheck for SAM artifact buckets and manually created resources.
+7. Review Billing/Cost Explorer after 24–48 hours for residual charges.
+8. Record the exact verification date and result.
+
+**No cleanup is part of the current project closeout.** Existing dev resources and the live test job are preserved.
