@@ -28,27 +28,9 @@ An AWS-based, event-driven resume screening application. Recruiters create a job
 
 Editable diagram source: [docs/architecture.mmd](docs/architecture.mmd). A high-resolution architecture image is also provided at [docs/architecture/current-deployed-architecture.png](docs/architecture/current-deployed-architecture.png).
 
-## Product screenshots
+## Product screenshots and high-resolution architecture image
 
-The following captures document the recruiter-facing development UI as observed on 25 November 2026. Extract the repository asset bundle from `resume-screener-repo-assets.zip` at the repository root to populate these paths.
-
-![Recruiter workspace overview](docs/screenshots/01-dashboard-overview.png)
-
-| Workflow | Screenshot |
-|---|---|
-| Active jobs and role summary | ![Active jobs](docs/screenshots/02-active-jobs-and-role-summary.png) |
-| Candidate review table | ![Candidate review](docs/screenshots/03-candidate-review-table.png) |
-| Create role | ![Create role](docs/screenshots/04-create-role-dialog.png) |
-| Batch resume upload | ![Batch upload](docs/screenshots/06-batch-resume-upload-dialog.png) |
-| Candidate profile | ![Candidate profile](docs/screenshots/07-candidate-profile-panel.png) |
-| Score explanation | ![Score explanation](docs/screenshots/08-score-explanation-panel.png) |
-
-Screenshot evidence and limitations: [docs/screenshots/README.md](docs/screenshots/README.md).
-
-The current parser uses:
-- **DOCX:** `python-docx` paragraph and table extraction, followed by deterministic Python extraction.
-- **PDF:** Amazon Textract asynchronous text detection, followed by deterministic Python extraction. This path is currently blocked in the development account by the service-access error documented below.
-- **NLP / field derivation:** deterministic Python taxonomy, regex and date-range logic. Amazon Comprehend was removed from the integration implementation; it is not a runtime dependency in the current integration code.
+A repository-ready asset bundle has been prepared separately as `resume-screener-repo-assets.zip`. Extract it at the repository root to add the eight dated dashboard captures under `docs/screenshots/` and the supplied high-resolution architecture image under `docs/architecture/current-deployed-architecture.png`. The bundle includes an image index, evidence notes and README insertion guidance. Until that ZIP is extracted and committed, those raster assets are not yet part of the Git history; the editable SVG architecture diagram above is already in the repository.
 
 ## Implemented application capabilities
 
@@ -98,8 +80,9 @@ Amazon Comprehend was removed from the integration implementation in favour of d
 | `docs/PROJECT_CLOSEOUT.md` | Mentor-ready project closeout and limitations |
 | `docs/architecture.mmd` | Editable Mermaid architecture source |
 | `docs/architecture.svg` | Architecture diagram included in this README |
-| `docs/architecture/current-deployed-architecture.png` | High-resolution architecture overview |
-| `docs/screenshots/` | Recruiter dashboard and workflow screenshots |
+| `docs/architecture.svg` | Current architecture diagram included above |
+| `docs/architecture.mmd` | Editable Mermaid architecture source |
+| `docs/screenshots/` and `docs/architecture/current-deployed-architecture.png` | Supplied in the separate repository asset ZIP; add by extracting at repository root |
 | `docs/RESOURCES.md` | AWS resource inventory and cleanup guidance |
 
 ## Verification
