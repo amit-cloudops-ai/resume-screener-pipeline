@@ -105,11 +105,10 @@ Amazon Comprehend was removed from the integration implementation in favour of d
 | `tests/e2e/` | Guarded live smoke test and offline checks |
 | `docs/STATE.md` | Current evidence-based status |
 | `docs/PROJECT_CLOSEOUT.md` | Mentor-ready project closeout and limitations |
-| `docs/architecture.mmd` | Editable Mermaid architecture source |
-| `docs/architecture.svg` | Architecture diagram included in this README |
-| `docs/architecture.svg` | Current architecture diagram included above |
-| `docs/architecture.mmd` | Editable Mermaid architecture source |
-| `docs/screenshots/` and `docs/architecture/current-deployed-architecture.png` | Supplied in the separate repository asset ZIP; add by extracting at repository root |
+| `docs/architecture.mmd` and `docs/architecture.svg` | Editable Mermaid source and rendered architecture diagram |
+| `docs/architecture/current-deployed-architecture.png` | High-resolution architecture image displayed at the top of this README |
+| `docs/screenshots/` | Dated dashboard screenshots and evidence index |
+| `docs/CONTRIBUTIONS.md` | Verified teammate contribution record with original commit links |
 | `docs/RESOURCES.md` | AWS resource inventory and cleanup guidance |
 
 ## Verification
