@@ -1,0 +1,13 @@
+ETHAN BROOKS
+ethan.brooks@example.com
+PROFESSIONAL SUMMARY
+Platform Engineer with practical experience delivering reliable software and production systems.
+PROFESSIONAL EXPERIENCE
+Platform Engineer | Redwood Infrastructure
+Jul 2020 - Dec 2025
+Selected responsibilities include building, operating, improving and documenting production services.
+TECHNICAL SKILLS
+docker; kubernetes; helm; argocd; prometheus; grafana
+EDUCATION
+Bachelor of Engineering | Example Institute
+All names, contact details, employers and education records in this sample are fictional.

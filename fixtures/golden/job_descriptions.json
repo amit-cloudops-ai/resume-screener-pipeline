@@ -1,0 +1,62 @@
+{
+  "dataset_version": "1.0.0",
+  "jobs": [
+    {
+      "id": "JD01",
+      "title": "DevOps Engineer",
+      "description": "We need a DevOps Engineer with AWS, Docker, Kubernetes, Terraform, Python, Linux, CI/CD, GitHub Actions and Jenkins experience. Minimum 4 years.",
+      "required_skills": [
+        "aws",
+        "docker",
+        "kubernetes",
+        "terraform",
+        "python",
+        "linux",
+        "ci/cd",
+        "github actions",
+        "jenkins"
+      ],
+      "jd_titles": [
+        "devops engineer"
+      ],
+      "required_years": 4,
+      "expected_top_candidate": "R01"
+    },
+    {
+      "id": "JD02",
+      "title": "Data Engineer",
+      "description": "We need a Data Engineer skilled in Python, SQL, AWS, Apache Spark, Apache Airflow and PostgreSQL. Minimum 3 years.",
+      "required_skills": [
+        "python",
+        "sql",
+        "aws",
+        "apache spark",
+        "apache airflow",
+        "postgresql"
+      ],
+      "jd_titles": [
+        "data engineer"
+      ],
+      "required_years": 3,
+      "expected_top_candidate": "R05"
+    },
+    {
+      "id": "JD03",
+      "title": "Software Engineer",
+      "description": "We need a Software Engineer with Python, Java, PostgreSQL, REST API, Docker and AWS experience. Minimum 4 years.",
+      "required_skills": [
+        "python",
+        "java",
+        "postgresql",
+        "rest api",
+        "docker",
+        "aws"
+      ],
+      "jd_titles": [
+        "software engineer"
+      ],
+      "required_years": 4,
+      "expected_top_candidate": "R09"
+    }
+  ]
+}

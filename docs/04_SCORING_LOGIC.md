@@ -2,10 +2,10 @@
 
 ## Extraction (Part A)
 1. Text: Textract (PDF) / python-docx (DOCX).
-2. Comprehend standard DetectEntities: PERSON -> name, ORGANIZATION -> employers, DATE -> experience periods.
-3. Comprehend custom entity recogniser: SKILL, JOB_TITLE (if enabled).
-4. Taxonomy normalisation (`skills_taxonomy.json`): lowercase, strip punctuation, alias -> canonical (e.g. "k8s" -> "kubernetes"). Taxonomy dictionary match also runs on raw text, so skills are found even if the recogniser misses them. Output skills are canonical, deduplicated, sorted.
-5. Email via regex; years via date-range union.
+2. Skills are extracted from raw text using the controlled `skills_taxonomy.json`, with alias-to-canonical normalisation and deterministic boundary matching.
+3. Job titles are extracted using conservative role/title patterns; the JD's submitted title remains the fallback when no title phrase is found.
+4. Email is extracted by regex. Employment duration is calculated by unioning explicit month/year or year-only date ranges; overlapping roles are not double-counted.
+5. Name and employer extraction use conservative line/label patterns. When evidence is absent, fields remain null/empty rather than being guessed. Extraction audit artifacts record the engine version and extracted fields, not provider-specific entity payloads.
 
 ## Score (Part B) — deterministic, explainable
 `final = round(100 * (0.50*skills + 0.30*title + 0.20*experience), 1)`
@@ -19,12 +19,12 @@
 **experience** = min(candidate_years / required_years, 1). required_years null or 0 -> 1.0. candidate_years null -> 0.
 
 **above_threshold** = final >= job.threshold (default 60).
-**score_breakdown** stores: each component score, weight, matched_skills, missing_skills, best_title_pair, years_counted, required_years, scorer_version. Rounded to 3 decimals for component scores.
+**score_breakdown** stores each component score and weight, `skills.matched`, `skills.missing`, `title.best_pair`, `experience.years_counted`, `experience.required_years`, and `scorer_version`. Component scores are rounded to 3 decimals. These field names match the frozen candidate schema.
 
 ## Why this is explainable / auditable
-Every number can be reproduced from the stored candidate + job rows and the breakdown. `parsed/{job}/{cand}.json` keeps raw Comprehend output. Decisions keep who/when history.
+Every number can be reproduced from the stored candidate + job rows and the breakdown. `parsed/{job}/{cand}.json` keeps the deterministic extraction audit artifact. Decisions keep who/when history.
 
 ## Enhancement ideas (for the written deliverable)
 1. Custom entity recogniser trained on real, annotated resumes (more skills, JOB_TITLE, certifications) with a continuous feedback loop from recruiter shortlist/reject.
-2. Sentiment / key-phrase analysis on cover letters (Comprehend DetectSentiment/DetectKeyPhrases) as a soft signal; plus semantic skill matching with embeddings (e.g. "container orchestration" ~ Kubernetes).
+2. Sentiment / key-phrase analysis on cover letters (external sentiment/key-phrase services) as a soft signal; plus semantic skill matching with embeddings (e.g. "container orchestration" ~ Kubernetes).
 3. Bias auditing: strip PERSON/gender/age/photo signals before scoring, log score distributions per group, and add recruiter-facing "why this score" explanations.

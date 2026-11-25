@@ -12,4 +12,47 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
+      - name: Validate deployment script syntax
+        run: bash -n scripts/deploy_frontend.sh
+      - name: Validate AWS preflight script syntax
+        run: bash -n scripts/aws_preflight.sh
       - run: make verify
+      - run: make golden-evaluate
+
+  sam-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install AWS SAM CLI and cfn-lint
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install aws-sam-cli cfn-lint
+      - name: Validate SAM template
+        run: sam validate --lint --template-file infra/template.yaml
+      - name: Build SAM application
+        run: sam build --template-file infra/template.yaml
+      - name: Upload SAM build template for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: sam-build-template
+          path: .aws-sam/build/template.yaml
+          if-no-files-found: error
+          retention-days: 1
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+      - name: Typecheck and build frontend
+        run: npm run build

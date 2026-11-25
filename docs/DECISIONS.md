@@ -17,7 +17,9 @@
 | D13 | candidate_id = first 16 hex of sha256(job_id + "/" + s3_key) | Idempotency |
 | D14 | Deploy by `make deploy-*` from Amit's machine; GitHub Actions runs tests only | Time; OIDC deploy = parking lot |
 | D15 | Default threshold 60, per-job override | Simple |
-| D16 | Visual design direction for dashboard: NOT yet chosen — Amit confirms before P6 starts | Amit's rule: confirm design before building |
+| D16 | Dashboard visual direction approved by Amit on 2026-11-24: A — Editorial Hiring Desk | Approval required before P6/P7 design; approval recorded in docs/PHASE_A_STEP6_DESIGN_REVIEW.md |
 | D17 | All AWS resources tagged Project=resume-screener; hand-made resources logged in docs/RESOURCES.md; teardown = delete stacks + section 2 items | One-pass, provable cleanup |
 | D18 | contracts/openapi.yaml is OpenAPI 3.1 (needed for JSON Schema type arrays/const via $ref) and is validated in `make verify` | Real validity, not just file presence |
 | D19 | `make verify` = repo check (no empty/missing files) + contract validation + tests; CI runs it on every PR | Guards against a broken import/commit |
+
+| D20 | Parsing uses deterministic local Python taxonomy/regex/date extraction; no managed NLP entity service or custom recognizer endpoint | Reproducibility, predictable cost and no external entity-model dependency; supersedes D11 and D12 |

@@ -1,0 +1,89 @@
+flowchart TB
+  subgraph Recruiter["Recruiter experience"]
+    USER["Recruiter"]
+    UI["React + Vite dashboard"]
+    AUTH["Amazon Cognito\nSRP sign-in · ID token"]
+    USER --> UI
+    UI <-->|"sign-in"| AUTH
+  end
+
+  subgraph Delivery["Web delivery and API"]
+    CF["Amazon CloudFront · HTTPS"]
+    WEB[("Private S3 frontend bucket")]
+    APIGW["API Gateway REST\nCognito authorizer"]
+    UI --> CF --> WEB
+    UI -->|"ID token"| APIGW
+  end
+
+  subgraph APIs["API Lambda handlers"]
+    JOBS["Jobs API"]
+    CAND["Candidates API"]
+    DEC["Decision API"]
+    EXPORT["CSV export API"]
+    FAILED["Failed-jobs API"]
+    APIGW --> JOBS
+    APIGW --> CAND
+    APIGW --> DEC
+    APIGW --> EXPORT
+    APIGW --> FAILED
+  end
+
+  subgraph Storage["Data and object storage"]
+    JOBTABLE[("DynamoDB jobs")]
+    CANDTABLE[("DynamoDB candidates")]
+    FAILTABLE[("DynamoDB failed jobs")]
+    UPLOADS[("Private S3 uploads bucket\nJD · resumes · parsed JSON")]
+    JOBS --> JOBTABLE
+    JOBS -->|"presigned upload"| UPLOADS
+    CAND --> CANDTABLE
+    CAND --> JOBTABLE
+    DEC --> CANDTABLE
+    EXPORT --> CANDTABLE
+    FAILED --> FAILTABLE
+  end
+
+  subgraph Pipeline["Event-driven processing"]
+    JDOBJ["JD upload"] --> JDQ[["SQS JD queue"]] --> JDP["JD parse Lambda"]
+    RESOBJ["Resume upload"] --> PARSEQ[["SQS parse queue"]] --> PARSE["Resume parse Lambda"]
+    UPLOADS --> JDOBJ
+    UPLOADS --> RESOBJ
+    JDP -->|"DOCX / text extraction\nPDF uses Textract"| NLPJD["Deterministic Python NLP\nskills · title · experience"]
+    PARSE --> DOCX["DOCX: python-docx\nworking in live dev"]
+    PARSE --> PDF["PDF: Amazon Textract\nBLOCKED in live dev"]
+    DOCX --> NLPRES["Deterministic Python NLP\nprofile · skills · experience"]
+    PDF --> NLPRES
+    NLPJD --> JOBTABLE
+    NLPRES --> CANDTABLE
+    NLPRES --> ARTIFACT["Parsed JSON artifact in S3"]
+    NLPRES --> SCOREQ[["SQS score queue"]]
+    JDP --> SCOREQ
+    SCOREQ --> SCORE["Score Lambda\n50% skills · 30% title · 20% experience"]
+    JOBTABLE --> SCORE
+    CANDTABLE --> SCORE
+    SCORE --> CANDTABLE
+  end
+
+  subgraph Recovery["Recovery and operations"]
+    DLQS[["Parse · JD · Score DLQs"]]
+    DLQ["DLQ consumer Lambda"]
+    DLQ --> FAILTABLE
+    PARSEQ -.-> DLQS
+    SCOREQ -.-> DLQS
+    JDQ -.-> DLQS
+    CW["CloudWatch logs / metrics / alarms"]
+    BUDGET["AWS Budget alert"]
+    SNS["SNS notifications (configured conditionally)"]
+    SES["SES shortlist email\nnot live-verified"]
+    APIs --> CW
+    Pipeline --> CW
+    CW --> SNS
+    BUDGET -.-> SNS
+    DEC -.-> SES
+  end
+
+  classDef live fill:#e8f0e8,stroke:#315b43,color:#183d2a,stroke-width:1.5px
+  classDef blocked fill:#fff0d8,stroke:#b77b22,color:#6b4610,stroke-width:2px
+  classDef unverified fill:#eef0f2,stroke:#77818b,color:#303840
+  class UI,AUTH,CF,WEB,APIGW,JOBS,CAND,DEC,EXPORT,FAILED,JOBTABLE,CANDTABLE,FAILTABLE,UPLOADS,JDQ,PARSEQ,DOCX,NLPJD,NLPRES,SCOREQ,SCORE,DLQ,CW live
+  class PDF blocked
+  class SES,SNS,BUDGET unverified

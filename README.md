@@ -1,40 +1,127 @@
 # AI Resume Screener & Talent Acquisition Pipeline
 
-Automated, auditable resume screening on AWS. Recruiters upload a job description and a batch of resumes (PDF/DOCX); Amazon Textract and Amazon Comprehend (managed NLP + a custom entity recogniser) extract entities and skills; a deterministic, explainable scoring model ranks candidates; the recruiter shortlists in a dashboard, which emails the candidate via SES and exports CSV.
+An AWS-based, event-driven resume screening application. Recruiters create a job, submit a job description, upload resumes, and review extracted candidate profiles and explainable match scores.
 
-**Status:** foundation only (docs, frozen contracts, fixtures, CI). Infrastructure, backend and frontend are not built yet. Live status: [`docs/STATE.md`](docs/STATE.md).
+> **Project closeout snapshot — 25 November 2026**
+>
+> This repository records the implementation and live development demonstration completed so far. The project is a **working development prototype with a documented PDF/OCR service-access blocker**. It is not represented as a fully accepted or production-ready hiring system.
 
-## Where to start
-| You are | Read |
+## Current status at a glance
+
+| Area | Evidence-based status |
 |---|---|
-| A teammate | [`docs/TEAMMATE_QUICKSTART.md`](docs/TEAMMATE_QUICKSTART.md) |
-| Amit (setup) | [`docs/SETUP_CHECKLIST.md`](docs/SETUP_CHECKLIST.md) |
-| An AI assistant | [`AGENTS.md`](AGENTS.md) first, then paste [`docs/prompts/SESSION_STARTER.md`](docs/prompts/SESSION_STARTER.md) |
+| Recruiter sign-in and dashboard | Observed working in the deployed development frontend |
+| Job creation and JD parsing | Observed working; Barclays DevOps Engineer (Pune) job displayed as `JD PARSED` |
+| Resume upload | Nine valid synthetic resumes uploaded to the dev job |
+| DOCX extraction and candidate scoring | Three DOCX candidates extracted and scored in the live dev environment |
+| PDF extraction / scanned PDF OCR | Blocked: live Textract call returns `SubscriptionRequiredException` |
+| Candidate scoring | Three live scores observed; deterministic scoring implementation and unit tests exist |
+| Frontend publishing | Build/typecheck passed, S3 sync succeeded, CloudFront invalidation reached `Completed` |
+| Full live E2E acceptance | Not passed; six PDF candidates remained in `PARSING` during the observed run |
+| Production | Not deployed or promoted by this closeout |
 
-## Repo map
-| Path | Purpose |
-|---|---|
-| `docs/00_BRIEF.md` | What we build, scope, deliverables, what "production" means |
-| `docs/01_ARCHITECTURE.md` | Locked architecture, resource names, AWS gotchas |
-| `docs/02_DEFINITION_OF_DONE.md` | The finish line (evidence-based checklist) |
-| `docs/03_WORK_SPLIT.md` | Three parts, task IDs, ownership |
-| `docs/04_SCORING_LOGIC.md` | Extraction + scoring spec |
-| `docs/05_TIMELINE.md` | Dates and gates (submit 25 Nov 2026) |
-| `docs/STATE.md`, `DECISIONS.md`, `RISKS.md`, `RESOURCES.md` | Live status, locked decisions, risks, AWS resource ledger + teardown |
-| `contracts/` | Frozen OpenAPI 3.1, JSON schemas, SQS messages |
-| `fixtures/` | Sample jobs/candidates/failures (and later golden resumes) |
-| `infra/` `backend/` `frontend/` `tests/` | Implementation areas |
+**Observed live test:** 9 valid synthetic resumes uploaded to job `474d8d653e9c`; 3 DOCX candidates reached `SCORED`; 6 PDF candidates remained `PARSING`. Parse-queue metrics showed 6 messages not visible and 0 visible. Parse Lambda logs showed Textract `StartDocumentTextDetection` failing with `SubscriptionRequiredException`. Score queue was empty at the time of inspection.
 
-## Commands
-```bash
-make verify        # repo check + contract validation + tests (must be green before every commit)
-make deploy-dev    # sam build + deploy stack rs-dev  (needs infra/template.yaml, task P2)
-make deploy-prod   # stack rs-prod
-make smoke STAGE=prod
+## Architecture
+
+![Current development architecture](docs/architecture.svg)
+
+Editable diagram source: [docs/architecture.mmd](docs/architecture.mmd).
+
+The current parser uses:
+- **DOCX:** `python-docx` paragraph and table extraction, followed by deterministic Python extraction.
+- **PDF:** Amazon Textract asynchronous text detection, followed by deterministic Python extraction. This path is currently blocked in the development account by the service-access error documented below.
+- **NLP / field derivation:** deterministic Python taxonomy, regex and date-range logic. Amazon Comprehend was removed from the integration implementation; it is not a runtime dependency in the current integration code.
+
+## Implemented application capabilities
+
+- Recruiter authentication with Amazon Cognito SRP flow.
+- React, Vite and TypeScript recruiter workspace delivered through CloudFront and a private S3 frontend origin.
+- Job creation, JD upload/text input, job listing and job details.
+- Presigned S3 resume uploads with file validation and per-file progress.
+- S3 event notifications and SQS-driven asynchronous JD/resume processing.
+- DOCX extraction using `python-docx`.
+- Deterministic skill taxonomy, email/name/title/employer derivation and experience-range extraction.
+- Candidate persistence and parsed JSON artifacts in S3.
+- Deterministic explainable scoring: 50% skills, 30% title and 20% experience.
+- Candidate listing/detail, search/filtering, shortlist/reject workflow and shortlist CSV export.
+- Failed-job records, retry API and SQS dead-letter queue consumer.
+- CloudWatch logs/metrics and infrastructure definitions for alarms and AWS Budget notifications.
+- CI verification, SAM template validation/build, synthetic fixtures and golden evaluation.
+
+See [docs/PROJECT_CLOSEOUT.md](docs/PROJECT_CLOSEOUT.md) for the detailed implementation inventory, live evidence, known limitations and next steps.
+
+## AWS service-access limitation
+
+The live development parser invoked:
+
+```text
+textract.start_document_text_detection(...)
+SubscriptionRequiredException:
+The AWS Access Key Id needs a subscription for the service
 ```
 
-## Architecture in one paragraph
-S3 (`jd/`, `resumes/` prefixes) -> SQS -> Lambda: Textract (PDF) / python-docx (DOCX) -> Comprehend -> DynamoDB -> score queue -> scoring Lambda -> DynamoDB. API Gateway (Cognito authorizer) + Lambdas serve a React dashboard hosted on S3 + CloudFront. DLQs + a failed_jobs table capture failures; SES emails shortlisted candidates. Region us-east-1, IaC with AWS SAM (stacks `rs-dev`, `rs-prod`).
+This is an account/service-access failure returned by the Textract API. The available evidence does **not** establish that Textract is categorically unavailable on AWS Free Tier, nor does it identify the precise account eligibility or enrollment cause. The repository therefore records the observed error without making a blanket Free Tier claim.
 
-## Teardown
-Everything created by hand is logged in [`docs/RESOURCES.md`](docs/RESOURCES.md), with the exact delete order. All resources are tagged `Project=resume-screener`.
+Amazon Comprehend was removed from the integration implementation in favour of deterministic Python extraction. Textract remains in the current PDF parsing path. A future cost-conscious improvement is to extract text locally from digital PDFs and use a separately packaged local OCR engine for scanned PDFs, eliminating the Textract runtime dependency. That alternative has **not** been implemented or deployed in this snapshot.
+
+## Repository map
+
+| Path | Purpose |
+|---|---|
+| `backend/parsing/` | Resume/JD parsing, deterministic NLP, taxonomy and DLQ consumer |
+| `backend/scoring/` | Deterministic scoring library and SQS scoring Lambda |
+| `backend/api/` | Jobs, candidates, decisions, export and failed-job APIs |
+| `infra/template.yaml` | AWS SAM infrastructure |
+| `frontend/` | React/Vite recruiter application |
+| `contracts/` | OpenAPI, JSON and SQS contracts |
+| `fixtures/` | Synthetic job, resume, candidate and failure fixtures |
+| `tests/e2e/` | Guarded live smoke test and offline checks |
+| `docs/STATE.md` | Current evidence-based status |
+| `docs/PROJECT_CLOSEOUT.md` | Mentor-ready project closeout and limitations |
+| `docs/architecture.mmd` | Editable Mermaid architecture source |
+| `docs/architecture.svg` | Architecture diagram included in this README |
+| `docs/RESOURCES.md` | AWS resource inventory and cleanup guidance |
+
+## Verification
+
+Repository CI and local tests are distinct from live AWS acceptance. Historical CI evidence is recorded in [docs/STATE.md](docs/STATE.md) and [docs/PROJECT_CLOSEOUT.md](docs/PROJECT_CLOSEOUT.md). The repository includes:
+
+```bash
+pip install -r requirements-dev.txt
+make golden-generate
+make verify
+make sam-validate
+make sam-build
+```
+
+A successful unit test, Moto integration test or SAM build does not prove that the deployed AWS account can access every managed service.
+
+## Development deployment
+
+The observed development frontend is:
+
+- URL: https://d2sdkmafcw9mpe.cloudfront.net
+- CloudFront distribution: `E3NI28CL1V2SX4`
+- Frontend bucket: `rs-dev-frontend-924422830139`
+- Region: `us-east-1`
+- Stack: `rs-dev`
+
+The frontend publish command completed successfully on 25 November 2026. CloudFront invalidation status was verified as `Completed`.
+
+The previously recorded API endpoint is `https://pidp0mxkc6.execute-api.us-east-1.amazonaws.com/v1/`. Treat deployed backend code/version as **not reconciled to the latest integration commit** until the stack/template and Lambda code versions are checked. The live DOCX success and Textract failure above are runtime observations, not proof that every component from the current branch is deployed.
+
+**Production boundary:** `rs-prod` was not changed by this closeout. No production promotion, production deployment, resource deletion or database/queue cleanup was performed.
+
+## Security, cost and operational notes
+
+- Do not commit AWS credentials, Cognito tokens, real resumes or candidate personal data.
+- The test resumes used for the live demonstration are fictional synthetic records.
+- The AWS Budget is an alert threshold, not a hard spending cap.
+- Review actual account usage and current AWS pricing before enabling managed services or increasing test volume.
+- Resume screening is decision support. Human review and a fairness/bias assessment are required before operational hiring use.
+- Confirm retention/deletion requirements for candidate records and JD artifacts before production use.
+
+## Project status
+
+**Suitable for an interim mentor demonstration and repository review.** The deployed dev application demonstrates recruiter access, JD parsing, DOCX resume processing and candidate scoring. PDF/OCR processing is blocked by the recorded Textract service-access error; complete live E2E acceptance and production readiness remain open.
