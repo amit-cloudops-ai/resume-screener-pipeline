@@ -3,7 +3,7 @@
 **Incident window:** 24 November 2026 (UTC)  
 **Affected stage:** `rs-dev`  
 **Task:** A8 — DLQ consumer Lambda  
-**Status:** Code correction proposed; CI and live deployment evidence pending.
+**Status:** Code correction verified by local `make verify` (167 passed) and GitHub Actions CI run #221; PR #15 approved for merge. Live `rs-dev` deployment and acceptance remain pending.
 
 ## Observed impact
 
@@ -40,9 +40,9 @@ The A8 correction:
 
 ## Verification and release gates
 
-- [ ] GitHub Actions `make verify` passes on this branch.
-- [ ] Review PR diff and CI results.
-- [ ] Merge only after human approval.
+- [x] GitHub Actions `make verify` passes on this branch (run #221; commit `b9be4d9788200e6b94129665dc55a691a7ef38ac`).
+- [x] Review PR diff and CI results; no contract or SAM resource changes.
+- [x] Human approval to merge received; merge operation is the next repository action.
 - [ ] Deploy only to `rs-dev` after explicit approval.
 - [ ] Verify deployed Lambda package hash/configuration matches the merged artifact.
 - [ ] Exercise controlled parse, JD and score DLQ fixtures in dev and inspect diagnostic logs.
