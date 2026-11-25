@@ -315,7 +315,6 @@ Resources:
       CodeUri: ../backend/parsing/
       Handler: parse.app.lambda_handler
       Timeout: 120
-      ReservedConcurrentExecutions: 5
       Environment:
         Variables:
           CANDIDATES_TABLE: !Ref CandidatesTable
