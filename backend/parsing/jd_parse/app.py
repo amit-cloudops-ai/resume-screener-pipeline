@@ -18,7 +18,7 @@ try:
     )
 except ImportError:
     from common import (
-        PermanentDocumentError, TransientProcessingError, comprehend_entities,
+        PermanentDocumentError, TransientProcessingError,
         derive_fields, extract_document_text, parse_s3_notification, utc_now,
     )
 
